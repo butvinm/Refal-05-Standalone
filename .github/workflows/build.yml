@@ -69,6 +69,7 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Configure compiler
+      shell: cmd
       run: |
         echo @echo off > c-plus-plus.conf.bat
         echo set R05CCOMP=cl /EHcs /W3 /wd4996 /O2 >> c-plus-plus.conf.bat
