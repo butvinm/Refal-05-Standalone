@@ -6,7 +6,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$SCRIPT_DIR"
 
-source "$PROJECT_ROOT/lib/c-plus-plus.conf.sh"
+source "$PROJECT_ROOT/c-plus-plus.conf.sh"
 
 echo "Running Refal-05 autotests"
 echo ""
