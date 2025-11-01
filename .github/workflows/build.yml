@@ -70,7 +70,7 @@ jobs:
 
     - name: Configure compiler
       run: |
-        copy src\c-plus-plus.conf.bat.template c-plus-plus.conf.bat
+        echo @echo off > c-plus-plus.conf.bat
         echo set R05CCOMP=cl /EHcs /W3 /wd4996 /O2 >> c-plus-plus.conf.bat
 
     - name: Build Refal-05 compiler
