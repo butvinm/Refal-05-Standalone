@@ -1,0 +1,50 @@
+name: Build Refal-05
+
+on:
+  push:
+    branches: [ master, bootstrap ]
+  pull_request:
+    branches: [ master, bootstrap ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
+    - name: Build Refal-05 compiler
+      run: make bin/refal05
+
+    - name: Verify compiler was built
+      run: |
+        test -f bin/refal05 || (echo "Compiler binary not found!" && exit 1)
+        ls -lh bin/refal05
+
+    - name: Upload compiler binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: refal05-linux
+        path: bin/refal05
+        retention-days: 90
+
+    - name: Upload bootstrap artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: bootstrap-artifacts
+        path: bootstrap/
+        retention-days: 90
+
+    - name: Display build information
+      run: |
+        echo "Build completed successfully!"
+        echo "Compiler: bin/refal05"
+        echo "Bootstrap artifacts in: bootstrap/"
+        ls -lh bootstrap/
