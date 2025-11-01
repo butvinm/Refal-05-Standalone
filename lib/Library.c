@@ -65,8 +65,7 @@ struct builtin_info {
   struct r05_function *type;
 };
 
-// Fix tentative definition for MSVC, keep during merge
-static struct builtin_info s_builtin_info[100];
+static struct builtin_info s_builtin_info[];
 
 
 static int chain_str_eq(
@@ -2025,8 +2024,7 @@ R05_DEFINE_LOCAL_ENUM(regular, "regular")
 
 R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin);
 
-// Fix tentative definition for MSVC, keep during merge
-static struct builtin_info s_builtin_info[100] = {
+static struct builtin_info s_builtin_info[] = {
 #define ALLOC_BUILTIN(id, function, type) \
   { id, &r05f_ ## function, &r05f_ ## type },
 
