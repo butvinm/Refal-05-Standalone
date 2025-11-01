@@ -42,6 +42,15 @@ jobs:
         path: bootstrap/
         retention-days: 90
 
+    - name: Upload test errors on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-errors
+        path: autotests/__error.txt
+        retention-days: 30
+        if-no-files-found: ignore
+
     - name: Display build information
       run: |
         echo "Build completed successfully!"

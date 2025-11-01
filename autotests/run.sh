@@ -1,99 +1,82 @@
 #!/bin/bash
+set -ex
 
-run_test_aux() {
-  echo Passing $1...
-  REF=$1
-  CFILE=${REF%%.ref}.c
-  EXE=${REF%%.ref}
-  SATELLITE=${REF%%.ref}.SATELLITE.ref
-  SATELLITEC=${REF%%.ref}.SATELLITE.c
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-  CLINE=$R05CCOMP
+cd "$SCRIPT_DIR"
 
-  R05CCOMP= R05PATH= ../bin/refal05c $REF 2>__error.txt
-  if [ $? -ge 200 ]; then
-    echo COMPILER ON $REF FAILS, SEE __error.txt
-    exit
-  fi
-  rm __error.txt
-  if [ ! -e $CFILE ]; then
-    echo COMPILATION FAILED
-    exit
-  fi
+source "$PROJECT_ROOT/lib/c-plus-plus.conf.sh"
 
-  if [ -e $SATELLITE ]; then
-    ../bin/refal05c $SATELLITE
-    if [ ! -e $SATELLITEC ]; then
-      echo COMPILATION FAILED
-      exit
-    fi
-  else
-    SATELLITEC=
-  fi
-
-  $CLINE -I../lib -o$EXE $CFILE $SATELLITEC ../lib/Library.c ../lib/refal05rts.c
-  if [ $? -gt 0 ]; then
-    echo COMPILATION FAILED
-    exit
-  fi
-
-  ./$EXE 2> __dump.txt
-  # команда [ в условии меняет код возврата, поэтому нужна переменная
-  EXIT_CODE=$?
-  if [ $EXIT_CODE -ge 200 ]; then
-    echo TEST FAILED, SEE __dump.txt
-    exit
-  elif [ $EXIT_CODE -gt 0 ]; then
-    echo "TEST FAILED (INTERNAL ERROR)"
-    exit
-  fi
-
-  rm $CFILE $EXE $SATELLITEC
-  [ -e __dump.txt ] && rm __dump.txt
-
-  echo
-}
-
-run_test_aux.BAD-SYNTAX() {
-  echo Passing $1...
-  REF=$1
-  CFILE=${REF%%.ref}.c
-  EXE=${REF%%.ref}
-
-  R05CCOMP= R05PATH= ../bin/refal05c $REF 2>__error.txt
-  if [ $? -ge 200 ]; then
-    echo COMPILER ON $REF FAILS, SEE __error.txt
-    exit
-  fi
-  rm __error.txt
-  if [ -e $CFILE ]; then
-    echo COMPILATION SUCCESSED, BUT EXPECTED SYNTAX ERROR
-    rm $CFILE
-    exit
-  fi
-
-  echo "Ok! Compiler didn't crash on invalid syntax"
-  echo
-}
-
-run_test_aux.SATELLITE() {
-  :
-}
+echo "Running Refal-05 autotests"
+echo ""
 
 run_test() {
-  REF=$1
-  SUFFIX=`echo ${REF%%.ref} | sed 's/[^.]*\(\.[^.]*\)*/\1/'`
-  run_test_aux$SUFFIX $1
+    local TEST=$1
+    local BASENAME="${TEST%.ref}"
+
+    echo "Testing: $TEST"
+
+    set +e
+    R05CCOMP= R05PATH= "$PROJECT_ROOT/bin/refal05" "$TEST" 2>__error.txt
+    local EXIT_CODE=$?
+    set -e
+
+    if [[ "$TEST" == *.BAD-SYNTAX.ref ]]; then
+        if [ $EXIT_CODE -ge 200 ]; then
+            echo "  FAILED: Compiler crashed (exit code $EXIT_CODE)"
+            cat __error.txt
+            rm -f __error.txt
+            return 1
+        fi
+        if [ -e "$BASENAME.c" ]; then
+            echo "  FAILED: Expected syntax error but compilation succeeded"
+            rm -f "$BASENAME.c" __error.txt
+            return 1
+        fi
+        echo "  OK"
+        rm -f __error.txt
+        return 0
+    fi
+
+    rm -f __error.txt
+
+    if [ -e "$BASENAME.SATELLITE.ref" ]; then
+        R05CCOMP= R05PATH= "$PROJECT_ROOT/bin/refal05" "$BASENAME.SATELLITE.ref"
+    fi
+
+    $R05CCOMP -I"$PROJECT_ROOT/lib" -o"$BASENAME" "$BASENAME.c" $BASENAME.SATELLITE.c \
+        "$PROJECT_ROOT/lib/Library.c" "$PROJECT_ROOT/lib/refal05rts.c" 2>/dev/null
+
+    ./"$BASENAME" >/dev/null 2>&1
+
+    rm -f "$BASENAME.c" "$BASENAME" "$BASENAME.SATELLITE.c"
+
+    echo "  OK"
+    return 0
 }
 
-source ../c-plus-plus.conf.sh
+FAILED=0
+PASSED=0
 
 if [ -z "$1" ]; then
-  for s in *.ref; do
-    run_test $s
-  done
+    TESTS="*.ref"
 else
-  for s in $*; do
-    run_test $s
-  done
+    TESTS="$@"
 fi
+
+for TEST in $TESTS; do
+    [[ "$TEST" == *.SATELLITE.ref ]] && continue
+
+    if run_test "$TEST"; then
+        PASSED=$((PASSED + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+done
+
+echo ""
+echo "Autotests finished"
+echo "Passed: $PASSED, Failed: $FAILED"
+
+[ $FAILED -eq 0 ] || exit 1

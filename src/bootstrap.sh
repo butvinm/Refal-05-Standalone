@@ -25,6 +25,6 @@ echo "3. Build bin/refal05 from new bootstrap/"
 ${R05CCOMP} ${LIBS_INCLUDE} -DR05_SHOW_STAT -o bin/refal05 ${MODULES_CFILES} ${R5FW_CFILES} ${LIBS_CFILES}
 
 echo "4. Run autotests for bin/refal05"
-cd autotests && ./run.sh
+./autotests/run.sh
 
 echo "Compiler bootstrapped successfully"
