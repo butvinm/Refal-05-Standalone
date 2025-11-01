@@ -27,7 +27,7 @@ set R05PATH=
 bin\refal05-old.exe %MODULES% %LIBS%
 if errorlevel 1 exit /b 1
 set R05CCOMP=%R05CCOMP_SAVE%
-move *.c bootstrap
+move /Y *.c bootstrap
 if errorlevel 1 exit /b 1
 
 echo 3. Build bin\refal05.exe from new bootstrap/
