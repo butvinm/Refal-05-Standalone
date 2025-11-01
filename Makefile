@@ -4,3 +4,7 @@ c-plus-plus.conf.sh:
 bin/refal05: c-plus-plus.conf.sh
 	mkdir -p bin
 	src/bootstrap.sh
+
+.PHONY: clear
+clear:
+	rm -f ./*.c
