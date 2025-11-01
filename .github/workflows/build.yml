@@ -38,7 +38,7 @@ jobs:
     - name: Upload bootstrap artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: bootstrap-artifacts
+        name: bootstrap-artifacts-linux
         path: bootstrap/
         retention-days: 90
 
@@ -46,7 +46,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: test-errors
+        name: test-errors-linux
         path: autotests/__error.txt
         retention-days: 30
         if-no-files-found: ignore
@@ -57,3 +57,62 @@ jobs:
         echo "Compiler: bin/refal05"
         echo "Bootstrap artifacts in: bootstrap/"
         ls -lh bootstrap/
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Configure compiler
+      run: |
+        copy src\c-plus-plus.conf.bat.template c-plus-plus.conf.bat
+        echo set R05CCOMP=cl /EHcs /W3 /wd4996 /O2 >> c-plus-plus.conf.bat
+
+    - name: Build Refal-05 compiler
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        src\bootstrap.bat
+
+    - name: Verify compiler was built
+      run: |
+        if (!(Test-Path bin\refal05.exe)) {
+          Write-Error "Compiler binary not found!"
+          exit 1
+        }
+        Get-Item bin\refal05.exe
+
+    - name: Upload compiler binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: refal05-windows
+        path: bin/refal05.exe
+        retention-days: 90
+
+    - name: Upload bootstrap artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: bootstrap-artifacts-windows
+        path: bootstrap/
+        retention-days: 90
+
+    - name: Upload test errors on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-errors-windows
+        path: autotests/__error.txt
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Display build information
+      run: |
+        echo "Build completed successfully!"
+        echo "Compiler: bin\refal05.exe"
+        echo "Bootstrap artifacts in: bootstrap\"
+        Get-ChildItem bootstrap\
