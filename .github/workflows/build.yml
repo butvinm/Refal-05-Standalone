@@ -2,9 +2,9 @@ name: Build Refal-05
 
 on:
   push:
-    branches: [ master, bootstrap ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, bootstrap ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
