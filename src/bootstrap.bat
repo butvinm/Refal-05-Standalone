@@ -27,6 +27,11 @@ set R05PATH=
 bin\refal05-old.exe %MODULES% %LIBS%
 if errorlevel 1 exit /b 1
 set R05CCOMP=%R05CCOMP_SAVE%
+echo DEBUG: Current directory:
+cd
+echo DEBUG: All C files in tree:
+dir /s /b *.c
+echo DEBUG: Moving files to bootstrap:
 for %%f in (*.c) do move /Y "%%f" bootstrap\
 if errorlevel 1 exit /b 1
 
