@@ -1,34 +1,17 @@
-# Этот Makefile упрощает работу в IntelliJ IDEA. Нужно установить плагин
-# для Makefile’ов Виктора Кроппа (просто набрать makefile в Marketplace).
-# Тогда цели этого файла будут доступны для запуска через кнопку Run
-# или комбинацию Shift-F10.
-#
-# Цели с именами на -win запускают .bat-файлы, на -posix — Bash-скрипты.
-#
-# Можно пользоваться этим Makefile и обычным образом, запуская make
-# в командной строке. Но удобнее из командной строки запускать сами скрипты
-# непосредственно.
+c-plus-plus.conf.sh:
+	@test -f c-plus-plus.conf.sh || cp src/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
 
+c-plus-plus.conf.bat:
+	@test -f c-plus-plus.conf.bat || cp src/c-plus-plus.conf.bat.template c-plus-plus.conf.bat
 
-all:
-	echo Read Makefile for details
+bin/refal05: c-plus-plus.conf.sh
+	mkdir -p bin
+	src/bootstrap.sh
 
+bin/refal05.exe: c-plus-plus.conf.bat
+	if not exist bin mkdir bin
+	src\bootstrap.bat
 
-all-win:
-	bootstrap.bat
-
-compiler-makeself-win:
-	cd src && makeself.bat
-
-compiler-makeself-s-win:
-	cd src && makeself.bat stable
-
-
-all-posix:
-	./bootstrap.sh
-
-compiler-makeself-posix:
-	cd src && ./makeself.sh
-
-compiler-makeself-s-posix:
-	cd src && ./makeself.sh stable
+.PHONY: clear
+clear:
+	rm -f ./*.c

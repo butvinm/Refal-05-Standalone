@@ -1,108 +1,105 @@
 @echo off
-call :MAIN %*
-exit /b
+setlocal enabledelayedexpansion
 
-:MAIN
-setlocal
-  call ..\c-plus-plus.conf.bat
-  if {%1}=={} (
-    for %%s in (*.ref) do call :RUN_TEST %%s || exit /b 1
-  ) else (
-    for %%s in (%*) do call :RUN_TEST %%s || exit /b 1
-  )
-endlocal
-goto :EOF
+set SCRIPT_DIR=%~dp0
+set PROJECT_ROOT=%SCRIPT_DIR%..
+cd /d %SCRIPT_DIR%
+
+call "%PROJECT_ROOT%\c-plus-plus.conf.bat"
+if errorlevel 1 exit /b 1
+
+echo Running Refal-05 autotests
+echo.
+
+set FAILED=0
+set PASSED=0
+
+if "%~1"=="" (
+    for %%f in (*.ref) do call :RUN_TEST "%%f"
+) else (
+    :LOOP
+    if not "%~1"=="" (
+        call :RUN_TEST "%~1"
+        shift
+        goto LOOP
+    )
+)
+
+echo.
+echo Autotests finished
+echo Passed: %PASSED%, Failed: %FAILED%
+
+if %FAILED% gtr 0 exit /b 1
+exit /b 0
 
 :RUN_TEST
-setlocal
-  for %%s in (%~n1) do call :RUN_TEST_AUX%%~xs %1 || exit /b 1
-endlocal
-goto :EOF
+set TEST=%~1
+set BASENAME=%~n1
 
-:RUN_TEST_AUX
-setlocal
-  echo Passing %1...
-  set REF=%1
-  set CFILE=%~n1.c
-  set EXE=%~n1.exe
-  set SATELLITE=%~n1.SATELLITE.ref
-  set SATELLITEC=%~n1.SATELLITE.c
+echo %TEST% | findstr /C:".SATELLITE.ref" >nul
+if not errorlevel 1 exit /b 0
 
-  set CLINE=%R05CCOMP%
-  set R05CCOMP=
-  set R05PATH=
+echo Testing: %TEST%
 
-  ..\bin\refal05c %1 2> __error.txt
-  if errorlevel 200 (
-    echo COMPILER ON %1 FAILS, SEE __error.txt
-    exit /b 1
-  )
-  erase __error.txt
-  if not exist %CFILE% (
-    echo COMPILATION FAILED
-    exit /b 1
-  )
+set R05CCOMP_SAVE=%R05CCOMP%
+set R05CCOMP=
+set R05PATH=
+"%PROJECT_ROOT%\bin\refal05.exe" "%TEST%" 2>__error.txt
+set EXIT_CODE=!errorlevel!
+set R05CCOMP=%R05CCOMP_SAVE%
 
-  if exist %SATELLITE% (
-    ..\bin\refal05c %SATELLITE%
-    if not exist %SATELLITEC% (
-      echo COMPILATION FAILED
-      exit /b 1
+echo %TEST% | findstr /C:".BAD-SYNTAX.ref" >nul
+if not errorlevel 1 (
+    if !EXIT_CODE! geq 200 (
+        echo   FAILED: Compiler crashed ^(exit code !EXIT_CODE!^)
+        type __error.txt
+        del __error.txt
+        set /a FAILED+=1
+        exit /b 0
     )
-  ) else (
+    if exist "%BASENAME%.c" (
+        echo   FAILED: Expected syntax error but compilation succeeded
+        del "%BASENAME%.c" __error.txt
+        set /a FAILED+=1
+        exit /b 0
+    )
+    echo   OK
+    del __error.txt
+    set /a PASSED+=1
+    exit /b 0
+)
+
+del __error.txt
+
+if exist "%BASENAME%.SATELLITE.ref" (
+    set R05CCOMP_SAVE=%R05CCOMP%
+    set R05CCOMP=
+    set R05PATH=
+    "%PROJECT_ROOT%\bin\refal05.exe" "%BASENAME%.SATELLITE.ref"
+    set R05CCOMP=%R05CCOMP_SAVE%
+    set SATELLITEC=%BASENAME%.SATELLITE.c
+) else (
     set SATELLITEC=
-  )
+)
 
-  %CLINE% -I../lib %CFILE% %SATELLITEC% ../lib/Library.c ../lib/refal05rts.c
-  if errorlevel 1 (
-    echo COMPILATION FAILED
-    exit /b 1
-  )
-  if exist a.exe move a.exe %EXE%
+%R05CCOMP% -I"%PROJECT_ROOT%\lib" -o"%BASENAME%.exe" "%BASENAME%.c" !SATELLITEC! "%PROJECT_ROOT%\lib\Library.c" "%PROJECT_ROOT%\lib\refal05rts.c" >nul 2>&1
+if errorlevel 1 (
+    echo   FAILED: C compilation failed
+    set /a FAILED+=1
+    exit /b 0
+)
 
-  %EXE% 2> __dump.txt
-  if errorlevel 200 (
-    echo TEST FAILED, SEE __dump.txt
-    exit /b 1
-  )
+"%BASENAME%.exe" >nul 2>&1
+if errorlevel 1 (
+    echo   FAILED: Test execution failed
+    set /a FAILED+=1
+    exit /b 0
+)
 
-  if errorlevel 1 (
-    echo TEST FAILED ^(INTERNAL ERROR^)
-    exit /b 1
-  )
+del "%BASENAME%.c" "%BASENAME%.exe" !SATELLITEC! 2>nul
+if exist *.obj del *.obj
+if exist *.tds del *.tds
 
-  erase %CFILE% %EXE% %SATELLITEC%
-  if exist *.obj erase *.obj
-  if exist *.tds erase *.tds
-  if exist __dump.txt erase __dump.txt
-  echo.
-endlocal
-goto :EOF
-
-:RUN_TEST_AUX.BAD-SYNTAX
-setlocal
-  echo Passing %1 (syntax error recovering)...
-  set REF=%1
-  set CFILE=%~n1.c
-
-  set R05CCOMP=
-  set R05PATH=
-
-  ..\bin\refal05c %1 2> __error.txt
-  if errorlevel 200 (
-    echo COMPILER ON %1 FAILS, SEE __error.txt
-    exit /b 1
-  )
-  erase __error.txt
-  if exist %CFILE% (
-    echo COMPILATION SUCCESSED, BUT EXPECTED SYNTAX ERROR
-    erase %CFILE%
-    exit /b 1
-  )
-  echo Ok! Compiler didn't crash on invalid syntax
-  echo.
-endlocal
-goto :EOF
-
-:RUN_TEST_AUX.SATELLITE
-goto :EOF
+echo   OK
+set /a PASSED+=1
+exit /b 0
