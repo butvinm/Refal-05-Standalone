@@ -1547,7 +1547,7 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
       r05_splice_to_freelist(last_10p->next, arg_end);
     } else {
       /* Вытягиваем порции бит из [first_10p, last_10p] */
-      int offset, power;
+      int power;
       r05_number power5 = 1;
 
       for (power = 0; power < BITS_PORTION / 2; ++power) {
@@ -1561,40 +1561,52 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
           == y * power5 + (x >> BITS_PORTION)
       */
 
-      offset = 0;
-      accum = 0;
       target = arg_end;
       do {
-          accum |= (last_10p->info.number & PORTION_MASK) << offset;
+        r05_number cur = first_10p->info.number;
+        if (cur != 0) {
+          r05_number q1, q2, q3, q4;
+          q1 = cur & PORTION_MASK;
+          q2 = (cur >> BITS_PORTION) & PORTION_MASK;
+          q3 = (cur >> 2 * BITS_PORTION) & PORTION_MASK;
+          q4 = (cur >> 3 * BITS_PORTION) & PORTION_MASK;
 
-          if (offset < 3 * BITS_PORTION) {
-            offset += BITS_PORTION;
-          } else {
-            target->tag = R05_DATATAG_NUMBER;
-            target->info.number = accum;
-            target = target->prev;
-            accum = 0;
-            offset = 0;
+          p = first_10p;
+          while (p != last_10p) {
+            struct r05_node *next = p->next;
+            cur = next->info.number;
+#define PASS(quart) \
+            { \
+              r05_number new = (quart) * power5 + (cur >> BITS_PORTION); \
+              (quart) = cur & PORTION_MASK; \
+              cur = new; \
+            }
+
+            PASS(q1);
+            PASS(q2);
+            PASS(q3);
+            PASS(q4);
+#undef PASS
+
+            p->info.number = cur;
+            p = next;
           }
+          last_10p = last_10p->prev;
 
-          p = last_10p;
-          while (p != first_10p) {
-            struct r05_node *prev = p->prev;
-            p->info.number =
-              (prev->info.number & PORTION_MASK) * power5
-              + (p->info.number >> BITS_PORTION);
-            p = prev;
-          }
-          first_10p->info.number >>= BITS_PORTION;
+          target->tag = R05_DATATAG_NUMBER;
+          target->info.number = q1
+            | (q2 << BITS_PORTION)
+            | (q3 << 2 * BITS_PORTION)
+            | (q4 << 3 * BITS_PORTION);
+          target = target->prev;
+        } else {
+          first_10p = first_10p->next;
+        }
+      } while (first_10p != last_10p);
 
-          if (first_10p->info.number == 0) {
-            first_10p = first_10p->next;
-          }
-      } while (first_10p->prev != last_10p);
-
-      if (accum > 0) {
+      if (first_10p->info.number != 0) {
         target->tag = R05_DATATAG_NUMBER;
-        target->info.number = accum;
+        target->info.number = first_10p->info.number;
         target = target->prev;
       }
 
