@@ -1501,7 +1501,7 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
     struct r05_node *first_10p, *last_10p;
 
     enum {
-      BITS_PORTION = 2 * sizeof(r05_number),
+      BITS_PORTION = R05_NUMBER_BITS / 4,
       PORTION_MASK = (1 << BITS_PORTION) - 1,
     };
 
@@ -1542,7 +1542,7 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
         arg_begin->tag = R05_DATATAG_CHAR;
         arg_begin->info.char_ = '-';
       } else {
-        r05_splice_to_freelist(arg_begin, first_10p->prev);
+        r05_splice_to_freelist(arg_begin, arg_begin);
       }
       r05_splice_to_freelist(last_10p->next, arg_end);
     } else {
