@@ -2937,8 +2937,8 @@ API рантайма.
 [alushta]: https://pat.keldysh.ru/~roman/doc/Turchin/1972-Turchin--E'kvivalentnye_preobrazovaniya_rekursivnyx_funkcij__opisannyx_na_yazyke_Refal--facsimile--ru.pdf
 [refal6]: http://refal.ru/~arklimov/refal6/index.html
 [flac]: http://www.botik.ru/pub/local/scp/flac/fl_impl.pdf
-[eisymont]: https://pat.keldysh.ru/~roman/doc/Turchin/1987-Mansurov_Eisymont--Realizaciya_rasshirennogo_yazyka_Refal_na_odnosvyaznyx_spiskax.pdf
-[plus]: https://pat.keldysh.ru/~roman/doc/2006-Gurin_Romanenko--Yazyk_programmirovaniya_Refal_Plyus--ru.pdf
+[eisymont]: https://pat.keldysh.ru/~roman/refal/Turchin/1987-Mansurov_Eisymont--Realizaciya_rasshirennogo_yazyka_Refal_na_odnosvyaznyx_spiskax.pdf
+[plus]: https://pat.keldysh.ru/~roman/publications/2006-Gurin_Romanenko--Yazyk_programmirovaniya_Refal_Plyus--ru.pdf
 [refalj]: http://refal.ru/~arklimov/refal6/refal-j.htm
 [rope-habr]: https://habr.com/post/144736/
 [rope-ifmo]: http://neerc.ifmo.ru/wiki/index.php?title=Rope
