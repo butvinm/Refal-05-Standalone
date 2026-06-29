@@ -209,6 +209,10 @@ Hello, World!
   (International Components for Unicode).
 * [Автономная сборка Рефала-05][Standalone] — форк Михаила Бутвина
   с видоизменённой сборкой и GitHub Workflow.
+* [Рефал-05 с компактным списковым представлением][compact] — ВКР Александра
+  Швеца, исследующая компактное списковое представление для Рефала. Вместо
+  двусвязного списка звеньев используется двусвязный список небольших
+  массивов.
 
 Форки перечислены в более-менее хронологическом порядке.
 
@@ -216,3 +220,4 @@ Hello, World!
 [doc]: https://mazdaywik.github.io/Refal-05
 [r5fw]: https://github.com/Mazdaywik/refal-5-framework
 [Standalone]: https://github.com/butvinm/Refal-05-Standalone
+[compact]: https://github.com/01Time03Skipper02/Refal-05
