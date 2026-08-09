@@ -156,6 +156,7 @@ $ENTRY generator_EscapeNameChar {
         'L' s.st_ s.Letter = (c s.Letter);
         'D' s.st_ s.Digit = (c s.Digit);
 
+* TODO: юникод
         s.t_ s.st_ s.Encoded = (k <EscapeNameChar-Code s.Encoded>);
       };
 }
