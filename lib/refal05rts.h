@@ -76,6 +76,27 @@ extern "C" {
 #endif
 
 
+#if ! defined(R05_POSIX) && ! defined(R05_WINDOWS)
+#  if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) \
+       || defined(__WIN32) || defined(__WIN64) || defined(__WINNT) \
+       || defined(__WIN32__) || defined(__WIN64__) || defined(__WINNT__) \
+       || defined(_Windows) || defined(_WINDOWS) || defined(__WINDOWS__) \
+       || defined(__WINDOWS_386__)
+#    define R05_WINDOWS
+#  elif defined(unix) || defined(__unix) || defined(__unix__) \
+       || defined(linux) || defined(__linux) || defined(__linux__) \
+       || defined(__gnu_linux__) || defined(__UNIX__) || defined(__LINUX__) \
+       || defined(__APPLE__) \
+       || (defined(TARGET_OS_MAC) && TARGET_OS_MAC) \
+       || (defined(TARGET_OS_OSX) && TARGET_OS_OSX) \
+       || (defined(TARGET_OS_UNIX) && TARGET_OS_UNIX)
+#    define R05_POSIX
+#  endif
+#elif defined(R05_POSIX) && defined(R05_WINDOWS)
+#  error "Only one option must be specified: R05_POSIX or R05_WINDOWS"
+#endif
+
+
 enum r05_datatag {
   R05_DATATAG_ILLEGAL = 0,
   R05_DATATAG_CHAR,

@@ -1,0 +1,12 @@
+$ENTRY GO {
+  /* пусто */
+    , <GetCurrentDirectory> : e.Path
+    , e.Path
+    : {
+        s.Disk ':' e.Parent '\\autotests'
+          = <Prout 'Path on Windows: ' e.Path>;
+
+        e.Other '/autotests'
+          = <Prout 'Path on POSIX: ' e.Path>;
+      };
+}

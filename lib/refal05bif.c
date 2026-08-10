@@ -7,11 +7,16 @@
 #include <string.h>
 #include <time.h>
 
+#include "refal05rts.h"
+
 #ifdef R05_POSIX
 #include <sys/wait.h>
+#include <unistd.h>
 #endif  /* R05_POSIX */
 
-#include "refal05rts.h"
+#ifdef R05_WINDOWS
+#include <windows.h>
+#endif /* R05_WINDOWS */
 
 
 enum {
@@ -2847,6 +2852,46 @@ R05_DEFINE_ENTRY_FUNCTION(ExistFile, "ExistFile") {
 }
 
 
+#if defined(R05_POSIX) || defined(R05_WINDOWS)
+
+#if defined(GetCurrentDirectory)
+#  undef GetCurrentDirectory
+#endif /* defined(GetCurrentDirectory) */
+
+/**
+  56. <GetCurrentDirectory> == e.FileName
+*/
+R05_DEFINE_ENTRY_FUNCTION(GetCurrentDirectory, "GetCurrentDirectory") {
+  char path[FILENAME_MAX + 1] = { 0 };
+
+#  if defined(R05_POSIX)
+  char *result = getcwd(path, FILENAME_MAX);
+  if (NULL == result) {
+    r05_builtin_error_errno("Can\'t retrieve current directory path");
+  }
+#  else /* defined(R05_POSIX) */
+  DWORD result = GetCurrentDirectoryA((DWORD) sizeof(path), path);
+  if (0 == result) {
+    r05_builtin_error(
+      "Can\'t retrieve current directory path (errorcode %lX)",
+      (unsigned long) GetLastError()
+    );
+  } else if (result > (DWORD) sizeof(path)) {
+    r05_builtin_error(
+      "Current path is very long (%lu > %lu)",
+      (unsigned long) result, (unsigned long) FILENAME_MAX
+    );
+  }
+#  endif /* defined(R05_POSIX) */
+
+  r05_reset_allocator();
+  r05_alloc_string(path);
+  r05_splice_from_freelist(arg_begin);
+  r05_splice_to_freelist(arg_begin, arg_end);
+}
+#endif /* defined(R05_POSIX) || defined(R05_WINDOWS) */
+
+
 /**
   57. <RemoveFile e.FileName>
         == True ()
@@ -3212,7 +3257,11 @@ static struct builtin_info s_builtin_info[] = {
   ALLOC_BUILTIN(53, Exit, regular)
   ALLOC_BUILTIN(54, Close, regular)
   ALLOC_BUILTIN(55, ExistFile, regular)
-  /* ALLOC_BUILTIN(56, GetCurrentDirectory, regular) */
+
+#if defined(R05_POSIX) || defined(R05_WINDOWS)
+  ALLOC_BUILTIN(56, GetCurrentDirectory, regular)
+#endif /* defined(R05_POSIX) || defined(R05_WINDOWS) */
+
   ALLOC_BUILTIN(57, RemoveFile, regular)
   ALLOC_BUILTIN(58, Implodeu_Ext, regular)
   ALLOC_BUILTIN(59, Explodeu_Ext, regular)
