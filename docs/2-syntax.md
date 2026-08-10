@@ -442,7 +442,6 @@ makeTOC.localizedHide = "Скрыть";
 * `Dn`,
 * *`Up` — определена, но не реализована*,
 * *`Ev-met` — определена, но не реализована*,
-* `GetCurrentDirectory`,
 * `XMLParse`,
 * `GetPID`,
 * `int4fab_1`,
