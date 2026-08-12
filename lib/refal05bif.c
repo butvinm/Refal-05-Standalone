@@ -566,15 +566,9 @@ static void long_left_shift(
 ) {
   struct r05_node *p = begin;
 
-  for ( ; ; ) {
-    p->info.number <<= shift;
-    if (p != end) {
-      struct r05_node *next = p->next;
-      p->info.number |= next->info.number >> (R05_NUMBER_BITS - shift);
-      p = next;
-    } else {
-      break;
-    }
+  while (p->info.number <<= shift, p != end) {
+    p->info.number |= p->next->info.number >> (R05_NUMBER_BITS - shift);
+    p = p->next;
   }
 }
 
@@ -584,15 +578,9 @@ static void long_right_shift(
 ) {
   struct r05_node *p = end;
 
-  for ( ; ; ) {
-    p->info.number >>= shift;
-    if (p != begin) {
-      struct r05_node *prev = p->prev;
-      p->info.number |= prev->info.number << (R05_NUMBER_BITS - shift);
-      p = prev;
-    } else {
-      break;
-    }
+  while (p->info.number >>= shift, p != begin) {
+    p->info.number |= p->prev->info.number << (R05_NUMBER_BITS - shift);
+    p = p->prev;
   }
 }
 
