@@ -19,7 +19,28 @@
 #define EXIT_CODE_BUILTIN_ERROR 203
 
 
-#ifdef R05_CLOCK_SKIP
+#ifdef R05_SHOW_STAT_DETAILED
+
+#ifndef R05_SHOW_STAT
+#define R05_SHOW_STAT
+#endif  /* R05_SHOW_STAT */
+
+#define DEFINE_CLOCK_VAR(varname) clock_t varname = fast_clock();
+static void add_match_repeated_var_time(char type, clock_t duration);
+static void start_building_result(void);
+static void add_copy_tevar_time(clock_t duration);
+
+#else  /* R05_SHOW_STAT_DETAILED */
+
+#define DEFINE_CLOCK_VAR(varname)
+#define add_match_repeated_var_time(type, duration) ((void) type)
+#define start_building_result() ((void) 0)
+#define add_copy_tevar_time(duration) ((void) 0)
+
+#endif  /* R05_SHOW_STAT_DETAILED */
+
+
+#if defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED)
 
 static clock_t fast_clock(void) {
   static clock_t prev = 0;
@@ -32,9 +53,11 @@ static clock_t fast_clock(void) {
   return prev;
 }
 
-#define clock() fast_clock()
+#else  /* defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED) */
 
-#endif  /* ifdef R05_CLOCK_SKIP */
+#define fast_clock() clock()
+
+#endif  /* defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED) */
 
 
 #define STATIC_ASSERT(message, expr) \
@@ -221,14 +244,12 @@ int r05_repeated_svar_right(
 }
 
 
-static void add_match_repeated_tvar_time(clock_t duration);
-static void add_match_repeated_evar_time(clock_t duration);
-
 int r05_repeated_tevar_left(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  clock_t start_match = clock();
+  DEFINE_CLOCK_VAR(start_match)
+
   struct r05_node *current = left->next;
   struct r05_node *limit = right;
   struct r05_node *cur_sample = tevar_sample[0];
@@ -243,9 +264,7 @@ int r05_repeated_tevar_left(
     current = current->next;
   }
 
-  (type == 't' ? add_match_repeated_tvar_time : add_match_repeated_evar_time)(
-    clock() - start_match
-  );
+  add_match_repeated_var_time(type, fast_clock() - start_match);
 
   /*
     Здесь current == limit || cur_sample == limit_sample
@@ -266,7 +285,8 @@ int r05_repeated_tevar_right(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  clock_t start_match = clock();
+  DEFINE_CLOCK_VAR(start_match)
+
   struct r05_node *current = right->prev;
   struct r05_node *limit = left;
   struct r05_node *cur_sample = tevar_sample[1];
@@ -281,9 +301,7 @@ int r05_repeated_tevar_right(
     cur_sample = cur_sample->prev;
   }
 
-  (type == 't' ? add_match_repeated_tvar_time : add_match_repeated_evar_time)(
-    clock() - start_match
-  );
+  add_match_repeated_var_time(type, fast_clock() - start_match);
 
   /*
     Здесь current == limit || cur_sample == limit_sample
@@ -437,7 +455,6 @@ static void free_memory(void) {
    Операции построения результата
 ==============================================================================*/
 
-static void start_building_result(void);
 
 void r05_reset_allocator(void) {
   start_building_result();
@@ -479,11 +496,9 @@ static void list_splice(
 }
 
 
-static void add_copy_tevar_time(clock_t duration);
-
 void r05_alloc_tevar(struct r05_node **sample) {
   struct r05_node *p, *limit;
-  clock_t start_copy_time = clock();
+  DEFINE_CLOCK_VAR(start_copy_time)
 
   struct r05_node *bracket_stack = 0;
 
@@ -506,7 +521,7 @@ void r05_alloc_tevar(struct r05_node **sample) {
 
   assert(bracket_stack == 0);
 
-  add_copy_tevar_time(clock() - start_copy_time);
+  add_copy_tevar_time(fast_clock() - start_copy_time);
 }
 
 
@@ -576,6 +591,9 @@ void r05_enum_function_code(struct r05_node *begin, struct r05_node *end) {
 ==============================================================================*/
 
 static clock_t s_start_program_time;
+
+
+#ifdef R05_SHOW_STAT_DETAILED
 static clock_t s_start_pattern_match_time;
 static clock_t s_total_pattern_match_time;
 static clock_t s_start_building_result_time;
@@ -591,6 +609,7 @@ static clock_t s_total_match_repeated_evar_time_outside_e;
 
 static int s_in_generated;
 static int s_in_e_loop;
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 
 #ifdef R05_PROFILER
@@ -600,15 +619,19 @@ static struct r05_function *s_profiled_functions;
 
 static void start_profiler(void) {
   s_start_program_time = clock();
+#ifdef R05_SHOW_STAT_DETAILED
   s_in_generated = 0;
+#endif  /* R05_SHOW_STAT_DETAILED */
 }
 
+
+#ifdef R05_SHOW_STAT_DETAILED
 
 static void start_building_result(void) {
   if (s_in_generated) {
     clock_t pattern_match;
 
-    s_start_building_result_time = clock();
+    s_start_building_result_time = fast_clock();
     pattern_match = s_start_building_result_time - s_start_pattern_match_time;
     s_total_pattern_match_time += pattern_match;
 
@@ -622,7 +645,7 @@ static void start_building_result(void) {
 
 static void after_step(void) {
   if (s_in_generated) {
-    clock_t building_result = clock() - s_start_building_result_time;
+    clock_t building_result = fast_clock() - s_start_building_result_time;
     s_total_building_result_time += building_result;
   }
 
@@ -637,21 +660,28 @@ static void add_copy_tevar_time(clock_t duration) {
   s_total_copy_tevar_time += duration;
 }
 
-static void add_match_repeated_tvar_time(clock_t duration) {
-  if (s_in_e_loop) {
-    s_total_match_repeated_tvar_time += duration;
+static void add_match_repeated_var_time(char type, clock_t duration) {
+  if ('t' == type) {
+    if (s_in_e_loop) {
+      s_total_match_repeated_tvar_time += duration;
+    } else {
+      s_total_match_repeated_tvar_time_outside_e += duration;
+    }
   } else {
-    s_total_match_repeated_tvar_time_outside_e += duration;
+    if (s_in_e_loop) {
+      s_total_match_repeated_evar_time += duration;
+    } else {
+      s_total_match_repeated_evar_time_outside_e += duration;
+    }
   }
 }
 
-static void add_match_repeated_evar_time(clock_t duration) {
-  if (s_in_e_loop) {
-    s_total_match_repeated_evar_time += duration;
-  } else {
-    s_total_match_repeated_evar_time_outside_e += duration;
-  }
-}
+#else  /* R05_SHOW_STAT_DETAILED */
+
+#define after_step() ((void) 0)
+
+#endif  /* R05_SHOW_STAT_DETAILED */
+
 
 #ifdef R05_SHOW_STAT
 struct time_item {
@@ -659,6 +689,7 @@ struct time_item {
   clock_t counter;
 };
 
+#ifdef R05_SHOW_STAT_DETAILED
 static int reverse_compare(const void *left_void, const void *right_void) {
   const struct time_item *left = left_void;
   const struct time_item *right = right_void;
@@ -671,6 +702,7 @@ static int reverse_compare(const void *left_void, const void *right_void) {
     return 0;
   }
 }
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 #ifdef R05_PROFILER
 static void print_functions_profile(double full_time_sec);
@@ -679,7 +711,8 @@ static void print_functions_profile(double full_time_sec);
 static void print_profile(void) {
   const double cfSECS_PER_CLOCK = 1.0 / CLOCKS_PER_SEC;
 
-  clock_t full_time;
+  clock_t full_time = clock() - s_start_program_time;
+#ifdef R05_SHOW_STAT_DETAILED
   clock_t refal_time;
   clock_t repeated_time;
   clock_t eloop_time;
@@ -690,7 +723,6 @@ static void print_profile(void) {
 
   size_t i;
 
-  full_time = clock() - s_start_program_time;
   refal_time = s_total_pattern_match_time + s_total_building_result_time;
   repeated_time =
     s_total_match_repeated_tvar_time + s_total_match_repeated_evar_time;
@@ -740,6 +772,12 @@ static void print_profile(void) {
       );
     }
   }
+#else  /* R05_SHOW_STAT_DETAILED */
+  fprintf(
+    stderr, "\nTotal program time: %.3f seconds.\n",
+    full_time * cfSECS_PER_CLOCK
+  );
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 #ifdef R05_PROFILER
   print_functions_profile(full_time * cfSECS_PER_CLOCK);
@@ -813,17 +851,18 @@ static void end_profiler(void) {
 }
 
 
+#ifdef R05_SHOW_STAT_DETAILED
 void r05_start_e_loop(void) {
   assert(s_in_generated);
 
   if (s_in_e_loop++ == 0) {
-    s_start_e_loop = clock();
+    s_start_e_loop = fast_clock();
   }
 }
 
 
 void r05_this_is_generated_function(void) {
-  s_start_pattern_match_time = clock();
+  s_start_pattern_match_time = fast_clock();
   s_in_generated = 1;
 }
 
@@ -832,9 +871,10 @@ void r05_stop_e_loop(void) {
   assert(s_in_generated);
 
   if (--s_in_e_loop == 0) {
-    s_total_e_loop += (clock() - s_start_e_loop);
+    s_total_e_loop += (fast_clock() - s_start_e_loop);
   }
 }
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 
 double r05_time_elapsed(void) {
