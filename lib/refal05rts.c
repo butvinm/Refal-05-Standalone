@@ -19,16 +19,61 @@
 #define EXIT_CODE_BUILTIN_ERROR 203
 
 
+#ifdef R05_POSIX
+
+/*
+  Функция clock() на Linux и macOS работает очень медленно, что не только
+  в разы замедляет время выполнения программы с макросами R05_PROFILER
+  и R05_SHOW_STAT_DETAILED, но и делает соответствующие замеры неадекватными:
+
+  https://github.com/bmstu-iu9/refal-5-lambda/issues/206
+
+  clock_gettime() работает гораздо быстрее. На Linux предпочтительнее
+  использовать часы CLOCK_MONOTONIC_COARSE, но, если они не доступны,
+  используем переносимые CLOCK_REALTIME.
+*/
+
+typedef unsigned long fast_clock_t;
+
+#define FAST_CLOCKS_PER_SEC ((fast_clock_t) 1000)
+
+static fast_clock_t fast_clock(void) {
+  struct timespec now;
+#ifdef CLOCK_MONOTONIC_COARSE
+  int res = clock_gettime(CLOCK_MONOTONIC_COARSE,  &now);
+#else  /* CLOCK_MONOTONIC_COARSE */
+  int res = clock_gettime(CLOCK_REALTIME, &now);
+#endif  /* CLOCK_MONOTONIC_COARSE */
+
+  if (-1 == res) {
+    r05_builtin_error_errno("Can\'t retrieve time by clock_gettime()");
+  }
+
+  return (fast_clock_t) now.tv_sec * FAST_CLOCKS_PER_SEC
+    + (fast_clock_t) now.tv_nsec / (1000000000 / FAST_CLOCKS_PER_SEC);
+}
+
+#else  /* R05_POSIX */
+
+/* На Windows функция clock() имеет прекрасную производительность! */
+
+typedef clock_t fast_clock_t;
+#define FAST_CLOCKS_PER_SEC CLOCKS_PER_SEC
+#define fast_clock() clock()
+
+#endif  /* R05_POSIX */
+
+
 #ifdef R05_SHOW_STAT_DETAILED
 
 #ifndef R05_SHOW_STAT
 #define R05_SHOW_STAT
 #endif  /* R05_SHOW_STAT */
 
-#define DEFINE_CLOCK_VAR(varname) clock_t varname = fast_clock();
-static void add_match_repeated_var_time(char type, clock_t duration);
+#define DEFINE_CLOCK_VAR(varname) fast_clock_t varname = fast_clock();
+static void add_match_repeated_var_time(char type, fast_clock_t duration);
 static void start_building_result(void);
-static void add_copy_tevar_time(clock_t duration);
+static void add_copy_tevar_time(fast_clock_t duration);
 
 #else  /* R05_SHOW_STAT_DETAILED */
 
@@ -38,26 +83,6 @@ static void add_copy_tevar_time(clock_t duration);
 #define add_copy_tevar_time(duration) ((void) 0)
 
 #endif  /* R05_SHOW_STAT_DETAILED */
-
-
-#if defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED)
-
-static clock_t fast_clock(void) {
-  static clock_t prev = 0;
-  static int skip = 0;
-
-  if (skip++ % R05_CLOCK_SKIP == 0) {
-    prev = clock();
-  }
-
-  return prev;
-}
-
-#else  /* defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED) */
-
-#define fast_clock() clock()
-
-#endif  /* defined(R05_CLOCK_SKIP) && defined(R05_SHOW_STAT_DETAILED) */
 
 
 #define STATIC_ASSERT(message, expr) \
@@ -590,21 +615,21 @@ void r05_enum_function_code(struct r05_node *begin, struct r05_node *end) {
    Внутренний профилировщик
 ==============================================================================*/
 
-static clock_t s_start_program_time;
+static fast_clock_t s_start_program_time;
 
 
 #ifdef R05_SHOW_STAT_DETAILED
-static clock_t s_start_pattern_match_time;
-static clock_t s_total_pattern_match_time;
-static clock_t s_start_building_result_time;
-static clock_t s_total_building_result_time;
-static clock_t s_total_copy_tevar_time;
-static clock_t s_total_match_repeated_tvar_time;
-static clock_t s_total_match_repeated_evar_time;
-static clock_t s_start_e_loop;
-static clock_t s_total_e_loop;
-static clock_t s_total_match_repeated_tvar_time_outside_e;
-static clock_t s_total_match_repeated_evar_time_outside_e;
+static fast_clock_t s_start_pattern_match_time;
+static fast_clock_t s_total_pattern_match_time;
+static fast_clock_t s_start_building_result_time;
+static fast_clock_t s_total_building_result_time;
+static fast_clock_t s_total_copy_tevar_time;
+static fast_clock_t s_total_match_repeated_tvar_time;
+static fast_clock_t s_total_match_repeated_evar_time;
+static fast_clock_t s_start_e_loop;
+static fast_clock_t s_total_e_loop;
+static fast_clock_t s_total_match_repeated_tvar_time_outside_e;
+static fast_clock_t s_total_match_repeated_evar_time_outside_e;
 
 
 static int s_in_generated;
@@ -618,7 +643,7 @@ static struct r05_function *s_profiled_functions;
 
 
 static void start_profiler(void) {
-  s_start_program_time = clock();
+  s_start_program_time = fast_clock();
 #ifdef R05_SHOW_STAT_DETAILED
   s_in_generated = 0;
 #endif  /* R05_SHOW_STAT_DETAILED */
@@ -629,7 +654,7 @@ static void start_profiler(void) {
 
 static void start_building_result(void) {
   if (s_in_generated) {
-    clock_t pattern_match;
+    fast_clock_t pattern_match;
 
     s_start_building_result_time = fast_clock();
     pattern_match = s_start_building_result_time - s_start_pattern_match_time;
@@ -645,7 +670,7 @@ static void start_building_result(void) {
 
 static void after_step(void) {
   if (s_in_generated) {
-    clock_t building_result = fast_clock() - s_start_building_result_time;
+    fast_clock_t building_result = fast_clock() - s_start_building_result_time;
     s_total_building_result_time += building_result;
   }
 
@@ -656,11 +681,11 @@ static void after_step(void) {
 }
 
 
-static void add_copy_tevar_time(clock_t duration) {
+static void add_copy_tevar_time(fast_clock_t duration) {
   s_total_copy_tevar_time += duration;
 }
 
-static void add_match_repeated_var_time(char type, clock_t duration) {
+static void add_match_repeated_var_time(char type, fast_clock_t duration) {
   if ('t' == type) {
     if (s_in_e_loop) {
       s_total_match_repeated_tvar_time += duration;
@@ -686,7 +711,7 @@ static void add_match_repeated_var_time(char type, clock_t duration) {
 #ifdef R05_SHOW_STAT
 struct time_item {
   const char *name;
-  clock_t counter;
+  fast_clock_t counter;
 };
 
 #ifdef R05_SHOW_STAT_DETAILED
@@ -709,14 +734,14 @@ static void print_functions_profile(double full_time_sec);
 #endif  /* R05_PROFILER */
 
 static void print_profile(void) {
-  const double cfSECS_PER_CLOCK = 1.0 / CLOCKS_PER_SEC;
+  const double cfSECS_PER_CLOCK = 1.0 / FAST_CLOCKS_PER_SEC;
 
-  clock_t full_time = clock() - s_start_program_time;
+  fast_clock_t full_time = fast_clock() - s_start_program_time;
 #ifdef R05_SHOW_STAT_DETAILED
-  clock_t refal_time;
-  clock_t repeated_time;
-  clock_t eloop_time;
-  clock_t repeated_time_outside_e;
+  fast_clock_t refal_time;
+  fast_clock_t repeated_time;
+  fast_clock_t eloop_time;
+  fast_clock_t repeated_time_outside_e;
 
   enum { nItems = 11 };
   struct time_item items[nItems];
@@ -878,7 +903,7 @@ void r05_stop_e_loop(void) {
 
 
 double r05_time_elapsed(void) {
-  return (clock() - s_start_program_time) / (double) CLOCKS_PER_SEC;
+  return (fast_clock() - s_start_program_time) / (double) FAST_CLOCKS_PER_SEC;
 }
 
 
@@ -931,7 +956,7 @@ static struct r05_node *s_arg_end;
 
 static void main_loop(void) {
 #ifdef R05_PROFILER
-  clock_t start_step = clock(), now;
+  fast_clock_t start_step = fast_clock(), now;
 #endif  /* R05_PROFILER */
 
   while (! empty_stack()) {
@@ -958,12 +983,12 @@ static void main_loop(void) {
     after_step();
 
 #ifdef R05_PROFILER
-    now = clock();
+    now = fast_clock();
     if (callee->next == 0) {
       callee->next = s_profiled_functions;
       s_profiled_functions = callee;
     }
-    callee->seconds += (now - start_step) / (double) CLOCKS_PER_SEC;
+    callee->seconds += (now - start_step) / (double) FAST_CLOCKS_PER_SEC;
     callee->calls += 1;
     start_step = now;
 #endif  /* R05_PROFILER */
