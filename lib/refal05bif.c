@@ -2324,7 +2324,9 @@ static void read_quote(char open_quote, FILE *fin, int *line_no) {
   )
   int ch, open_quote_line_no = *line_no;
   size_t capacity, len;
-  struct imploded *compound;
+  struct imploded *compound = NULL;
+  /* ↑ на самом деле, инициализация compound здесь не нужна, «= NULL»
+  добавлено, чтобы подавить предупреждение компилятора GCC 11.4.0 */
 
   if ('"' == open_quote) {
     capacity = 10;
