@@ -21,18 +21,18 @@ jobs:
         sudo apt-get install -y gcc make
 
     - name: Build Refal-05 compiler
-      run: make bin/refal05
+      run: make bin/refal05c
 
     - name: Verify compiler was built
       run: |
-        test -f bin/refal05 || (echo "Compiler binary not found!" && exit 1)
-        ls -lh bin/refal05
+        test -f bin/refal05c || (echo "Compiler binary not found!" && exit 1)
+        ls -lh bin/refal05c
 
     - name: Upload compiler binary
       uses: actions/upload-artifact@v4
       with:
         name: refal05-linux
-        path: bin/refal05
+        path: bin/refal05c
         retention-days: 90
 
     - name: Upload bootstrap artifacts
@@ -54,7 +54,7 @@ jobs:
     - name: Display build information
       run: |
         echo "Build completed successfully!"
-        echo "Compiler: bin/refal05"
+        echo "Compiler: bin/refal05c"
         echo "Bootstrap artifacts in: bootstrap/"
         ls -lh bootstrap/
 
@@ -68,8 +68,8 @@ jobs:
     - name: Configure compiler
       shell: cmd
       run: |
-        echo @echo off > c-plus-plus.conf.bat
-        echo set R05CCOMP=cl /TC /W3 /wd4996 /O2 >> c-plus-plus.conf.bat
+        echo @echo off > c-plus-plus.conf.cmd
+        echo set R05CCOMP=cl /TC /W3 /wd4996 /O2 >> c-plus-plus.conf.cmd
 
     - name: Build Refal-05 compiler
       shell: cmd
@@ -88,21 +88,21 @@ jobs:
         echo Using %VCVARS%
         call "%VCVARS%"
         if errorlevel 1 exit /b 1
-        src\bootstrap.bat
+        src\standalone-bootstrap.cmd
 
     - name: Verify compiler was built
       run: |
-        if (!(Test-Path bin\refal05.exe)) {
+        if (!(Test-Path bin\refal05c.exe)) {
           Write-Error "Compiler binary not found!"
           exit 1
         }
-        Get-Item bin\refal05.exe
+        Get-Item bin\refal05c.exe
 
     - name: Upload compiler binary
       uses: actions/upload-artifact@v4
       with:
         name: refal05-windows
-        path: bin/refal05.exe
+        path: bin/refal05c.exe
         retention-days: 90
 
     - name: Upload bootstrap artifacts
@@ -124,6 +124,6 @@ jobs:
     - name: Display build information
       run: |
         echo "Build completed successfully!"
-        echo "Compiler: bin\refal05.exe"
+        echo "Compiler: bin\refal05c.exe"
         echo "Bootstrap artifacts in: bootstrap\"
         Get-ChildItem bootstrap\

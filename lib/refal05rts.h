@@ -4,6 +4,53 @@
 #include <stddef.h>
 
 
+/* https://stackoverflow.com/questions/2354784 */
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+#  include <sal.h>
+#  if _MSC_VER > 1400
+#    define R05_PRINTF_PARAM _Printf_format_string_
+#  else
+#    define R05_PRINTF_PARAM __format_string
+#  endif
+#else
+#  define R05_PRINTF_PARAM
+#endif
+
+
+/* https://gcc.gnu.org/onlinedocs/gcc-8.5.0/gcc/Common-Function-Attributes.html */
+#if defined(__GNUC__) || defined(__clang__)
+#  define R05_PRINTF_LIKE_FUNCTION __attribute__((format(printf, 1, 2)))
+#else
+#  define R05_PRINTF_LIKE_FUNCTION
+#endif
+
+
+/*
+  Положить эту сумму в макрос нельзя: неопределённое поведение,
+  см. warning C5105 MSVC++
+*/
+#if (defined(R05_NUMBER_INT) + defined(R05_NUMBER_LONG) \
+  + defined(R05_NUMBER_LONGLONG) + defined(R05_NUMBER_UINT32_T) \
+  + defined(R05_NUMBER_UINT64_T) + defined(R05_NUMBER_CUSTOM)) > 1
+#  error "Too many R05_NUMBER_... options"
+#elif (defined(R05_NUMBER_INT) + defined(R05_NUMBER_LONG) \
+  + defined(R05_NUMBER_LONGLONG) + defined(R05_NUMBER_UINT32_T) \
+  + defined(R05_NUMBER_UINT64_T) + defined(R05_NUMBER_CUSTOM)) == 0
+#  define R05_NUMBER_INT
+#endif
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L \
+     || defined(__cplusplus) && __cplusplus >= 201103L
+#  if defined(R05_NUMBER_UINT32_T) || defined(R05_NUMBER_UINT64_T)
+#    include <stdint.h>
+#    include <inttypes.h>
+#  endif
+#elif defined(R05_NUMBER_UINT32_T) || defined(R05_NUMBER_UINT64_T) \
+  || defined(R05_NUMBER_LONGLONG)
+#  error "Options R05_NUMBER_(LONGLONG|UINT(32|64)_T) requires C99+ or C++11+"
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -26,6 +73,27 @@ extern "C" {
 #  define R05_NORETURN_DEFINED
 #else
 #  define R05_NORETURN
+#endif
+
+
+#if ! defined(R05_POSIX) && ! defined(R05_WINDOWS)
+#  if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) \
+       || defined(__WIN32) || defined(__WIN64) || defined(__WINNT) \
+       || defined(__WIN32__) || defined(__WIN64__) || defined(__WINNT__) \
+       || defined(_Windows) || defined(_WINDOWS) || defined(__WINDOWS__) \
+       || defined(__WINDOWS_386__)
+#    define R05_WINDOWS
+#  elif defined(unix) || defined(__unix) || defined(__unix__) \
+       || defined(linux) || defined(__linux) || defined(__linux__) \
+       || defined(__gnu_linux__) || defined(__UNIX__) || defined(__LINUX__) \
+       || defined(__APPLE__) \
+       || (defined(TARGET_OS_MAC) && TARGET_OS_MAC) \
+       || (defined(TARGET_OS_OSX) && TARGET_OS_OSX) \
+       || (defined(TARGET_OS_UNIX) && TARGET_OS_UNIX)
+#    define R05_POSIX
+#  endif
+#elif defined(R05_POSIX) && defined(R05_WINDOWS)
+#  error "Only one option must be specified: R05_POSIX or R05_WINDOWS"
 #endif
 
 
@@ -57,7 +125,27 @@ struct r05_function {
 #endif
 };
 
-typedef unsigned int r05_number;
+#if defined(R05_NUMBER_INT)
+  typedef unsigned int r05_number;
+  #define PRIuR05 "u"
+#elif defined(R05_NUMBER_LONG)
+  typedef unsigned long r05_number;
+  #define PRIuR05 "lu"
+#elif defined(R05_NUMBER_LONGLONG)
+  typedef unsigned long long r05_number;
+  #define PRIuR05 "llu"
+#elif defined(R05_NUMBER_UINT32_T)
+  typedef uint32_t r05_number;
+  #define PRIuR05 PRIu32
+#elif defined(R05_NUMBER_UINT64_T)
+  typedef uint64_t r05_number;
+  #define PRIuR05 PRIu64
+#elif defined(R05_NUMBER_CUSTOM)
+  typedef R05_NUMBER_CUSTOM r05_number;
+  #if ! defined(PRIuR05)
+  #  error "Option R05_NUMBER_CUSTOM implies used defined PRIuR05"
+  #endif
+#endif
 
 struct r05_node {
   struct r05_node *prev;
@@ -231,17 +319,33 @@ void r05_enum_function_code(struct r05_node *begin, struct r05_node *end);
 
 /* Профилирование */
 
+#ifdef R05_SHOW_STAT_DETAILED
+
 void r05_this_is_generated_function(void);
 void r05_start_e_loop(void);
 void r05_stop_e_loop(void);
+
+#else
+
+#define r05_this_is_generated_function() ((void) 0)
+#define r05_start_e_loop() ((void) 0)
+#define r05_stop_e_loop() ((void) 0)
+
+#endif  /* R05_SHOW_STAT_DETAILED */
+
 double r05_time_elapsed(void);
 
 /* Рефал-машина, операционная среда и диагностика */
 
 R05_NORETURN void r05_recognition_impossible(void);
 R05_NORETURN void r05_exit(int retcode);
-R05_NORETURN void r05_builtin_error(const char *message);
-R05_NORETURN void r05_builtin_error_errno(const char *message);
+R05_NORETURN R05_PRINTF_LIKE_FUNCTION void r05_builtin_error(
+  R05_PRINTF_PARAM const char *message, ...
+);
+R05_NORETURN R05_PRINTF_LIKE_FUNCTION void r05_builtin_error_errno(
+  R05_PRINTF_PARAM const char *message,
+  ...
+);
 
 r05_number r05_step_count(void);
 const char *r05_arg(int no);

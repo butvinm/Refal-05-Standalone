@@ -5,7 +5,7 @@ set SCRIPT_DIR=%~dp0
 set PROJECT_ROOT=%SCRIPT_DIR%..
 cd /d %SCRIPT_DIR%
 
-call "%PROJECT_ROOT%\c-plus-plus.conf.bat"
+call "%PROJECT_ROOT%\c-plus-plus.conf.cmd"
 if errorlevel 1 exit /b 1
 
 echo Running Refal-05 autotests
@@ -44,7 +44,7 @@ echo Testing: %TEST%
 set R05CCOMP_SAVE=%R05CCOMP%
 set R05CCOMP=
 set R05PATH=
-"%PROJECT_ROOT%\bin\refal05.exe" "%TEST%" 2>__error.txt
+"%PROJECT_ROOT%\bin\refal05c.exe" "%TEST%" 2>__error.txt
 set EXIT_CODE=!errorlevel!
 set R05CCOMP=%R05CCOMP_SAVE%
 
@@ -69,20 +69,35 @@ if not errorlevel 1 (
     exit /b 0
 )
 
+if !EXIT_CODE! neq 0 (
+    echo   FAILED: Compilation of %TEST% failed ^(exit code !EXIT_CODE!^)
+    type __error.txt
+    del __error.txt
+    set /a FAILED+=1
+    exit /b 0
+)
+
+if not exist "%BASENAME%.c" (
+    echo   FAILED: Compiler produced no %BASENAME%.c
+    del __error.txt
+    set /a FAILED+=1
+    exit /b 0
+)
+
 del __error.txt
 
 if exist "%BASENAME%.SATELLITE.ref" (
     set R05CCOMP_SAVE=%R05CCOMP%
     set R05CCOMP=
     set R05PATH=
-    "%PROJECT_ROOT%\bin\refal05.exe" "%BASENAME%.SATELLITE.ref"
+    "%PROJECT_ROOT%\bin\refal05c.exe" "%BASENAME%.SATELLITE.ref"
     set R05CCOMP=%R05CCOMP_SAVE%
     set SATELLITEC=%BASENAME%.SATELLITE.c
 ) else (
     set SATELLITEC=
 )
 
-%R05CCOMP% -I"%PROJECT_ROOT%\lib" -o"%BASENAME%.exe" "%BASENAME%.c" !SATELLITEC! "%PROJECT_ROOT%\lib\Library.c" "%PROJECT_ROOT%\lib\refal05rts.c" >nul 2>&1
+%R05CCOMP% -I"%PROJECT_ROOT%\lib" -o"%BASENAME%.exe" "%BASENAME%.c" !SATELLITEC! "%PROJECT_ROOT%\lib\refal05bif.c" "%PROJECT_ROOT%\lib\refal05rts.c" >nul 2>&1
 if errorlevel 1 (
     echo   FAILED: C compilation failed
     set /a FAILED+=1

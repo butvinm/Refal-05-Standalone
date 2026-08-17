@@ -7,16 +7,13 @@ R05_DECLARE_ENTRY_FUNCTION(Map)
 R05_DECLARE_ENTRY_FUNCTION(Unique)
 R05_DECLARE_ENTRY_FUNCTION(Parse)
 R05_DECLARE_ENTRY_FUNCTION(Scan)
-R05_DECLARE_ENTRY_FUNCTION(R05m_PrepareAST)
 R05_DECLARE_LOCAL_FUNCTION(CheckAST)
-R05_DECLARE_LOCAL_FUNCTION(CheckASTm_ExternsArePlained)
 R05_DECLARE_LOCAL_FUNCTION(CheckASTm_UnusedsAreFound)
 R05_DECLARE_LOCAL_FUNCTION(CheckASTm_UnusedsAreFound0)
-R05_DECLARE_LOCAL_FUNCTION(PlainExterns)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_PlainExterns)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_PlainExternsm_Name)
+R05_DECLARE_ENTRY_FUNCTION(parseru_PlainExterns)
+R05_DECLARE_ENTRY_FUNCTION(parseru_PlainExternsm_Name)
 R05_DECLARE_LOCAL_FUNCTION(FindUnused)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_FindUnusedm_InitialUsage)
+R05_DECLARE_ENTRY_FUNCTION(parseru_FindUnusedm_InitialUsage)
 R05_DECLARE_LOCAL_FUNCTION(FindUnusedm_Loop)
 R05_DECLARE_LOCAL_FUNCTION(FindUnusedm_Loopu_check)
 R05_DECLARE_LOCAL_FUNCTION(FindUnusedm_Loopu_cont)
@@ -32,24 +29,23 @@ R05_DECLARE_LOCAL_FUNCTION(FindUnusedm_Loopu_next0)
 R05_DECLARE_LOCAL_FUNCTION(FindUnusedm_Loopu_cont2)
 R05_DECLARE_LOCAL_FUNCTION(ListOfBuiltinm_WithSugar)
 R05_DECLARE_LOCAL_FUNCTION(AddMetatable)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_AddMetatablem_AddFunction)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_AddMetatablem_MakeMetafunction)
+R05_DECLARE_ENTRY_FUNCTION(parseru_AddMetatablem_AddFunction)
+R05_DECLARE_ENTRY_FUNCTION(parseru_AddMetatablem_MakeMetafunction)
 R05_DECLARE_LOCAL_FUNCTION(AddMetatablem_Aux)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_AddHowCall)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_MakeEnum)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_FindUnusedm_Loopm_UnusedErrors)
+R05_DECLARE_ENTRY_FUNCTION(parseru_AddHowCall)
+R05_DECLARE_ENTRY_FUNCTION(parseru_MakeEnum)
+R05_DECLARE_ENTRY_FUNCTION(parseru_FindUnusedm_Loopm_UnusedErrors)
 R05_DECLARE_LOCAL_FUNCTION(UnusedMessage)
 R05_DECLARE_LOCAL_FUNCTION(CastAST)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_CastASTm_Item)
+R05_DECLARE_ENTRY_FUNCTION(parseru_CastASTm_Item)
 R05_DECLARE_LOCAL_FUNCTION(CastASTm_JoinExterns)
 R05_DECLARE_LOCAL_FUNCTION(ExtractReferences)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_ExtractReferencesm_Sentence)
+R05_DECLARE_ENTRY_FUNCTION(parseru_ExtractReferencesm_Sentence)
 R05_DECLARE_LOCAL_FUNCTION(ExtractReferencesm_Tail)
 R05_DECLARE_LOCAL_FUNCTION(ExtractReferencesm_Expr)
-R05_DECLARE_ENTRY_FUNCTION(r05m_parseru_ExtractReferencesm_Term)
-R05_DECLARE_ENTRY_FUNCTION(R05m_Parsem_File)
-R05_DECLARE_LOCAL_FUNCTION(R05m_Parsem_File0)
-R05_DECLARE_LOCAL_FUNCTION(R05m_Parsem_File1)
+R05_DECLARE_ENTRY_FUNCTION(parseru_ExtractReferencesm_Term)
+R05_DECLARE_ENTRY_FUNCTION(Parsem_File)
+R05_DECLARE_LOCAL_FUNCTION(Parsem_File0)
 R05_DECLARE_LOCAL_FUNCTION(SortErrors)
 R05_DECLARE_LOCAL_FUNCTION(DoSortErrors)
 R05_DECLARE_LOCAL_FUNCTION(SortErrorsm_Insert)
@@ -59,13 +55,13 @@ R05_DECLARE_LOCAL_FUNCTION(ELm_Create)
 R05_DECLARE_LOCAL_FUNCTION(ELm_AddErrorAt)
 R05_DECLARE_LOCAL_FUNCTION(ELm_Destroy)
 R05_DECLARE_ENTRY_FUNCTION(Explode)
-R05_DECLARE_ENTRY_FUNCTION(Compare)
 R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin)
 R05_DECLARE_ENTRY_FUNCTION(k25_)
 R05_DECLARE_ENTRY_FUNCTION(k2A_)
 R05_DECLARE_ENTRY_FUNCTION(k2B_)
 R05_DECLARE_ENTRY_FUNCTION(m_)
 R05_DECLARE_ENTRY_FUNCTION(k2F_)
+R05_DECLARE_ENTRY_FUNCTION(Compare)
 R05_DEFINE_LOCAL_ENUM(Extern, "Extern")
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
 R05_DEFINE_LOCAL_ENUM(SpecialComment, "SpecialComment")
@@ -97,104 +93,69 @@ R05_DEFINE_LOCAL_ENUM(k3F_, "?")
 /*
 *$FROM R5FW-Parser
 */
-R05_DEFINE_ENTRY_FUNCTION(R05m_PrepareAST, "R05-PrepareAST") {
-  r05_this_is_generated_function();
-
-  do {
-    /* e.AST: 2 */
-    struct r05_node *p[9] = { 0 };
-    /* e.AST */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_CheckAST);
-    r05_alloc_open_call(p+5);
-    r05_alloc_function(&r05f_ELm_Create);
-    r05_alloc_close_call(p+6);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_close_call(p+8);
-    r05_push_stack(p[8]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[5]);
-    r05_splice_evar(p[7], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
 R05_DEFINE_LOCAL_FUNCTION(CheckAST, "CheckAST") {
   r05_this_is_generated_function();
 
   do {
-    /* t.ErrorList: 2 */
-    /* e.AST: 4 */
-    struct r05_node *p[12] = { 0 };
-    /* t.ErrorList e.AST */
+    /* e.AST: 3 */
+    struct r05_node *p[14] = { 0 };
+    /* Success e.AST */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_Success))
       continue;
-    r05_close_evar(p+4, p[3], p[1]);
+    r05_close_evar(p+3, p[2], p[1]);
 
     r05_reset_allocator();
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_CheckASTm_UnusedsAreFound);
     r05_alloc_open_call(p+6);
-    r05_alloc_function(&r05f_CheckASTm_ExternsArePlained);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_open_call(p+8);
-    r05_alloc_function(&r05f_PlainExterns);
-    r05_alloc_insert_pos(p+9);
-    r05_alloc_close_call(p+10);
+    r05_alloc_function(&r05f_FindUnused);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_ELm_Create);
+    r05_alloc_close_call(p+8);
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_Map);
+    r05_alloc_function(&r05f_parseru_PlainExterns);
+    r05_alloc_insert_pos(p+10);
     r05_alloc_close_call(p+11);
-    r05_push_stack(p[11]);
+    r05_alloc_close_call(p+12);
+    r05_alloc_close_call(p+13);
+    r05_push_stack(p[13]);
+    r05_push_stack(p[5]);
+    r05_push_stack(p[12]);
     r05_push_stack(p[6]);
-    r05_push_stack(p[10]);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[9]);
+    r05_correct_evar(p+3);
     r05_push_stack(p[8]);
-    r05_correct_evar(p+4);
-    r05_splice_tvar(p[7], p+2);
-    r05_splice_evar(p[9], p+4);
+    r05_push_stack(p[7]);
+    r05_splice_evar(p[10], p+3);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
   } while (0);
 
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(CheckASTm_ExternsArePlained, "CheckAST-ExternsArePlained") {
-  r05_this_is_generated_function();
-
   do {
-    /* t.ErrorList: 2 */
-    /* e.AST: 4 */
-    struct r05_node *p[11] = { 0 };
-    /* t.ErrorList e.AST */
+    /* e.ParserErrors: 3 */
+    struct r05_node *p[8] = { 0 };
+    /* Fails e.ParserErrors */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_Fails))
       continue;
-    r05_close_evar(p+4, p[3], p[1]);
+    r05_close_evar(p+3, p[2], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+6);
-    r05_alloc_function(&r05f_CheckASTm_UnusedsAreFound);
-    r05_alloc_open_call(p+7);
-    r05_alloc_function(&r05f_FindUnused);
-    r05_alloc_insert_pos(p+8);
-    r05_alloc_close_call(p+9);
-    r05_alloc_close_call(p+10);
-    r05_push_stack(p[10]);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[9]);
+    r05_alloc_function(&r05f_Fails);
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_SortErrors);
+    r05_alloc_insert_pos(p+6);
+    r05_alloc_close_call(p+7);
     r05_push_stack(p[7]);
-    r05_correct_evar(p+4);
-    r05_splice_tvar(p[8], p+2);
-    r05_splice_evar(p[8], p+4);
+    r05_push_stack(p[5]);
+    r05_correct_evar(p+3);
+    r05_splice_evar(p[6], p+3);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -306,34 +267,7 @@ R05_DEFINE_LOCAL_FUNCTION(CheckASTm_UnusedsAreFound0, "CheckAST-UnusedsAreFound0
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(PlainExterns, "PlainExterns") {
-  r05_this_is_generated_function();
-
-  do {
-    /* e.AST: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.AST */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_PlainExterns);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_PlainExterns, "r05-parser_PlainExterns") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_PlainExterns, "parser_PlainExterns") {
   r05_this_is_generated_function();
 
   do {
@@ -353,7 +287,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_PlainExterns, "r05-parser_PlainExterns") 
     r05_reset_allocator();
     r05_alloc_open_call(p+7);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_PlainExternsm_Name);
+    r05_alloc_function(&r05f_parseru_PlainExternsm_Name);
     r05_alloc_insert_pos(p+8);
     r05_alloc_close_call(p+9);
     r05_push_stack(p[9]);
@@ -445,7 +379,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_PlainExterns, "r05-parser_PlainExterns") 
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_PlainExternsm_Name, "r05-parser_PlainExterns-Name") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_PlainExternsm_Name, "parser_PlainExterns-Name") {
   r05_this_is_generated_function();
 
   do {
@@ -502,7 +436,7 @@ R05_DEFINE_LOCAL_FUNCTION(FindUnused, "FindUnused") {
     r05_reset_allocator();
     r05_alloc_open_call(p+6);
     r05_alloc_function(&r05f_MapAccum);
-    r05_alloc_function(&r05f_r05m_parseru_FindUnusedm_Loopm_UnusedErrors);
+    r05_alloc_function(&r05f_parseru_FindUnusedm_Loopm_UnusedErrors);
     r05_alloc_insert_pos(p+7);
     r05_alloc_open_call(p+8);
     r05_alloc_function(&r05f_FindUnusedm_Loop);
@@ -510,7 +444,7 @@ R05_DEFINE_LOCAL_FUNCTION(FindUnused, "FindUnused") {
     r05_alloc_close_bracket(p+10);
     r05_alloc_open_call(p+11);
     r05_alloc_function(&r05f_MapAccum);
-    r05_alloc_function(&r05f_r05m_parseru_FindUnusedm_InitialUsage);
+    r05_alloc_function(&r05f_parseru_FindUnusedm_InitialUsage);
     r05_alloc_open_bracket(p+12);
     r05_alloc_close_bracket(p+13);
     r05_alloc_insert_pos(p+14);
@@ -536,7 +470,7 @@ R05_DEFINE_LOCAL_FUNCTION(FindUnused, "FindUnused") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_FindUnusedm_InitialUsage, "r05-parser_FindUnused-InitialUsage") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_FindUnusedm_InitialUsage, "parser_FindUnused-InitialUsage") {
   r05_this_is_generated_function();
 
   do {
@@ -2251,7 +2185,7 @@ R05_DEFINE_LOCAL_FUNCTION(FindUnusedm_Loopu_cont1, "FindUnused-Loop_cont1") {
     r05_alloc_insert_pos(p+10);
     r05_alloc_open_call(p+11);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_MakeEnum);
+    r05_alloc_function(&r05f_parseru_MakeEnum);
     r05_alloc_insert_pos(p+12);
     r05_alloc_close_call(p+13);
     r05_push_stack(p[13]);
@@ -2906,13 +2840,13 @@ R05_DEFINE_LOCAL_FUNCTION(AddMetatable, "AddMetatable") {
     r05_alloc_close_bracket(p+11);
     r05_alloc_open_call(p+12);
     r05_alloc_function(&r05f_MapAccum);
-    r05_alloc_function(&r05f_r05m_parseru_AddMetatablem_AddFunction);
+    r05_alloc_function(&r05f_parseru_AddMetatablem_AddFunction);
     r05_alloc_open_bracket(p+13);
     r05_alloc_close_bracket(p+14);
     r05_alloc_insert_pos(p+15);
     r05_alloc_open_call(p+16);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_AddMetatablem_MakeMetafunction);
+    r05_alloc_function(&r05f_parseru_AddMetatablem_MakeMetafunction);
     r05_alloc_open_call(p+17);
     r05_alloc_function(&r05f_ListOfBuiltinm_WithSugar);
     r05_alloc_close_call(p+18);
@@ -2941,7 +2875,7 @@ R05_DEFINE_LOCAL_FUNCTION(AddMetatable, "AddMetatable") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_AddMetatablem_AddFunction, "r05-parser_AddMetatable-AddFunction") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_AddMetatablem_AddFunction, "parser_AddMetatable-AddFunction") {
   r05_this_is_generated_function();
 
   do {
@@ -3219,7 +3153,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_AddMetatablem_AddFunction, "r05-parser_Ad
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_AddMetatablem_MakeMetafunction, "r05-parser_AddMetatable-MakeMetafunction") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_AddMetatablem_MakeMetafunction, "parser_AddMetatable-MakeMetafunction") {
   r05_this_is_generated_function();
 
   do {
@@ -3308,7 +3242,7 @@ R05_DEFINE_LOCAL_FUNCTION(AddMetatablem_Aux, "AddMetatable-Aux") {
     r05_alloc_insert_pos(p+13);
     r05_alloc_open_call(p+14);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_AddHowCall);
+    r05_alloc_function(&r05f_parseru_AddHowCall);
     r05_alloc_insert_pos(p+15);
     r05_alloc_close_call(p+16);
     r05_alloc_close_bracket(p+17);
@@ -3335,7 +3269,7 @@ R05_DEFINE_LOCAL_FUNCTION(AddMetatablem_Aux, "AddMetatable-Aux") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_AddHowCall, "r05-parser_AddHowCall") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_AddHowCall, "parser_AddHowCall") {
   r05_this_is_generated_function();
 
   do {
@@ -3366,7 +3300,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_AddHowCall, "r05-parser_AddHowCall") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_MakeEnum, "r05-parser_MakeEnum") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_MakeEnum, "parser_MakeEnum") {
   r05_this_is_generated_function();
 
   do {
@@ -3403,7 +3337,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_MakeEnum, "r05-parser_MakeEnum") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_FindUnusedm_Loopm_UnusedErrors, "r05-parser_FindUnused-Loop-UnusedErrors") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_FindUnusedm_Loopm_UnusedErrors, "parser_FindUnused-Loop-UnusedErrors") {
   r05_this_is_generated_function();
 
   do {
@@ -3541,7 +3475,7 @@ R05_DEFINE_LOCAL_FUNCTION(CastAST, "CastAST") {
     r05_alloc_function(&r05f_CastASTm_JoinExterns);
     r05_alloc_open_call(p+5);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_CastASTm_Item);
+    r05_alloc_function(&r05f_parseru_CastASTm_Item);
     r05_alloc_insert_pos(p+6);
     r05_alloc_close_call(p+7);
     r05_alloc_close_call(p+8);
@@ -3557,7 +3491,7 @@ R05_DEFINE_LOCAL_FUNCTION(CastAST, "CastAST") {
   } while (0);
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_CastASTm_Item, "r05-parser_CastAST-Item") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_CastASTm_Item, "parser_CastAST-Item") {
   r05_this_is_generated_function();
 
   do {
@@ -3801,7 +3735,7 @@ R05_DEFINE_LOCAL_FUNCTION(ExtractReferences, "ExtractReferences") {
     r05_alloc_function(&r05f_Unique);
     r05_alloc_open_call(p+5);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_ExtractReferencesm_Sentence);
+    r05_alloc_function(&r05f_parseru_ExtractReferencesm_Sentence);
     r05_alloc_insert_pos(p+6);
     r05_alloc_close_call(p+7);
     r05_alloc_close_call(p+8);
@@ -3817,7 +3751,7 @@ R05_DEFINE_LOCAL_FUNCTION(ExtractReferences, "ExtractReferences") {
   } while (0);
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_ExtractReferencesm_Sentence, "r05-parser_ExtractReferences-Sentence") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_ExtractReferencesm_Sentence, "parser_ExtractReferences-Sentence") {
   r05_this_is_generated_function();
 
   do {
@@ -3997,7 +3931,7 @@ R05_DEFINE_LOCAL_FUNCTION(ExtractReferencesm_Expr, "ExtractReferences-Expr") {
     r05_reset_allocator();
     r05_alloc_open_call(p+4);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_parseru_ExtractReferencesm_Term);
+    r05_alloc_function(&r05f_parseru_ExtractReferencesm_Term);
     r05_alloc_insert_pos(p+5);
     r05_alloc_close_call(p+6);
     r05_push_stack(p[6]);
@@ -4010,7 +3944,7 @@ R05_DEFINE_LOCAL_FUNCTION(ExtractReferencesm_Expr, "ExtractReferences-Expr") {
   } while (0);
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_ExtractReferencesm_Term, "r05-parser_ExtractReferences-Term") {
+R05_DEFINE_ENTRY_FUNCTION(parseru_ExtractReferencesm_Term, "parser_ExtractReferences-Term") {
   r05_this_is_generated_function();
 
   do {
@@ -4132,12 +4066,12 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_parseru_ExtractReferencesm_Term, "r05-parser_Extr
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(R05m_Parsem_File, "R05-Parse-File") {
+R05_DEFINE_ENTRY_FUNCTION(Parsem_File, "Parse-File") {
   r05_this_is_generated_function();
 
   do {
     /* e.SourceFile: 2 */
-    struct r05_node *p[13] = { 0 };
+    struct r05_node *p[15] = { 0 };
     /* e.SourceFile */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -4145,24 +4079,29 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Parsem_File, "R05-Parse-File") {
 
     r05_reset_allocator();
     r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_R05m_Parsem_File0);
+    r05_alloc_function(&r05f_Parsem_File0);
     r05_alloc_open_bracket(p+5);
     r05_alloc_insert_pos(p+6);
     r05_alloc_close_bracket(p+7);
     r05_alloc_open_call(p+8);
-    r05_alloc_function(&r05f_Parse);
+    r05_alloc_function(&r05f_CheckAST);
     r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_Parse);
+    r05_alloc_open_call(p+10);
     r05_alloc_function(&r05f_Scan);
     r05_alloc_evar(p+2);
-    r05_alloc_close_call(p+10);
     r05_alloc_close_call(p+11);
     r05_alloc_close_call(p+12);
-    r05_push_stack(p[12]);
+    r05_alloc_close_call(p+13);
+    r05_alloc_close_call(p+14);
+    r05_push_stack(p[14]);
     r05_push_stack(p[4]);
-    r05_push_stack(p[11]);
+    r05_push_stack(p[13]);
     r05_push_stack(p[8]);
-    r05_push_stack(p[10]);
+    r05_push_stack(p[12]);
     r05_push_stack(p[9]);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[10]);
     r05_link_brackets(p[5], p[7]);
     r05_correct_evar(p+2);
     r05_splice_evar(p[6], p+2);
@@ -4172,14 +4111,14 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Parsem_File, "R05-Parse-File") {
   } while (0);
 }
 
-R05_DEFINE_LOCAL_FUNCTION(R05m_Parsem_File0, "R05-Parse-File0") {
+R05_DEFINE_LOCAL_FUNCTION(Parsem_File0, "Parse-File0") {
   r05_this_is_generated_function();
 
   do {
     /* e.SourceFile: 5 */
-    /* e.AST: 7 */
-    struct r05_node *p[19] = { 0 };
-    /* (e.SourceFile) Success e.AST */
+    /* e.PreparedAST: 7 */
+    struct r05_node *p[10] = { 0 };
+    /* (e.SourceFile) Success e.PreparedAST */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_brackets_left(p+2, p[0], p[1]))
@@ -4190,29 +4129,10 @@ R05_DEFINE_LOCAL_FUNCTION(R05m_Parsem_File0, "R05-Parse-File0") {
     r05_close_evar(p+7, p[4], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+9);
-    r05_alloc_function(&r05f_R05m_Parsem_File1);
-    r05_alloc_open_bracket(p+10);
-    r05_alloc_insert_pos(p+11);
-    r05_alloc_close_bracket(p+12);
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_call(p+16);
-    r05_alloc_function(&r05f_R05m_PrepareAST);
-    r05_alloc_evar(p+7);
-    r05_alloc_close_call(p+17);
-    r05_alloc_close_call(p+18);
-    r05_push_stack(p[18]);
-    r05_push_stack(p[9]);
-    r05_push_stack(p[17]);
-    r05_push_stack(p[16]);
-    r05_link_brackets(p[13], p[15]);
+    r05_alloc_function(&r05f_Success);
+    r05_alloc_insert_pos(p+9);
     r05_correct_evar(p+7);
-    r05_link_brackets(p[10], p[12]);
-    r05_correct_evar(p+5);
-    r05_splice_evar(p[11], p+5);
-    r05_splice_evar(p[14], p+7);
+    r05_splice_evar(p[9], p+7);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -4220,9 +4140,9 @@ R05_DEFINE_LOCAL_FUNCTION(R05m_Parsem_File0, "R05-Parse-File0") {
 
   do {
     /* e.SourceFile: 5 */
-    /* e.ParserErrors: 7 */
+    /* e.SemanticErrors: 7 */
     struct r05_node *p[12] = { 0 };
-    /* (e.SourceFile) Fails e.ParserErrors */
+    /* (e.SourceFile) Fails e.SemanticErrors */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_brackets_left(p+2, p[0], p[1]))
@@ -4242,73 +4162,6 @@ R05_DEFINE_LOCAL_FUNCTION(R05m_Parsem_File0, "R05-Parse-File0") {
     r05_push_stack(p[9]);
     r05_correct_evar(p+7);
     r05_splice_evar(p[10], p+7);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(R05m_Parsem_File1, "R05-Parse-File1") {
-  r05_this_is_generated_function();
-
-  do {
-    /* e.SourceFile: 7 */
-    /* e.AST: 9 */
-    /* e.PreparedAST: 11 */
-    struct r05_node *p[14] = { 0 };
-    /* (e.SourceFile) (e.AST) Success e.PreparedAST */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[5], p[1], &r05f_Success))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    r05_close_evar(p+9, p[4], p[5]);
-    r05_close_evar(p+11, p[6], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_function(&r05f_Success);
-    r05_alloc_insert_pos(p+13);
-    r05_correct_evar(p+11);
-    r05_splice_evar(p[13], p+11);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.SourceFile: 7 */
-    /* e.AST: 9 */
-    /* e.SemanticErrors: 11 */
-    struct r05_node *p[16] = { 0 };
-    /* (e.SourceFile) (e.AST) Fails e.SemanticErrors */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[5], p[1], &r05f_Fails))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    r05_close_evar(p+9, p[4], p[5]);
-    r05_close_evar(p+11, p[6], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_function(&r05f_Fails);
-    r05_alloc_open_call(p+13);
-    r05_alloc_function(&r05f_SortErrors);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_call(p+15);
-    r05_push_stack(p[15]);
-    r05_push_stack(p[13]);
-    r05_correct_evar(p+11);
-    r05_splice_evar(p[14], p+11);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;

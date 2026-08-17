@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,29 +19,80 @@
 #define EXIT_CODE_BUILTIN_ERROR 203
 
 
-#ifdef R05_CLOCK_SKIP
+#ifdef R05_POSIX
 
-static clock_t fast_clock(void) {
-  static clock_t prev = 0;
-  static int skip = 0;
+/*
+  Функция clock() на Linux и macOS работает очень медленно, что не только
+  в разы замедляет время выполнения программы с макросами R05_PROFILER
+  и R05_SHOW_STAT_DETAILED, но и делает соответствующие замеры неадекватными:
 
-  if (skip++ % R05_CLOCK_SKIP == 0) {
-    prev = clock();
+  https://github.com/bmstu-iu9/refal-5-lambda/issues/206
+
+  clock_gettime() работает гораздо быстрее. На Linux предпочтительнее
+  использовать часы CLOCK_MONOTONIC_COARSE, но, если они не доступны,
+  используем переносимые CLOCK_REALTIME.
+*/
+
+typedef unsigned long fast_clock_t;
+
+#define FAST_CLOCKS_PER_SEC ((fast_clock_t) 1000)
+
+static fast_clock_t fast_clock(void) {
+  struct timespec now;
+#ifdef CLOCK_MONOTONIC_COARSE
+  int res = clock_gettime(CLOCK_MONOTONIC_COARSE,  &now);
+#else  /* CLOCK_MONOTONIC_COARSE */
+  int res = clock_gettime(CLOCK_REALTIME, &now);
+#endif  /* CLOCK_MONOTONIC_COARSE */
+
+  if (-1 == res) {
+    r05_builtin_error_errno("Can\'t retrieve time by clock_gettime()");
   }
 
-  return prev;
+  return (fast_clock_t) now.tv_sec * FAST_CLOCKS_PER_SEC
+    + (fast_clock_t) now.tv_nsec / (1000000000 / FAST_CLOCKS_PER_SEC);
 }
 
-#define clock() fast_clock()
+#else  /* R05_POSIX */
 
-#endif  /* ifdef R05_CLOCK_SKIP */
+/* На Windows функция clock() имеет прекрасную производительность! */
+
+typedef clock_t fast_clock_t;
+#define FAST_CLOCKS_PER_SEC CLOCKS_PER_SEC
+#define fast_clock() clock()
+
+#endif  /* R05_POSIX */
+
+
+#ifdef R05_SHOW_STAT_DETAILED
+
+#ifndef R05_SHOW_STAT
+#define R05_SHOW_STAT
+#endif  /* R05_SHOW_STAT */
+
+#define DEFINE_CLOCK_VAR(varname) fast_clock_t varname = fast_clock();
+static void add_match_repeated_var_time(char type, fast_clock_t duration);
+static void start_building_result(void);
+static void add_copy_tevar_time(fast_clock_t duration);
+
+#else  /* R05_SHOW_STAT_DETAILED */
+
+#define DEFINE_CLOCK_VAR(varname)
+#define add_match_repeated_var_time(type, duration) ((void) type)
+#define start_building_result() ((void) 0)
+#define add_copy_tevar_time(duration) ((void) 0)
+
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 
 #define STATIC_ASSERT(message, expr) \
   int message : ((expr) ? +1 : -1)
 
 struct static_asserts {
-  STATIC_ASSERT(r05_number_is_32bit, sizeof(r05_number) * CHAR_BIT == 32);
+  STATIC_ASSERT(
+    r05_number_is_32_or_64_bit,
+    sizeof(r05_number) * CHAR_BIT == 32 || sizeof(r05_number) * CHAR_BIT == 64
+  );
 };
 
 
@@ -217,14 +269,12 @@ int r05_repeated_svar_right(
 }
 
 
-static void add_match_repeated_tvar_time(clock_t duration);
-static void add_match_repeated_evar_time(clock_t duration);
-
 int r05_repeated_tevar_left(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  clock_t start_match = clock();
+  DEFINE_CLOCK_VAR(start_match)
+
   struct r05_node *current = left->next;
   struct r05_node *limit = right;
   struct r05_node *cur_sample = tevar_sample[0];
@@ -239,9 +289,7 @@ int r05_repeated_tevar_left(
     current = current->next;
   }
 
-  (type == 't' ? add_match_repeated_tvar_time : add_match_repeated_evar_time)(
-    clock() - start_match
-  );
+  add_match_repeated_var_time(type, fast_clock() - start_match);
 
   /*
     Здесь current == limit || cur_sample == limit_sample
@@ -262,7 +310,8 @@ int r05_repeated_tevar_right(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  clock_t start_match = clock();
+  DEFINE_CLOCK_VAR(start_match)
+
   struct r05_node *current = right->prev;
   struct r05_node *limit = left;
   struct r05_node *cur_sample = tevar_sample[1];
@@ -277,9 +326,7 @@ int r05_repeated_tevar_right(
     cur_sample = cur_sample->prev;
   }
 
-  (type == 't' ? add_match_repeated_tvar_time : add_match_repeated_evar_time)(
-    clock() - start_match
-  );
+  add_match_repeated_var_time(type, fast_clock() - start_match);
 
   /*
     Здесь current == limit || cur_sample == limit_sample
@@ -433,7 +480,6 @@ static void free_memory(void) {
    Операции построения результата
 ==============================================================================*/
 
-static void start_building_result(void);
 
 void r05_reset_allocator(void) {
   start_building_result();
@@ -475,11 +521,9 @@ static void list_splice(
 }
 
 
-static void add_copy_tevar_time(clock_t duration);
-
 void r05_alloc_tevar(struct r05_node **sample) {
   struct r05_node *p, *limit;
-  clock_t start_copy_time = clock();
+  DEFINE_CLOCK_VAR(start_copy_time)
 
   struct r05_node *bracket_stack = 0;
 
@@ -502,7 +546,7 @@ void r05_alloc_tevar(struct r05_node **sample) {
 
   assert(bracket_stack == 0);
 
-  add_copy_tevar_time(clock() - start_copy_time);
+  add_copy_tevar_time(fast_clock() - start_copy_time);
 }
 
 
@@ -571,22 +615,26 @@ void r05_enum_function_code(struct r05_node *begin, struct r05_node *end) {
    Внутренний профилировщик
 ==============================================================================*/
 
-static clock_t s_start_program_time;
-static clock_t s_start_pattern_match_time;
-static clock_t s_total_pattern_match_time;
-static clock_t s_start_building_result_time;
-static clock_t s_total_building_result_time;
-static clock_t s_total_copy_tevar_time;
-static clock_t s_total_match_repeated_tvar_time;
-static clock_t s_total_match_repeated_evar_time;
-static clock_t s_start_e_loop;
-static clock_t s_total_e_loop;
-static clock_t s_total_match_repeated_tvar_time_outside_e;
-static clock_t s_total_match_repeated_evar_time_outside_e;
+static fast_clock_t s_start_program_time;
+
+
+#ifdef R05_SHOW_STAT_DETAILED
+static fast_clock_t s_start_pattern_match_time;
+static fast_clock_t s_total_pattern_match_time;
+static fast_clock_t s_start_building_result_time;
+static fast_clock_t s_total_building_result_time;
+static fast_clock_t s_total_copy_tevar_time;
+static fast_clock_t s_total_match_repeated_tvar_time;
+static fast_clock_t s_total_match_repeated_evar_time;
+static fast_clock_t s_start_e_loop;
+static fast_clock_t s_total_e_loop;
+static fast_clock_t s_total_match_repeated_tvar_time_outside_e;
+static fast_clock_t s_total_match_repeated_evar_time_outside_e;
 
 
 static int s_in_generated;
 static int s_in_e_loop;
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 
 #ifdef R05_PROFILER
@@ -595,16 +643,20 @@ static struct r05_function *s_profiled_functions;
 
 
 static void start_profiler(void) {
-  s_start_program_time = clock();
+  s_start_program_time = fast_clock();
+#ifdef R05_SHOW_STAT_DETAILED
   s_in_generated = 0;
+#endif  /* R05_SHOW_STAT_DETAILED */
 }
 
 
+#ifdef R05_SHOW_STAT_DETAILED
+
 static void start_building_result(void) {
   if (s_in_generated) {
-    clock_t pattern_match;
+    fast_clock_t pattern_match;
 
-    s_start_building_result_time = clock();
+    s_start_building_result_time = fast_clock();
     pattern_match = s_start_building_result_time - s_start_pattern_match_time;
     s_total_pattern_match_time += pattern_match;
 
@@ -618,7 +670,7 @@ static void start_building_result(void) {
 
 static void after_step(void) {
   if (s_in_generated) {
-    clock_t building_result = clock() - s_start_building_result_time;
+    fast_clock_t building_result = fast_clock() - s_start_building_result_time;
     s_total_building_result_time += building_result;
   }
 
@@ -629,32 +681,40 @@ static void after_step(void) {
 }
 
 
-static void add_copy_tevar_time(clock_t duration) {
+static void add_copy_tevar_time(fast_clock_t duration) {
   s_total_copy_tevar_time += duration;
 }
 
-static void add_match_repeated_tvar_time(clock_t duration) {
-  if (s_in_e_loop) {
-    s_total_match_repeated_tvar_time += duration;
+static void add_match_repeated_var_time(char type, fast_clock_t duration) {
+  if ('t' == type) {
+    if (s_in_e_loop) {
+      s_total_match_repeated_tvar_time += duration;
+    } else {
+      s_total_match_repeated_tvar_time_outside_e += duration;
+    }
   } else {
-    s_total_match_repeated_tvar_time_outside_e += duration;
+    if (s_in_e_loop) {
+      s_total_match_repeated_evar_time += duration;
+    } else {
+      s_total_match_repeated_evar_time_outside_e += duration;
+    }
   }
 }
 
-static void add_match_repeated_evar_time(clock_t duration) {
-  if (s_in_e_loop) {
-    s_total_match_repeated_evar_time += duration;
-  } else {
-    s_total_match_repeated_evar_time_outside_e += duration;
-  }
-}
+#else  /* R05_SHOW_STAT_DETAILED */
+
+#define after_step() ((void) 0)
+
+#endif  /* R05_SHOW_STAT_DETAILED */
+
 
 #ifdef R05_SHOW_STAT
 struct time_item {
   const char *name;
-  clock_t counter;
+  fast_clock_t counter;
 };
 
+#ifdef R05_SHOW_STAT_DETAILED
 static int reverse_compare(const void *left_void, const void *right_void) {
   const struct time_item *left = left_void;
   const struct time_item *right = right_void;
@@ -667,26 +727,27 @@ static int reverse_compare(const void *left_void, const void *right_void) {
     return 0;
   }
 }
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 #ifdef R05_PROFILER
 static void print_functions_profile(double full_time_sec);
 #endif  /* R05_PROFILER */
 
 static void print_profile(void) {
-  const double cfSECS_PER_CLOCK = 1.0 / CLOCKS_PER_SEC;
+  const double cfSECS_PER_CLOCK = 1.0 / FAST_CLOCKS_PER_SEC;
 
-  clock_t full_time;
-  clock_t refal_time;
-  clock_t repeated_time;
-  clock_t eloop_time;
-  clock_t repeated_time_outside_e;
+  fast_clock_t full_time = fast_clock() - s_start_program_time;
+#ifdef R05_SHOW_STAT_DETAILED
+  fast_clock_t refal_time;
+  fast_clock_t repeated_time;
+  fast_clock_t eloop_time;
+  fast_clock_t repeated_time_outside_e;
 
   enum { nItems = 11 };
   struct time_item items[nItems];
 
   size_t i;
 
-  full_time = clock() - s_start_program_time;
   refal_time = s_total_pattern_match_time + s_total_building_result_time;
   repeated_time =
     s_total_match_repeated_tvar_time + s_total_match_repeated_evar_time;
@@ -736,6 +797,12 @@ static void print_profile(void) {
       );
     }
   }
+#else  /* R05_SHOW_STAT_DETAILED */
+  fprintf(
+    stderr, "\nTotal program time: %.3f seconds.\n",
+    full_time * cfSECS_PER_CLOCK
+  );
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 #ifdef R05_PROFILER
   print_functions_profile(full_time * cfSECS_PER_CLOCK);
@@ -809,17 +876,18 @@ static void end_profiler(void) {
 }
 
 
+#ifdef R05_SHOW_STAT_DETAILED
 void r05_start_e_loop(void) {
   assert(s_in_generated);
 
   if (s_in_e_loop++ == 0) {
-    s_start_e_loop = clock();
+    s_start_e_loop = fast_clock();
   }
 }
 
 
 void r05_this_is_generated_function(void) {
-  s_start_pattern_match_time = clock();
+  s_start_pattern_match_time = fast_clock();
   s_in_generated = 1;
 }
 
@@ -828,13 +896,14 @@ void r05_stop_e_loop(void) {
   assert(s_in_generated);
 
   if (--s_in_e_loop == 0) {
-    s_total_e_loop += (clock() - s_start_e_loop);
+    s_total_e_loop += (fast_clock() - s_start_e_loop);
   }
 }
+#endif  /* R05_SHOW_STAT_DETAILED */
 
 
 double r05_time_elapsed(void) {
-  return (clock() - s_start_program_time) / (double) CLOCKS_PER_SEC;
+  return (fast_clock() - s_start_program_time) / (double) FAST_CLOCKS_PER_SEC;
 }
 
 
@@ -887,7 +956,7 @@ static struct r05_node *s_arg_end;
 
 static void main_loop(void) {
 #ifdef R05_PROFILER
-  clock_t start_step = clock(), now;
+  fast_clock_t start_step = fast_clock(), now;
 #endif  /* R05_PROFILER */
 
   while (! empty_stack()) {
@@ -914,12 +983,12 @@ static void main_loop(void) {
     after_step();
 
 #ifdef R05_PROFILER
-    now = clock();
+    now = fast_clock();
     if (callee->next == 0) {
       callee->next = s_profiled_functions;
       s_profiled_functions = callee;
     }
-    callee->seconds += (now - start_step) / (double) CLOCKS_PER_SEC;
+    callee->seconds += (now - start_step) / (double) FAST_CLOCKS_PER_SEC;
     callee->calls += 1;
     start_step = now;
 #endif  /* R05_PROFILER */
@@ -1020,7 +1089,7 @@ static void print_seq(struct r05_node *begin, struct r05_node *end) {
             continue;
 
           case R05_DATATAG_NUMBER:
-            fprintf(stderr, "%u ", begin->info.number);
+            fprintf(stderr, "%" PRIuR05 " ", begin->info.number);
             begin = begin->next;
             continue;
 
@@ -1189,20 +1258,31 @@ R05_NORETURN void r05_recognition_impossible(void) {
 }
 
 
-R05_NORETURN void r05_builtin_error(const char *message) {
-  fprintf(stderr, "\nBUILTIN FUNCTION ERROR: %s\n\n", message);
+R05_NORETURN R05_PRINTF_LIKE_FUNCTION void r05_builtin_error(
+  R05_PRINTF_PARAM const char *message, ...
+) {
+  va_list args;
+  va_start(args, message);
+  fprintf(stderr, "\nBUILTIN FUNCTION ERROR: ");
+  vfprintf(stderr, message, args);
+  va_end(args);
+  fprintf(stderr, "\n\n");
   make_dump();
-  r05_exit(EXIT_CODE_RECOGNITION_IMPOSSIBLE);
+  r05_exit(EXIT_CODE_BUILTIN_ERROR);
 }
 
 
-R05_NORETURN void r05_builtin_error_errno(const char *message) {
-  fprintf(
-    stderr, "\nBUILTIN FUNCTION ERROR: %s\n(errno = %d: %s)\n\n",
-    message, errno, strerror(errno)
-  );
+R05_NORETURN R05_PRINTF_LIKE_FUNCTION void r05_builtin_error_errno(
+  R05_PRINTF_PARAM const char *message, ...
+) {
+  va_list args;
+  va_start(args, message);
+  fprintf(stderr, "\nBUILTIN FUNCTION ERROR: ");
+  vfprintf(stderr, message, args);
+  va_end(args);
+  fprintf(stderr, "\n(errno = %d: %s)\n\n", errno, strerror(errno));
   make_dump();
-  r05_exit(EXIT_CODE_RECOGNITION_IMPOSSIBLE);
+  r05_exit(EXIT_CODE_BUILTIN_ERROR);
 }
 
 

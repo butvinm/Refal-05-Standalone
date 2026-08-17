@@ -1,17 +1,18 @@
 c-plus-plus.conf.sh:
-	@test -f c-plus-plus.conf.sh || cp src/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
+	@test -f c-plus-plus.conf.sh || cp lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
 
-c-plus-plus.conf.bat:
-	@test -f c-plus-plus.conf.bat || cp src/c-plus-plus.conf.bat.template c-plus-plus.conf.bat
+c-plus-plus.conf.cmd:
+	@test -f c-plus-plus.conf.cmd || cp lib/c-plus-plus.conf.cmd.template c-plus-plus.conf.cmd
 
-bin/refal05: c-plus-plus.conf.sh
+bin/refal05c: c-plus-plus.conf.sh
 	mkdir -p bin
-	src/bootstrap.sh
+	src/standalone-bootstrap.sh
 
-bin/refal05.exe: c-plus-plus.conf.bat
+bin/refal05c.exe: c-plus-plus.conf.cmd
 	if not exist bin mkdir bin
-	src\bootstrap.bat
+	src\standalone-bootstrap.cmd
 
 .PHONY: clear
 clear:
+	./clear.sh
 	rm -f ./*.c
