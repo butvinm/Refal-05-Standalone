@@ -254,6 +254,7 @@ GitHub Actions workflow (`.github/workflows/build.yml`) automatically:
 
 - Runs on Windows with MSVC (Visual C++)
 - Writes its own `c-plus-plus.conf.bat` with `cl /TC /W3 /wd4996 /O2` rather than using the template
+- Locates `vcvars64.bat` through `vswhere.exe` instead of a hardcoded Visual Studio path; the `windows-latest` image changes its Visual Studio version over time, so never hardcode that path again
 - Executes `src\bootstrap.bat` (full bootstrap with tests)
 - Uploads `bin\refal05.exe` as `refal05-windows` artifact (90 days retention)
 - Uploads `bootstrap\` as `bootstrap-artifacts-windows` artifact (90 days retention)
