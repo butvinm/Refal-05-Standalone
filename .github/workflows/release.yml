@@ -1,0 +1,167 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish. Leave empty to use the newest upstream commit contained in master.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.pick.outputs.tag }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Pick the tag
+      id: pick
+      run: |
+        if [ -n "${{ inputs.tag }}" ]; then
+          TAG="${{ inputs.tag }}"
+        else
+          git remote add upstream https://github.com/Mazdaywik/Refal-05.git
+          git fetch --quiet upstream master
+          TAG=$(git merge-base HEAD upstream/master | cut -c1-7)
+        fi
+        echo "Tag to publish: $TAG"
+        if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          echo "::error::Release $TAG already exists. Pass an explicit tag input to publish another one."
+          exit 1
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+  build-linux:
+    needs: tag
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
+    - name: Bootstrap and test with the default configuration
+      run: make bin/refal05c
+
+    - name: Rebuild the compiler with release flags
+      run: |
+        gcc -O2 -s -static -I./lib -o bin/refal05c \
+          bootstrap/main.c bootstrap/generator.c bootstrap/parser.c \
+          bootstrap/R5FW-Parser-Defs.c bootstrap/R5FW-Plainer.c bootstrap/Platform.c \
+          bootstrap/LibraryEx.c bootstrap/R5FW-Parser.c bootstrap/R5FW-Transformer.c \
+          lib/refal05bif.c lib/refal05rts.c
+        file bin/refal05c
+        ls -l bin/refal05c
+
+    - name: Test the release binary
+      run: ./autotests/run.sh
+
+    - name: Upload the release binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-linux
+        path: bin/refal05c
+
+  build-windows:
+    needs: tag
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure compiler
+      shell: cmd
+      run: |
+        echo @echo off > c-plus-plus.conf.cmd
+        echo set R05CCOMP=cl /TC /W3 /wd4996 /O2 /MT >> c-plus-plus.conf.cmd
+
+    - name: Bootstrap and test
+      shell: cmd
+      run: |
+        set "VSWHERE=C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+        if not exist "%VSWHERE%" (
+          echo ERROR: vswhere.exe not found at "%VSWHERE%"
+          exit /b 1
+        )
+        set "VCVARS="
+        for /f "usebackq tokens=*" %%i in (`"%VSWHERE%" -latest -products * -find VC\Auxiliary\Build\vcvars64.bat`) do set "VCVARS=%%i"
+        if not defined VCVARS (
+          echo ERROR: no Visual Studio installation with the C++ toolset found on this image
+          exit /b 1
+        )
+        call "%VCVARS%"
+        if errorlevel 1 exit /b 1
+        src\standalone-bootstrap.cmd
+
+    - name: Upload the release binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-windows
+        path: bin/refal05c.exe
+
+  publish:
+    needs: [tag, build-linux, build-windows]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download the binaries
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Lay the assets out
+      run: |
+        mkdir -p release
+        cp artifacts/release-linux/refal05c release/refal05c
+        cp artifacts/release-windows/refal05c.exe release/refal05c.exe
+        chmod +x release/refal05c
+        ls -l release
+
+    - name: Write the release notes
+      run: |
+        cat > notes.md <<'NOTES'
+        Сборка форка, соответствующая коммиту TAG_PLACEHOLDER оригинального репозитория
+        [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
+
+        | файл | платформа |
+        |---|---|
+        | `refal05c` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
+        | `refal05c.exe` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
+
+        Обе сборки оптимизированы и проходят автотесты.
+
+        Начиная с этого релиза исполняемый файл называется `refal05c`, а не `refal05`:
+        имя приведено в соответствие с оригинальным репозиторием.
+        NOTES
+        sed -i "s/TAG_PLACEHOLDER/${{ needs.tag.outputs.tag }}/" notes.md
+        cat notes.md
+
+    - name: Publish
+      run: |
+        gh release create "${{ needs.tag.outputs.tag }}" \
+          --repo "$GITHUB_REPOSITORY" \
+          --target "$GITHUB_SHA" \
+          --title "${{ needs.tag.outputs.tag }}" \
+          --notes-file notes.md \
+          release/refal05c release/refal05c.exe
+      env:
+        GH_TOKEN: ${{ github.token }}

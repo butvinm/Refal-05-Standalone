@@ -245,6 +245,25 @@ Every `gh` call in the workflow passes `--repo "$GITHUB_REPOSITORY"` explicitly.
 This is not decoration: the workflow adds an `upstream` remote, and `gh` then resolves a bare command in that checkout to `Mazdaywik/Refal-05` rather than to this fork.
 Without `--repo`, `gh pr create` would target upstream's repository.
 
+## Releases
+
+`.github/workflows/release.yml` is triggered by hand (`workflow_dispatch`) and is the only supported way to publish a release.
+Syncing is automatic, publishing is not: a release is something people download, so deciding that one is worth cutting stays a judgement call.
+
+The tag is computed, not typed: `git merge-base HEAD upstream/master` gives the newest upstream commit contained in `master`, which is exactly the convention the README promises.
+Pass the `tag` input only to override it, for instance to republish the same upstream commit after a packaging fix.
+The workflow refuses to run if a release with that tag already exists.
+
+Release binaries are built with release flags, not with the flags the bootstrap uses:
+
+- Linux: `gcc -O2 -s -static`. Static because the ordinary build requires `GLIBC_2.34`, which rules out anything older than roughly 2021 - an odd requirement for a compiler whose whole pitch is that you only need a C89 toolchain.
+- Windows: `cl /TC /W3 /wd4996 /O2 /MT`. `/MT` links the C runtime statically, so users do not need the Visual C++ Redistributable. The ordinary CI build uses the default `/MD` and does.
+
+Optimisation is worth it and is safe: on the compiler's own sources `-O2` is about 1.4 to 1.5 times faster than the `-g` build, and the generated C is byte-identical across debug, optimised and static builds, so nothing about the output depends on the flags.
+
+The Linux job bootstraps and tests with the default configuration first, then relinks with release flags and **runs the autotests again against the binary that will actually be published**.
+Do not simplify that into a single optimised bootstrap: the point is that the artifact users download is the artifact that passed the tests.
+
 ## CI/CD
 
 `.github/workflows/build.yml` triggers on pushes to `master`, pull requests targeting `master`, and manual `workflow_dispatch`, and builds on Linux and Windows in parallel.
