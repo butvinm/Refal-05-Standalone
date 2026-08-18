@@ -31,11 +31,6 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.SYNC_TOKEN }}
 
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc make
-
     - name: Configure git identity
       run: |
         git config user.name "github-actions[bot]"

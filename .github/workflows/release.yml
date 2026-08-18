@@ -50,11 +50,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc make
-
     - name: Bootstrap and test with the default configuration
       run: make bin/refal05c
 
