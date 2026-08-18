@@ -28,6 +28,23 @@ jobs:
         test -f bin/refal05c || (echo "Compiler binary not found!" && exit 1)
         ls -lh bin/refal05c
 
+    - name: Verify bootstrap fixpoint
+      run: |
+        mkdir -p /tmp/fixpoint/regenerated
+        cp bootstrap/main.c bootstrap/generator.c bootstrap/parser.c /tmp/fixpoint/
+        cd /tmp/fixpoint/regenerated
+        R05CCOMP= R05PATH= "$GITHUB_WORKSPACE/bin/refal05c" \
+          "$GITHUB_WORKSPACE/src/main" \
+          "$GITHUB_WORKSPACE/src/generator" \
+          "$GITHUB_WORKSPACE/src/parser" \
+          "$GITHUB_WORKSPACE/lib/refal05bif" \
+          "$GITHUB_WORKSPACE/lib/refal05rts"
+        for f in main.c generator.c parser.c; do
+          cmp "/tmp/fixpoint/$f" "/tmp/fixpoint/regenerated/$f" \
+            || { echo "::error::Bootstrap is not a fixpoint: $f differs after regeneration"; exit 1; }
+        done
+        echo "Bootstrap is a fixpoint: regeneration reproduces bootstrap/ byte for byte"
+
     - name: Upload compiler binary
       uses: actions/upload-artifact@v4
       with:

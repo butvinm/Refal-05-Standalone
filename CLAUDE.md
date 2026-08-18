@@ -216,12 +216,45 @@ If those settings are ever loosened, this rule still stands.
 
 Note that `required_linear_history` must stay **off** - it would forbid the merge commits this workflow depends on.
 
+### Automated weekly sync
+
+`.github/workflows/upstream-sync.yml` runs every Monday at 04:17 UTC, and on demand via `workflow_dispatch`.
+It fetches upstream, and if there is anything new and no sync pull request is already open, it merges, bootstraps, commits the regenerated `bootstrap/` artifacts, opens a pull request and turns on auto-merge.
+The pull request lands by itself once both CI jobs pass; if they do not, it simply stays open.
+
+The workflow deliberately **fails** rather than improvising in the two cases automation cannot handle:
+
+- the merge conflicts - resolve by ownership, as above
+- the bootstrap fails - usually upstream renamed or split modules again, so the module lists in `src/standalone-bootstrap.sh` and `src/standalone-bootstrap.cmd` need updating by hand
+
+Both cases surface as a failed workflow run, which is what GitHub emails about.
+That mail is the only alerting in place, so do not mute Actions notifications for this repository.
+
+The workflow needs a fine-grained PAT with **Contents: read and write** and **Pull requests: read and write** on this repository, stored as the secret `SYNC_TOKEN` in the **`upstream-sync` environment** - not as a repository secret.
+The default `GITHUB_TOKEN` cannot be used: pull requests opened with it do not trigger workflows, so the required checks would never run and the pull request could never merge.
+The workflow checks for the secret first and fails with an explanatory message if it is missing.
+
+The environment is restricted to the `master` branch, so the token is only readable by jobs running there.
+This matters because a repository secret is readable by any workflow on any branch, and only `master` is protected - a workflow file pushed to a throwaway branch could otherwise read a token that has write access to contents and pull requests.
+Scheduled workflows always run on the default branch, so the restriction costs the automation nothing; the one consequence is that a manual `workflow_dispatch` must be started from `master` or the secret will not resolve.
+
+The job declares `environment: upstream-sync`, and it must keep doing so.
+Without that key the environment secret is invisible to the job, and the run fails at the guard step as if the token had never been created.
+
+Every `gh` call in the workflow passes `--repo "$GITHUB_REPOSITORY"` explicitly.
+This is not decoration: the workflow adds an `upstream` remote, and `gh` then resolves a bare command in that checkout to `Mazdaywik/Refal-05` rather than to this fork.
+Without `--repo`, `gh pr create` would target upstream's repository.
+
 ## CI/CD
 
 `.github/workflows/build.yml` triggers on pushes to `master`, pull requests targeting `master`, and manual `workflow_dispatch`, and builds on Linux and Windows in parallel.
 
-- **Linux**: Ubuntu + GCC, runs `make bin/refal05c`, uploads `bin/refal05c` as `refal05-linux` and `bootstrap/` as `bootstrap-artifacts-linux` (90 days); on failure uploads `autotests/__error.txt` as `test-errors-linux` (30 days)
+- **Linux**: Ubuntu + GCC, runs `make bin/refal05c`, verifies the bootstrap fixpoint, uploads `bin/refal05c` as `refal05-linux` and `bootstrap/` as `bootstrap-artifacts-linux` (90 days); on failure uploads `autotests/__error.txt` as `test-errors-linux` (30 days)
 - **Windows**: MSVC, writes its own `c-plus-plus.conf.cmd`, locates `vcvars64.bat` through `vswhere.exe` (the `windows-latest` image changes its Visual Studio version over time, so never hardcode that path again), runs `src\standalone-bootstrap.cmd`, uploads `bin\refal05c.exe` as `refal05-windows` and `bootstrap\` as `bootstrap-artifacts-windows`
+
+The fixpoint check regenerates the C with the freshly built compiler and requires it to match `bootstrap/` byte for byte.
+It runs on Linux only: the property being checked belongs to the compiler, not to the host, and the Windows job would only repeat it at the cost of another platform-specific path dance.
+It is the check that makes unattended auto-merge defensible - the autotests can pass on a half-migrated compiler, the fixpoint cannot.
 
 ## Code Style
 

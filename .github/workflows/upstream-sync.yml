@@ -1,0 +1,115 @@
+name: Sync with upstream
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    environment: upstream-sync
+
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+      UPSTREAM: https://github.com/Mazdaywik/Refal-05.git
+
+    steps:
+    - name: Check that the sync token is present
+      run: |
+        if [ -z "$GH_TOKEN" ]; then
+          echo "::error::Secret SYNC_TOKEN is not set. A fine-grained PAT is required: pull requests opened with GITHUB_TOKEN do not trigger workflows, so their required checks would never run."
+          exit 1
+        fi
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.SYNC_TOKEN }}
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
+    - name: Configure git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Fetch upstream
+      run: |
+        git remote add upstream "$UPSTREAM"
+        git fetch upstream master
+
+    - name: Decide whether there is anything to sync
+      id: decide
+      run: |
+        NEW=$(git rev-list --count HEAD..upstream/master)
+        echo "New upstream commits: $NEW"
+        if [ "$NEW" -eq 0 ]; then
+          echo "proceed=false" >> "$GITHUB_OUTPUT"
+          echo "Already in sync with upstream, nothing to do"
+          exit 0
+        fi
+        ALREADY_OPEN=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
+          --json headRefName --jq '[.[] | select(.headRefName | startswith("upstream-sync/"))] | length')
+        if [ "$ALREADY_OPEN" -ne 0 ]; then
+          echo "proceed=false" >> "$GITHUB_OUTPUT"
+          echo "A sync pull request is already open, not opening another one"
+          exit 0
+        fi
+        echo "proceed=true" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git rev-parse --short upstream/master)" >> "$GITHUB_OUTPUT"
+
+    - name: Merge upstream
+      if: steps.decide.outputs.proceed == 'true'
+      run: |
+        git checkout -b "upstream-sync/${{ steps.decide.outputs.sha }}"
+        if ! git merge --no-edit upstream/master; then
+          git merge --abort
+          echo "::error::Merge with upstream conflicts and needs a human. Resolve by ownership: take upstream's version for every upstream-owned file, keep ours for the fork-owned list in CLAUDE.md."
+          exit 1
+        fi
+
+    - name: Bootstrap and regenerate artifacts
+      if: steps.decide.outputs.proceed == 'true'
+      run: |
+        cp lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
+        if ! make bin/refal05c; then
+          echo "::error::Bootstrap failed after merging upstream. If upstream renamed or split modules, update the module lists in src/standalone-bootstrap.sh and src/standalone-bootstrap.cmd, then bootstrap by hand."
+          exit 1
+        fi
+
+    - name: Commit regenerated artifacts
+      if: steps.decide.outputs.proceed == 'true'
+      run: |
+        if git diff --quiet -- bootstrap; then
+          echo "Regenerated artifacts are identical to the committed ones"
+        else
+          git add bootstrap
+          git commit -m "Перегенерированы артефакты bootstrap/ после слияния с апстримом"
+        fi
+
+    - name: Push and open a pull request
+      if: steps.decide.outputs.proceed == 'true'
+      run: |
+        BRANCH="upstream-sync/${{ steps.decide.outputs.sha }}"
+        git push -u origin "$BRANCH"
+        cat > /tmp/pr-body.md <<'BODY'
+        Автоматическое обновление из [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
+
+        Слияние прошло без конфликтов, раскрутка выполнена, артефакты `bootstrap/` перегенерированы.
+
+        PR будет влит автоматически, когда пройдут обе проверки CI, включая проверку неподвижной точки.
+        Если проверки упадут, PR останется висеть, и о падении придёт письмо от GitHub.
+        BODY
+        sed -i 's/^        //' /tmp/pr-body.md
+        gh pr create --repo "$GITHUB_REPOSITORY" --base master --head "$BRANCH" \
+          --title "Актуализация форка до upstream ${{ steps.decide.outputs.sha }}" \
+          --body-file /tmp/pr-body.md
+        gh pr merge --repo "$GITHUB_REPOSITORY" "$BRANCH" --auto --merge
