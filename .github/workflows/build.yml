@@ -34,11 +34,11 @@ jobs:
           "$GITHUB_WORKSPACE/src/main" \
           "$GITHUB_WORKSPACE/src/generator" \
           "$GITHUB_WORKSPACE/src/parser" \
-          "$GITHUB_WORKSPACE/framework/lib/LibraryEx" \
-          "$GITHUB_WORKSPACE/framework/lib/R5FW-Parser" \
-          "$GITHUB_WORKSPACE/framework/lib/R5FW-Plainer" \
-          "$GITHUB_WORKSPACE/framework/lib/R5FW-Transformer" \
-          "$GITHUB_WORKSPACE/framework/lib/posix/Platform" \
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/LibraryEx" \
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Parser" \
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Plainer" \
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Transformer" \
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/posix/Platform" \
           "$GITHUB_WORKSPACE/lib/refal05bif" \
           "$GITHUB_WORKSPACE/lib/refal05rts"
         for f in main.c generator.c parser.c LibraryEx.c R5FW-Parser.c R5FW-Plainer.c R5FW-Transformer.c Platform.c; do

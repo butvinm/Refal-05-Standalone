@@ -2,7 +2,7 @@
 set -ex
 
 MODULES="src/main src/generator src/parser"
-FRAMEWORK="framework/lib/LibraryEx framework/lib/R5FW-Parser framework/lib/R5FW-Plainer framework/lib/R5FW-Transformer framework/lib/posix/Platform"
+FRAMEWORK="refal-5-framework/lib/LibraryEx refal-5-framework/lib/R5FW-Parser refal-5-framework/lib/R5FW-Plainer refal-5-framework/lib/R5FW-Transformer refal-5-framework/lib/posix/Platform"
 LIBS="./lib/refal05bif ./lib/refal05rts"
 
 MODULES_CFILES="bootstrap/main.c bootstrap/generator.c bootstrap/parser.c"
@@ -10,8 +10,8 @@ FRAMEWORK_CFILES="bootstrap/LibraryEx.c bootstrap/R5FW-Parser.c bootstrap/R5FW-P
 LIBS_CFILES="./lib/refal05bif.c ./lib/refal05rts.c"
 LIBS_INCLUDE="-I./lib"
 
-if [ ! -e framework/lib/R5FW-Parser.ref ]; then
-  git submodule update --init framework \
+if [ ! -e refal-5-framework/lib/R5FW-Parser.ref ]; then
+  git submodule update --init refal-5-framework \
     || { echo "The framework submodule is missing and could not be fetched. Run: git submodule update --init"; exit 1; }
 fi
 

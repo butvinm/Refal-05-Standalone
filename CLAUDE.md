@@ -20,7 +20,7 @@ An earlier version of this fork ignored that rule and paid for it: commit `4cc67
 Files that belong to the fork, and are the only ones you may freely change:
 
 - `bootstrap/`
-- `framework/` (a submodule; the pin is ours, the contents are not)
+- `refal-5-framework/` (a submodule; the pin is ours, the contents are not)
 - `Makefile`
 - `src/standalone-bootstrap.sh`, `src/standalone-bootstrap.cmd`
 - `autotests/run.sh`, `autotests/run.cmd`
@@ -46,15 +46,15 @@ If something needs fixing in an upstream-owned file, send it upstream instead of
 Its eight files come from two source trees:
 
 - the compiler itself, from `src/`: `main.c`, `generator.c`, `parser.c`
-- the Refal-5 framework, from `framework/`: `LibraryEx.c`, `R5FW-Parser.c`, `R5FW-Plainer.c`, `R5FW-Transformer.c`, `Platform.c`
+- the Refal-5 framework, from `refal-5-framework/`: `LibraryEx.c`, `R5FW-Parser.c`, `R5FW-Plainer.c`, `R5FW-Transformer.c`, `Platform.c`
 
-`framework/` is a git submodule pinned to a commit of [refal-5-framework](https://github.com/Mazdaywik/refal-5-framework), so the provenance of those sources is recorded by git itself rather than by a convention.
+`refal-5-framework/` is a git submodule pinned to a commit of [refal-5-framework](https://github.com/Mazdaywik/refal-5-framework), so the provenance of those sources is recorded by git itself rather than by a convention.
 The compiler compiles them, exactly as upstream's own build does in `src/makeself.sh`, so no external toolchain is involved.
-Modules are referenced at their real paths: `framework/lib/*.ref`, and `framework/lib/posix/Platform.ref`.
+Modules are referenced at their real paths: `refal-5-framework/lib/*.ref`, and `refal-5-framework/lib/posix/Platform.ref`.
 
 `Platform.ref` is taken from `lib/posix/` on **both** platforms, deliberately: its `PathSeparator` returns `:`, so `R05PATH` is colon-separated everywhere.
 
-Both bootstrap scripts run `git submodule update --init framework` if the submodule is missing, and fail with an explicit message if that does not work, so a non-recursive clone gives a clear error rather than a confusing compile failure.
+Both bootstrap scripts run `git submodule update --init refal-5-framework` if the submodule is missing, and fail with an explicit message if that does not work, so a non-recursive clone gives a clear error rather than a confusing compile failure.
 Every checkout in CI uses `submodules: recursive`.
 
 This used to be otherwise, and the history is worth knowing.
@@ -71,7 +71,7 @@ The compiler derives the output path by stripping everything up to the last dire
 The consequence is platform-dependent and easy to mistake for a typo:
 
 - Linux: `bin/refal05c src/main` writes `./main.c` into the current directory, so `src/standalone-bootstrap.sh` collects everything with `mv *.c bootstrap`
-- Windows: `bin\refal05c.exe src\main` writes `src\main.c` (the backslash is not stripped), so `src\standalone-bootstrap.cmd` collects from **both** source directories, with `move /Y src\*.c bootstrap\`, `move /Y framework\lib\*.c bootstrap\` and `move /Y framework\lib\posix\*.c bootstrap\`
+- Windows: `bin\refal05c.exe src\main` writes `src\main.c` (the backslash is not stripped), so `src\standalone-bootstrap.cmd` collects from **both** source directories, with `move /Y src\*.c bootstrap\`, `move /Y refal-5-framework\lib\*.c bootstrap\` and `move /Y refal-5-framework\lib\posix\*.c bootstrap\`
 
 Do not "unify" those two collection commands - each is correct for its platform.
 
@@ -146,7 +146,7 @@ Runs upstream's `clear.sh` (removes `bin`, `src/cfiles`, `src/rsl`) and deletes 
 
 - `bootstrap/` - generated C artifacts, committed; regenerated in full by every bootstrap
 
-- `framework/` - submodule with the Refal-5 framework sources; never edit anything inside it, send fixes to that repository
+- `refal-5-framework/` - submodule with the Refal-5 framework sources; never edit anything inside it, send fixes to that repository
 
 - `lib/` - runtime and standard library:
   - `refal05rts.c` / `refal05rts.h` - runtime support

@@ -16,7 +16,7 @@ make bin/refal05c.exe  # Windows
 
 Файлы, принадлежащие оригинальному репозиторию, здесь не изменяются, чтобы обновление из него оставалось бесконфликтным.
 Форку принадлежат только `bootstrap`, `Makefile`, `src/standalone-bootstrap.sh`, `src/standalone-bootstrap.cmd`, `autotests/run.sh`, `autotests/run.cmd` и `.github`.
-Каталог `framework` - подмодуль с [Рефал-5-фреймворком](https://github.com/Mazdaywik/refal-5-framework), форку принадлежит только зафиксированная ревизия.
+Каталог `refal-5-framework` - подмодуль с [Рефал-5-фреймворком](https://github.com/Mazdaywik/refal-5-framework), форку принадлежит только зафиксированная ревизия.
 Ниже следует документация оригинального репозитория.
 
 ---

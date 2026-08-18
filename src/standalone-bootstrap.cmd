@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set MODULES=src\main src\generator src\parser
-set FRAMEWORK=framework\lib\LibraryEx framework\lib\R5FW-Parser framework\lib\R5FW-Plainer framework\lib\R5FW-Transformer framework\lib\posix\Platform
+set FRAMEWORK=refal-5-framework\lib\LibraryEx refal-5-framework\lib\R5FW-Parser refal-5-framework\lib\R5FW-Plainer refal-5-framework\lib\R5FW-Transformer refal-5-framework\lib\posix\Platform
 set LIBS=lib\refal05bif lib\refal05rts
 
 set MODULES_CFILES=bootstrap\main.c bootstrap\generator.c bootstrap\parser.c
@@ -10,8 +10,8 @@ set FRAMEWORK_CFILES=bootstrap\LibraryEx.c bootstrap\R5FW-Parser.c bootstrap\R5F
 set LIBS_CFILES=lib\refal05bif.c lib\refal05rts.c
 set LIBS_INCLUDE=-Ilib
 
-if not exist framework\lib\R5FW-Parser.ref (
-    git submodule update --init framework
+if not exist refal-5-framework\lib\R5FW-Parser.ref (
+    git submodule update --init refal-5-framework
     if errorlevel 1 (
         echo The framework submodule is missing and could not be fetched. Run: git submodule update --init
         exit /b 1
@@ -38,9 +38,9 @@ if errorlevel 1 exit /b 1
 set R05CCOMP=%R05CCOMP_SAVE%
 move /Y src\*.c bootstrap\
 if errorlevel 1 exit /b 1
-move /Y framework\lib\*.c bootstrap\
+move /Y refal-5-framework\lib\*.c bootstrap\
 if errorlevel 1 exit /b 1
-move /Y framework\lib\posix\*.c bootstrap\
+move /Y refal-5-framework\lib\posix\*.c bootstrap\
 if errorlevel 1 exit /b 1
 
 echo 3. Build bin\refal05c.exe from new bootstrap/

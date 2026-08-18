@@ -140,8 +140,8 @@ jobs:
     - name: Decide whether the framework moved
       id: decide
       run: |
-        git submodule update --remote --quiet framework
-        if git diff --quiet -- framework; then
+        git submodule update --remote --quiet refal-5-framework
+        if git diff --quiet -- refal-5-framework; then
           echo "proceed=false" >> "$GITHUB_OUTPUT"
           echo "Framework is already at its latest commit, nothing to do"
           exit 0
@@ -154,8 +154,8 @@ jobs:
           exit 0
         fi
         echo "proceed=true" >> "$GITHUB_OUTPUT"
-        echo "sha=$(git -C framework rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-        echo "Framework moved to $(git -C framework rev-parse --short HEAD)"
+        echo "sha=$(git -C refal-5-framework rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        echo "Framework moved to $(git -C refal-5-framework rev-parse --short HEAD)"
 
     - name: Bootstrap against the new framework
       if: steps.decide.outputs.proceed == 'true'
@@ -170,7 +170,7 @@ jobs:
       if: steps.decide.outputs.proceed == 'true'
       run: |
         git checkout -b "framework-sync/${{ steps.decide.outputs.sha }}"
-        git add framework bootstrap
+        git add refal-5-framework bootstrap
         git commit -m "Фреймворк поднят до ${{ steps.decide.outputs.sha }}, артефакты bootstrap/ перегенерированы"
 
     - name: Push and open a pull request
