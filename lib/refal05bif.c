@@ -7,11 +7,16 @@
 #include <string.h>
 #include <time.h>
 
+#include "refal05rts.h"
+
 #ifdef R05_POSIX
 #include <sys/wait.h>
+#include <unistd.h>
 #endif  /* R05_POSIX */
 
-#include "refal05rts.h"
+#ifdef R05_WINDOWS
+#include <windows.h>
+#endif /* R05_WINDOWS */
 
 
 enum {
@@ -51,7 +56,10 @@ DEFINE_ALIAS(k2F_, "/", Div);
 
 
 #define is_ident_tail(c) \
-  (isalpha((int) (c)) || isdigit((int) (c)) || (c) == '_' || (c) == '-')
+  ( \
+    isalpha((unsigned char) (c)) || isdigit((unsigned char) (c)) \
+    || (c) == '_' || (c) == '-' \
+  )
 
 
 static struct r05_function *s_arithmetic_names[] = {
@@ -59,14 +67,9 @@ static struct r05_function *s_arithmetic_names[] = {
 };
 
 
-struct builtin_info {
-  r05_number id;
-  struct r05_function *function;
-  struct r05_function *type;
-};
-
-// Fix tentative definition for MSVC, keep during merge
-static struct builtin_info s_builtin_info[100];
+static struct r05_function *lookup_builtin_by_chain(
+  struct r05_node *name_b, struct r05_node *name_e
+);
 
 
 static int chain_str_eq(
@@ -128,9 +131,7 @@ R05_IMPLEMENT_METAFUNCTION(Mu, "Mu") {
     struct r05_node *p = brackets[0]->next;
     struct r05_node *name_b = brackets[0]->next;
     struct r05_node *name_e = brackets[1]->prev;
-    struct r05_function *callee = NULL;
-    struct builtin_info *bi = s_builtin_info;
-    struct r05_function **alias = s_arithmetic_names;
+    struct r05_function *callee = NULL, *builtin;
 
     while (p != brackets[1] && R05_DATATAG_CHAR == p->tag) {
       p = p->next;
@@ -146,22 +147,10 @@ R05_IMPLEMENT_METAFUNCTION(Mu, "Mu") {
       callee = *cur;
     }
 
-    while (
-      bi->function != NULL && ! chain_str_eq(name_b, name_e, bi->function->name)
-    ) {
-      ++bi;
-    }
-    if (bi->function != NULL) {
+    builtin = lookup_builtin_by_chain(name_b, name_e);
+    if (builtin != NULL) {
       assert(callee == NULL);
-      callee = bi->function;
-    }
-
-    while (*alias != NULL && ! chain_str_eq(name_b, name_e, (*alias)->name)) {
-      ++alias;
-    }
-    if (*alias != NULL) {
-      assert(callee == NULL);
-      callee = *alias;
+      callee = builtin;
     }
 
     if (callee) {
@@ -181,7 +170,8 @@ R05_IMPLEMENT_METAFUNCTION(Mu, "Mu") {
 
 struct signed_number {
   signed sign;
-  r05_number value;
+  int len;
+  struct r05_node *begin, *end;
 };
 
 
@@ -202,17 +192,65 @@ static struct r05_node *parse_signed_number(
     sn->sign = +1;
   }
 
-  if (R05_DATATAG_NUMBER != p->tag) {
+  sn->begin = p;
+  sn->len = 0;
+
+  while (R05_DATATAG_NUMBER == p->tag) {
+    p = p->next;
+    sn->len += 1;
+  }
+
+  if (0 == sn->len) {
     r05_recognition_impossible();
   }
 
-  sn->value = p->info.number;
+  sn->end = p->prev;
 
-  if (0 == sn->value) {
+  while (sn->begin != sn->end && 0 == sn->begin->info.number) {
+    sn->begin = sn->begin->next;
+    sn->len -= 1;
+  }
+
+  if (sn->len == 1 && 0 == sn->begin->info.number) {
     sn->sign = +1;
   }
 
-  return p->next;
+  return p;
+}
+
+
+static struct r05_node *parse_short_signed_number(
+  struct signed_number *sn, struct r05_node *p
+) {
+  if (R05_DATATAG_CHAR == p->tag) {
+    if ('-' == p->info.char_) {
+      sn->sign = -1;
+    } else if ('+' == p->info.char_) {
+      sn->sign = +1;
+    } else {
+      r05_recognition_impossible();
+    }
+
+    p = p->next;
+  } else {
+    sn->sign = +1;
+  }
+
+  if (R05_DATATAG_NUMBER == p->tag) {
+    sn->begin = p;
+    sn->end = p;
+    sn->len = 1;
+
+    if (0 == sn->begin->info.number) {
+      sn->sign = +1;
+    }
+
+    p = p->next;
+  } else {
+    r05_recognition_impossible();
+  }
+
+  return p;
 }
 
 
@@ -239,7 +277,7 @@ static void parse_arithm_arg(
 
     p = p->next;
   } else {
-    p = parse_signed_number(&aa->x, p);
+    p = parse_short_signed_number(&aa->x, p);
   }
 
   p = parse_signed_number(&aa->y, p);
@@ -258,7 +296,7 @@ static void parse_arithm_arg(
      | s.Sign? s.NUMBER s.Sign? s.NUMBER
 */
 static void add(
-  const struct arithm_arg *aa,
+  struct arithm_arg *aa,
   struct r05_node *arg_begin, struct r05_node *arg_end
 );
 
@@ -271,55 +309,104 @@ R05_DEFINE_ENTRY_FUNCTION(Add, "Add") {
 }
 
 
-static struct r05_node *emplace_number(
-  struct signed_number res, r05_number high, struct r05_node *p
-) {
-  if (res.sign < 0) {
-    p->tag = R05_DATATAG_CHAR;
-    p->info.char_ = '-';
-    p = p->next;
-  }
-
-  if (high) {
-    p->tag = R05_DATATAG_NUMBER;
-    p->info.number = high;
-    p = p->next;
-  }
-
-  p->tag = R05_DATATAG_NUMBER;
-  p->info.number = res.value;
-  return p;
+static void swap_args(struct arithm_arg *aa) {
+  struct signed_number old_x = aa->x;
+  aa->x = aa->y;
+  aa->y = old_x;
 }
 
 
+static int propagate_add_carry(struct r05_node *cur, struct r05_node *lim) {
+  do {
+    cur = cur->prev;
+    assert(cur == lim || R05_DATATAG_NUMBER == cur->tag);
+  } while (cur != lim && 0 == ++cur->info.number);
+  return cur == lim;
+}
+
+
+static int propagate_sub_borrow(struct r05_node *cur, struct r05_node *lim) {
+  do {
+    cur = cur->prev;
+    assert(cur == lim || R05_DATATAG_NUMBER == cur->tag);
+  } while (cur != lim && 0 == cur->info.number--);
+
+  return cur == lim;
+}
+
 
 static void add(
-  const struct arithm_arg *aa,
+  struct arithm_arg *aa,
   struct r05_node *arg_begin, struct r05_node *arg_end
 ) {
-  struct signed_number res;
-  r05_number carry = 0;
-  struct r05_node *p = arg_begin;
+  struct r05_node *px, *py, *xlim, *ylim;
+  int i, carry = 0;
 
-  if (aa->x.sign == aa->y.sign) {
-    res.sign = aa->x.sign;
-    res.value = aa->x.value + aa->y.value;
-    if (res.value < aa->x.value) {
-      carry = 1;
+  if (aa->x.len < aa->y.len) {
+    swap_args(aa);
+  } else if (aa->x.len == aa->y.len && aa->x.sign != aa->y.sign) {
+    int len = aa->x.len;
+    px = aa->x.begin;
+    py = aa->y.begin;
+    i = 0;
+
+    while (i < len && px->info.number == py->info.number) {
+      ++i;
+      px = px->next;
+      py = py->next;
     }
-  } else if (aa->x.value > aa->y.value) {
-    res.sign = aa->x.sign;
-    res.value = aa->x.value - aa->y.value;
-  } else if (aa->x.value < aa->y.value) {
-    res.sign = aa->y.sign;
-    res.value = aa->y.value - aa->x.value;
-  } else {
-    res.sign = 0;
-    res.value = 0;
+
+    if (i < len && px->info.number < py->info.number) {
+      swap_args(aa);
+    }
   }
 
-  p = emplace_number(res, carry, p);
-  r05_splice_to_freelist(p->next, arg_end);
+  px = aa->x.end;
+  xlim = aa->x.begin->prev;
+  py = aa->y.end;
+  ylim = aa->y.begin->prev;
+
+  if (aa->x.sign == aa->y.sign) {
+    while (py != ylim) {
+      r05_number y = py->info.number;
+      r05_number res = (px->info.number += y);
+      if (res < y) {
+        carry |= propagate_add_carry(px, xlim);
+      }
+
+      px = px->prev;
+      py = py->prev;
+    }
+  } else {
+    while (py != ylim) {
+      r05_number x = px->info.number;
+      r05_number res = x - py->info.number;
+      px->info.number = res;
+      if (res > x) {
+        int carry = propagate_sub_borrow(px, xlim);
+        assert(0 == carry);
+      }
+
+      px = px->prev;
+      py = py->prev;
+    }
+  }
+
+  px = aa->x.begin;
+  if (carry != 0) {
+    px = px->prev;
+    px->tag = R05_DATATAG_NUMBER;
+    px->info.number = 1;
+  }
+
+  if (aa->x.sign < 0) {
+    px = px->prev;
+    px->tag = R05_DATATAG_CHAR;
+    px->info.char_ = '-';
+  }
+
+  r05_splice_to_freelist(arg_begin, px->prev);
+  r05_splice_to_freelist(aa->x.end->next, arg_end);
 }
 
 
@@ -426,32 +513,382 @@ ALIAS_DESCRIPTOR(Dg, "Dg", r05_dg);
 /**
   10. <Div e.ArithmArg> == '-'? s.NUMBER
 */
-struct divmod {
-  struct signed_number div, mod;
+static void weld(struct r05_node *left, struct r05_node *right) {
+  left->next = right;
+  right->prev = left;
+}
+
+
+struct mul_res {
+  r05_number high, low;
 };
 
 
-void divmod(const struct arithm_arg *aa, struct divmod *res) {
-  if (0 == aa->y.value) {
-    r05_builtin_error("divide by zero");
+static struct mul_res mul(r05_number x, r05_number y, r05_number acc) {
+  enum { HALF = R05_NUMBER_BITS / 2 };
+  const r05_number HALF_MASK = ((r05_number) 1 << HALF) - 1;
+
+  r05_number x_high = x >> HALF;
+  r05_number x_low = x & HALF_MASK;
+  r05_number y_high = y >> HALF;
+  r05_number y_low = y & HALF_MASK;
+
+  r05_number hh = x_high * y_high;
+  r05_number hl = x_high * y_low;
+  r05_number lh = x_low * y_high;
+  r05_number ll = x_low * y_low + (acc & HALF_MASK);
+  r05_number mid =
+    (ll >> HALF) + (hl & HALF_MASK) + (lh & HALF_MASK) + (acc >> HALF);
+
+  struct mul_res result;
+  result.high = hh + (hl >> HALF) + (lh >> HALF) + (mid >> HALF);
+  result.low = (ll & HALF_MASK) | (mid << HALF);
+  return result;
+}
+
+
+static int leading_zero_bits(r05_number val) {
+  int shift, res = 0;
+  for (shift = R05_NUMBER_BITS / 2; shift > 0; shift /= 2) {
+    r05_number shifted = val >> shift;
+    if (shifted != 0) {
+      val = shifted;
+    } else {
+      res += shift;
+    }
+  }
+  return res;
+}
+
+
+static void long_left_shift(
+  struct r05_node *begin, struct r05_node *end, int shift
+) {
+  struct r05_node *p = begin;
+
+  while (p->info.number <<= shift, p != end) {
+    p->info.number |= p->next->info.number >> (R05_NUMBER_BITS - shift);
+    p = p->next;
+  }
+}
+
+
+static void long_right_shift(
+  struct r05_node *begin, struct r05_node *end, int shift
+) {
+  struct r05_node *p = end;
+
+  while (p->info.number >>= shift, p != begin) {
+    p->info.number |= p->prev->info.number << (R05_NUMBER_BITS - shift);
+    p = p->prev;
+  }
+}
+
+
+struct div_res {
+  r05_number quot, rem;
+};
+
+
+/* Деление полутора слов на слово */
+static struct div_res div_sesquialter_words(
+  r05_number num_high_half, r05_number num_low, r05_number denom
+) {
+  enum { HALF = R05_NUMBER_BITS / 2 };
+  const r05_number HALF_MASK = ((r05_number) 1 << HALF) - 1;
+
+  r05_number num_high = (num_high_half << HALF) | (num_low >> HALF);
+  r05_number denom_high = denom >> HALF;
+  r05_number denom_low = denom & HALF_MASK;
+  r05_number guess = num_high / denom_high;
+  r05_number part_low = denom_low * guess;
+  r05_number part_high = denom_high * guess;
+  r05_number part_hl = part_high << HALF;
+  r05_number part_hh = part_high >> HALF;
+  struct div_res res;
+
+  part_low += part_hl;
+  if (part_low < part_hl) {
+    part_hh += 1;
   }
 
-  res->div.value = aa->x.value / aa->y.value;
-  res->div.sign = aa->x.sign * aa->y.sign;
-  res->mod.value = aa->x.value % aa->y.value;
-  res->mod.sign = aa->x.sign;
+  while (
+    part_hh > num_high_half
+    || (part_hh == num_high_half && part_low > num_low)
+  ) {
+    guess -= 1;
+    if (part_low < denom) {
+      part_hh -= 1;
+    }
+    part_low -= denom;
+  }
+
+  res.quot = guess;
+  res.rem = num_low - part_low;
+
+  return res;
+}
+
+
+/* Деление двух слов на слово */
+static struct div_res div_double_word(
+  r05_number num_high, r05_number num_low, r05_number denom
+) {
+  enum { HALF = R05_NUMBER_BITS / 2 };
+  const r05_number HALF_MASK = ((r05_number) 1 << HALF) - 1;
+
+  struct div_res res, res_high;
+
+  assert(num_high < denom);
+  assert(1 == (denom >> (R05_NUMBER_BITS - 1)));
+
+  res_high = div_sesquialter_words(
+    num_high >> HALF, (num_high << HALF) | (num_low >> HALF), denom
+  );
+  res = div_sesquialter_words(
+    res_high.rem >> HALF,
+    (res_high.rem << HALF) | (num_low & HALF_MASK),
+    denom
+  );
+  res.quot |= res_high.quot << HALF;
+
+  return res;
+}
+
+
+/* x — частное, y — остаток */
+struct arithm_arg divmod(struct r05_node *arg_begin, struct r05_node *arg_end) {
+  struct arithm_arg arg;
+  signed div_sign, mod_sign;
+
+  parse_arithm_arg(&arg, arg_begin, arg_end);
+  div_sign = arg.x.sign * arg.y.sign;
+  mod_sign = arg.x.sign;
+
+  if (1 == arg.y.len && 0 == arg.y.begin->info.number) {
+    r05_builtin_error("divide by zero");
+  } else if (1 == arg.x.len && 1 == arg.y.len) {
+    r05_number div_value, mod_value;
+    div_value = arg.x.begin->info.number / arg.y.begin->info.number;
+    mod_value = arg.x.begin->info.number % arg.y.begin->info.number;
+
+    arg.x.begin->info.number = div_value;
+    arg.x.sign = div_value != 0 ? div_sign : +1;
+    arg.y.begin->info.number = mod_value;
+    arg.y.sign = mod_value != 0 ? mod_sign : +1;
+  } else if (arg.x.len < arg.y.len) {
+    swap_args(&arg);
+    arg.x.begin->info.number = 0;
+    arg.x.end = arg.x.begin;
+    arg.x.sign = +1;
+  } else {
+    struct r05_node *x_begin = arg.x.begin, *x_end = arg.x.end;
+    struct r05_node *y_begin = arg.y.begin, *y_end = arg.y.end;
+    int shift = leading_zero_bits(y_begin->info.number);
+
+    /*
+      Нужно обеспечить, чтобы делимое было длиннее как минимум на одну
+      цифру делителя и первая цифра делимого была меньше первой цифры
+      делителя.
+    */
+    if (arg.x.len == arg.y.len) {
+      x_begin = x_begin->prev;
+      x_begin->tag = R05_DATATAG_NUMBER;
+      x_begin->info.number = 0;
+
+      if (shift > 0) {
+        long_left_shift(x_begin, x_end, shift);
+        long_left_shift(y_begin, y_end, shift);
+      }
+    } else {
+      if (shift > 0) {
+        x_begin = x_begin->prev;
+        x_begin->tag = R05_DATATAG_NUMBER;
+        x_begin->info.number = 0;
+        long_left_shift(x_begin, x_end, shift);
+        long_left_shift(y_begin, y_end, shift);
+
+        if (arg.x.len > arg.y.len && 0 == x_begin->info.number) {
+          x_begin = x_begin->next;
+        }
+      }
+
+      if (x_begin->info.number >= y_begin->info.number) {
+        x_begin = x_begin->prev;
+        x_begin->tag = R05_DATATAG_NUMBER;
+        x_begin->info.number = 0;
+      }
+    }
+
+    arg.x.begin = x_begin;
+
+    if (1 == arg.y.len) {
+      r05_number y = y_begin->info.number;
+
+      while (x_begin != x_end) {
+        r05_number high = x_begin->info.number;
+        r05_number next = x_begin->next->info.number;
+        struct div_res res = div_double_word(high, next, y);
+
+        x_begin->info.number = res.quot;
+        x_begin = x_begin->next;
+        x_begin->info.number = res.rem;
+      };
+
+      arg.x.end = x_begin->prev;
+      arg.x.sign = div_sign;
+
+      y = x_begin->info.number >> shift;
+      arg.y.sign = y != 0 ? mod_sign : +1;
+      arg.y.begin->info.number = y;
+    } else {
+      struct r05_node *const y_lim = y_begin->prev->prev;
+      struct r05_node *const x_lim = x_end->next;
+      r05_number y_high = y_begin->info.number;
+      struct r05_node *x_prefix_end = x_begin;
+      int i;
+
+      for (i = 0; i < arg.y.len; ++i) {
+        x_prefix_end = x_prefix_end->next;
+      }
+
+      y_lim->next->tag = R05_DATATAG_NUMBER;
+      y_lim->next->info.number = 0;
+
+      do {
+        r05_number high = x_begin->info.number;
+        r05_number next = x_begin->next->info.number;
+        r05_number guess = div_double_word(high, next, y_high).quot;
+        struct r05_node *y = y_end, *r = x_prefix_end;
+        r05_number carry_mul = 0, borrow = 0;
+
+        do {
+          struct mul_res mul_res = mul(guess, y->info.number, carry_mul);
+          r05_number rval = r->info.number;
+
+          /*
+            Здесь переполнения high быть не может: максимальный результат
+            умножения с накоплением:
+            (M - 1) * (M - 1) + (M - 1) = M² - 2 * M + 1 + M - 1 = (M - 1) * M
+            9 * 9 + 9 = 81 + 9 = 90
+            Прибавить единицу всегда возможно.
+          */
+
+          mul_res.low += borrow;
+          if (mul_res.low < borrow) {
+            mul_res.high += 1;
+          }
+
+          borrow = rval < mul_res.low ? 1 : 0;
+          r->info.number = rval - mul_res.low;
+          carry_mul = mul_res.high;
+
+          y = y->prev;
+          r = r->prev;
+        } while (y_lim != y);
+
+        r = r->next;
+        assert(r == x_begin);
+        assert(0 == carry_mul);
+
+        if (borrow) {
+          r05_number carry;
+
+          do {
+            carry = 0;
+            y = y_end;
+            r = x_prefix_end;
+            guess -= 1;
+
+            do {
+              r05_number yval = y->info.number, rval = r->info.number;
+              r05_number next_carry = 0;
+
+              rval += yval;
+              if (rval < yval) {
+                next_carry += 1;
+              }
+
+              rval += carry;
+              if (rval < carry) {
+                next_carry += 1;
+              }
+
+              r->info.number = rval;
+              carry = next_carry;
+              y = y->prev;
+              r = r->prev;
+            } while (y_lim != y);
+
+            r = r->next;
+            assert(r == x_begin);
+          } while (0 == carry);
+        }
+
+        x_begin->info.number = guess;
+        x_begin = x_begin->next;
+        x_prefix_end = x_prefix_end->next;
+      } while (x_prefix_end != x_lim);
+
+      arg.x.end = x_begin->prev;
+      arg.x.sign = div_sign;
+
+      arg.y.begin = x_begin;
+      arg.y.end = x_end;
+
+      if (shift > 0) {
+        long_right_shift(arg.y.begin, arg.y.end, shift);
+      }
+
+      while (arg.y.begin != arg.y.end && 0 == arg.y.begin->info.number) {
+        arg.y.begin = arg.y.begin->next;
+      }
+
+      arg.y.sign = arg.y.begin->info.number != 0 ? mod_sign : +1;
+    }
+  }
+
+  return arg;
+}
+
+
+static void extend_sign(struct signed_number *num) {
+  if (num->sign < 0) {
+    num->begin = num->begin->prev;
+    num->begin->tag = R05_DATATAG_CHAR;
+    num->begin->info.char_ = '-';
+  }
 }
 
 
 R05_DEFINE_ENTRY_FUNCTION(Div, "Div") {
   struct arithm_arg arg;
-  struct divmod res;
-  struct r05_node *p = arg_begin;
 
-  parse_arithm_arg(&arg, arg_begin, arg_end);
-  divmod(&arg, &res);
-  p = emplace_number(res.div, 0, p);
-  r05_splice_to_freelist(p->next, arg_end);
+  arg = divmod(arg_begin, arg_end);
+  extend_sign(&arg.x);
+
+  if (arg.x.begin != arg_begin) {
+    r05_splice_to_freelist(arg_begin, arg.x.begin->prev);
+  }
+  r05_splice_to_freelist(arg.x.end->next, arg_end);
+}
+
+
+static struct r05_node *emplace_number_after(
+  struct r05_node *pos, struct signed_number *num
+) {
+  struct r05_node *next;
+
+  if (num->sign < 0) {
+    pos = pos->next;
+    pos->tag = R05_DATATAG_CHAR;
+    pos->info.char_ = '-';
+  }
+
+  next = pos->next;
+  weld(pos, num->begin);
+  weld(num->end, next);
+  return next;
 }
 
 
@@ -460,19 +897,20 @@ R05_DEFINE_ENTRY_FUNCTION(Div, "Div") {
 */
 R05_DEFINE_ENTRY_FUNCTION(Divmod, "Divmod") {
   struct arithm_arg arg;
-  struct divmod res;
-  struct r05_node *open = arg_begin, *close, *p;
+  struct r05_node *open = arg_begin, *close, *p, *after_arg = arg_end->next;
 
-  parse_arithm_arg(&arg, arg_begin, arg_end);
-  divmod(&arg, &res);
+  arg = divmod(arg_begin, arg_end);
+  weld(arg.x.begin->prev, arg.x.end->next);
+  weld(arg.y.begin->prev, arg.y.end->next);
+
   open->tag = R05_DATATAG_OPEN_BRACKET;
-  close = emplace_number(res.div, 0, open->next)->next;
+  close = emplace_number_after(open, &arg.x);
   close->tag = R05_DATATAG_CLOSE_BRACKET;
   r05_link_brackets(open, close);
-  p = emplace_number(res.mod, 0, close->next);
+  p = emplace_number_after(close, &arg.y);
 
-  if (p != arg_end) {
-    r05_splice_to_freelist(p->next, arg_end);
+  if (p != after_arg) {
+    r05_splice_to_freelist(p, arg_end);
   }
 }
 
@@ -599,11 +1037,7 @@ FILE *open_numbered(unsigned int file_no, const char mode) {
     s_streams[file_no] = fopen(filename, mode_str);
 
     if (s_streams[file_no] == NULL) {
-      static const char error_format[] = "Can't open REFAL%u.DAT as \"%c\"";
-      char error[sizeof(error_format) + UINT_DIGITS];
-
-      sprintf(error, error_format, file_no, mode);
-      r05_builtin_error_errno(error);
+      r05_builtin_error_errno("Can't open REFAL%u.DAT as \"%c\"", file_no, mode);
     }
   }
 
@@ -630,7 +1064,10 @@ R05_DEFINE_ENTRY_FUNCTION(Implode, "Implode") {
   sFunc = arg_begin->next;
   sBegin = sFunc->next;
 
-  if (sBegin->tag != R05_DATATAG_CHAR || ! isalpha((int) sBegin->info.char_)) {
+  if (
+    sBegin->tag != R05_DATATAG_CHAR
+    || ! isalpha((unsigned char) sBegin->info.char_)
+  ) {
     sFunc->tag = R05_DATATAG_NUMBER;
     sFunc->info.number = 0;
   } else {
@@ -693,40 +1130,71 @@ static void cleanup_imploded_table(void) {
 }
 
 
+enum {
+  HASH_INIT = 7369,       /* простое число */
+  HASH_MULTIPLIER = 6007, /* простое число */
+};
+
+
+static void ensure_imploded_table(void) {
+  if (s_imploded == NULL) {
+    s_imploded_size = 100;
+    s_imploded = calloc(s_imploded_size, sizeof(s_imploded[0]));
+    if (NULL == s_imploded) {
+      r05_builtin_error("No memory for identifier table");
+    }
+    atexit(cleanup_imploded_table);
+  }
+}
+
+
+static void resize_imploded_table_if_need(void) {
+  if (s_imploded_count > 3 * s_imploded_size) {
+    size_t new_size = 3 * s_imploded_size / 2;
+    struct imploded **new_table = calloc(new_size, sizeof(new_table[0]));
+    if (NULL != new_table) {
+      size_t i;
+      for (i = 0; i < s_imploded_size; ++i) {
+        struct imploded *known = s_imploded[i];
+        while (known != NULL) {
+          struct imploded *next = known->next;
+          struct imploded **bucket = &new_table[known->hash % new_size];
+          known->next = *bucket;
+          *bucket = known;
+          known = next;
+        }
+      }
+
+      free(s_imploded);
+      s_imploded = new_table;
+      s_imploded_size = new_size;
+    }
+  }
+}
+
+
 static struct r05_function *implode(
   struct r05_node *begin, struct r05_node *end
 ) {
-  struct builtin_info *info;
-  struct r05_function **alias;
+  struct r05_function *builtin;
   struct r05_node *node, *limit = end->next;
   size_t len, hash, i;
   struct imploded **bucket, *known, *new;
 
-  for (info = s_builtin_info; info->function != 0; ++info) {
-    if (chain_str_eq(begin, end, info->function->name)) {
-      return info->function;
-    }
-  }
-
-  for (alias = s_arithmetic_names; *alias != NULL; ++alias) {
-    if (chain_str_eq(begin, end, (*alias)->name)) {
-      return *alias;
-    }
+  builtin = lookup_builtin_by_chain(begin, end);
+  if (builtin != NULL) {
+    return builtin;
   }
 
   len = 0;
-  hash = 7369; /* просто число */
+  hash = HASH_INIT;
   for (node = begin; node != limit; node = node->next) {
     len++;
-    hash *= 6007; /* простое число */
+    hash *= HASH_MULTIPLIER;
     hash += (unsigned char) node->info.char_;
   }
 
-  if (s_imploded == NULL) {
-    s_imploded_size = 100;
-    s_imploded = calloc(s_imploded_size, sizeof(s_imploded[0]));
-    atexit(cleanup_imploded_table);
-  }
+  ensure_imploded_table();
 
   bucket = &s_imploded[hash % s_imploded_size];
   for (known = *bucket; known != NULL; known = known->next) {
@@ -736,6 +1204,10 @@ static struct r05_function *implode(
   }
 
   new = malloc(sizeof(struct imploded) + len);
+  if (NULL == new) {
+    r05_builtin_error("No memory for new identifier");
+  }
+
   new->function.ptr = r05_enum_function_code;
   new->function.name = new->name;
   new->hash = hash;
@@ -749,27 +1221,50 @@ static struct r05_function *implode(
   *bucket = new;
   s_imploded_count++;
 
-  if (s_imploded_count > 3 * s_imploded_size) {
-    size_t new_size = 3 * s_imploded_size / 2;
-    struct imploded **new_table = calloc(new_size, sizeof(new_table[0]));
-
-    for (i = 0; i < s_imploded_size; ++i) {
-      known = s_imploded[i];
-      while (known != NULL) {
-        struct imploded *next = known->next;
-        bucket = &new_table[known->hash % new_size];
-        known->next = *bucket;
-        *bucket = known;
-        known = next;
-      }
-    }
-
-    free(s_imploded);
-    s_imploded = new_table;
-    s_imploded_size = new_size;
-  }
+  resize_imploded_table_if_need();
 
   return &new->function;
+}
+
+
+/**
+  16. <Last s.Len e.Items> == (e.Prefix) e.Suffix
+
+  e.Items : e.Prefix e.Suffix
+  |e.Suffix| == s.Len || { |e.Suffix| < s.Len && |e.Suffix| == 0 }
+*/
+R05_DEFINE_ENTRY_FUNCTION(Last, "Last") {
+  struct r05_node *sLen;
+  r05_number counter;
+  struct r05_node *last_term[2], *callee;
+  struct r05_node *left_bracket, *right_bracket, *ePrefix[2];
+
+  callee = arg_begin->next;
+  sLen = callee->next;
+
+  if (sLen->tag != R05_DATATAG_NUMBER) {
+    r05_recognition_impossible();
+  }
+
+  counter = sLen->info.number;
+  last_term[0] = arg_end;
+  while (counter > 0 && r05_tvar_right(last_term, sLen, last_term[0])) {
+    -- counter;
+  }
+
+  r05_close_evar(ePrefix, sLen, last_term[0]);
+
+  left_bracket = callee;
+  right_bracket = sLen;
+  left_bracket->tag = R05_DATATAG_OPEN_BRACKET;
+  right_bracket->tag = R05_DATATAG_CLOSE_BRACKET;
+  r05_link_brackets(left_bracket, right_bracket);
+
+  r05_correct_evar(ePrefix);
+  r05_splice_evar(right_bracket, ePrefix);
+
+  r05_splice_to_freelist(arg_begin, arg_begin);
+  r05_splice_to_freelist(arg_end, arg_end);
 }
 
 
@@ -820,13 +1315,12 @@ R05_DEFINE_ENTRY_FUNCTION(Lower, "Lower") {
 */
 R05_DEFINE_ENTRY_FUNCTION(Mod, "Mod") {
   struct arithm_arg arg;
-  struct divmod res;
-  struct r05_node *p = arg_begin;
 
-  parse_arithm_arg(&arg, arg_begin, arg_end);
-  divmod(&arg, &res);
-  p = emplace_number(res.mod, 0, p);
-  r05_splice_to_freelist(p->next, arg_end);
+  arg = divmod(arg_begin, arg_end);
+  extend_sign(&arg.y);
+
+  r05_splice_to_freelist(arg_begin, arg.y.begin->prev);
+  r05_splice_to_freelist(arg.y.end->next, arg_end);
 }
 
 
@@ -835,46 +1329,122 @@ R05_DEFINE_ENTRY_FUNCTION(Mod, "Mod") {
 */
 R05_DEFINE_ENTRY_FUNCTION(Mul, "Mul") {
   struct arithm_arg arg;
-  struct signed_number res;
-  r05_number high = 0;
-  struct r05_node *p = arg_begin;
+  signed sign;
 
   parse_arithm_arg(&arg, arg_begin, arg_end);
-  res.sign = arg.x.sign * arg.y.sign;
-  res.value = arg.x.value * arg.y.value;
+  sign = arg.x.sign * arg.y.sign;
 
-  /* особая логика для переполнения */
-  if (arg.x.value != 0 && res.value / arg.x.value != arg.y.value) {
-    r05_number x = arg.x.value, y = arg.y.value, y_low, y_high;
-
-    if (x > y) {
-      r05_number prev_x = x;
-      x = y;
-      y = prev_x;
-    }
-
-    y_low = y;
-    y_high = 0;
-    res.value = 0;
-
-    while (x > 0) {
-      if (x & 1) {
-        res.value += y_low;
-        high += y_high;
-        if (res.value < y_low) {
-          high += 1;
-        }
-      }
-
-      y_high <<= 1;
-      y_high |= (y_low >> 31);
-      y_low <<= 1;
-      x >>= 1;
-    }
+  if (arg.x.len > arg.y.len) {
+    swap_args(&arg);
   }
 
-  p = emplace_number(res, high, p);
-  r05_splice_to_freelist(p->next, arg_end);
+  if (arg.y.len == 1) {
+    struct r05_node *p = arg_begin;
+    struct mul_res result =
+      mul(arg.x.begin->info.number, arg.y.begin->info.number, 0);
+
+    if (sign < 0) {
+      p->tag = R05_DATATAG_CHAR;
+      p->info.char_ = '-';
+      p = p->next;
+    }
+
+    if (result.high > 0) {
+      p->tag = R05_DATATAG_NUMBER;
+      p->info.number = result.high;
+      p = p->next;
+    }
+
+    p->tag = R05_DATATAG_NUMBER;
+    p->info.number = result.low;
+    r05_splice_to_freelist(p->next, arg_end);
+  } else if (arg.x.len == 1) {
+    r05_number x = arg.x.begin->info.number;
+    struct r05_node *last_res = arg_end;
+    struct r05_node *y = arg.y.end;
+    struct r05_node *const y_lim = arg.y.begin->prev;
+    r05_number carry = 0;
+
+    while (y_lim != y) {
+      struct mul_res mul_res = mul(x, y->info.number, carry);
+      last_res->tag = R05_DATATAG_NUMBER;
+      last_res->info.number = mul_res.low;
+      carry = mul_res.high;
+      last_res = last_res->prev;
+      y = y->prev;
+    }
+
+    if (carry) {
+      last_res->tag = R05_DATATAG_NUMBER;
+      last_res->info.number = carry;
+      last_res = last_res->prev;
+    }
+
+    r05_splice_to_freelist(arg_begin, last_res);
+  } else {
+    struct r05_node *const x_last = arg.x.end, *const x_lim = arg.x.begin->prev;
+    struct r05_node *y = arg.y.end, *const y_lim = arg.y.begin->prev;
+    struct r05_node *res_begin, *res_end;
+    int i;
+
+    r05_reset_allocator();
+    res_begin = r05_insert_pos();
+    for (i = 1; i < arg.x.len; ++i) {
+      r05_alloc_number(0);
+    }
+    res_end = r05_insert_pos();
+    r05_alloc_number(0);
+
+    while (y_lim != y) {
+      r05_number yval = y->info.number;
+      struct r05_node *x = x_last, *r = res_end, *moved = y;
+      r05_number carry_part = 0, carry_res = 0;
+
+      y = y->prev;
+      moved->info.number = 0;
+      weld(moved->prev, moved->next);
+      weld(res_begin->prev, moved);
+      weld(moved, res_begin);
+      res_begin = moved;
+
+      while (x_lim != x) {
+        r05_number rval;
+        struct mul_res mul_res = mul(x->info.number, yval, carry_part);
+
+        /*
+          Здесь переполнения high быть не может по той же причине, что и в Div:
+          максимальное значение произведения с накоплением (M - 1) * M,
+          9 * 9 + 9 = 90, см. комментарий в Div.
+        */
+
+        mul_res.low += carry_res;
+        if (mul_res.low < carry_res) {
+          mul_res.high += 1;
+        }
+
+        rval = r->info.number + mul_res.low;
+        carry_part = mul_res.high;
+        carry_res = rval < mul_res.low ? 1 : 0;
+        r->info.number = rval;
+
+        x = x->prev;
+        r = r->prev;
+      }
+
+      assert(r->info.number == 0);
+      assert(r == res_begin);
+      r->info.number = carry_part + carry_res;
+      assert(r->info.number >= carry_part);
+      res_end = res_end->prev;
+    }
+
+    r05_splice_from_freelist(arg_end->next);
+    assert(arg_end->next == res_begin);
+    r05_splice_to_freelist(
+      arg_begin,
+      res_begin->info.number > 0 ? arg_end : res_begin
+    );
+  }
 }
 
 
@@ -913,7 +1483,7 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
     p = p->next;
   }
 
-  if (R05_DATATAG_CHAR != p->tag || ! isdigit((int) p->info.char_)) {
+  if (R05_DATATAG_CHAR != p->tag || ! isdigit((unsigned char) p->info.char_)) {
     arg_begin->tag = R05_DATATAG_NUMBER;
     arg_begin->info.number = 0;
     r05_splice_to_freelist(callee, arg_end);
@@ -924,14 +1494,16 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
     struct r05_node *first_10p, *last_10p;
 
     enum {
-      BITS_PORTION = 2 * sizeof(r05_number),
+      BITS_PORTION = R05_NUMBER_BITS / 4,
       PORTION_MASK = (1 << BITS_PORTION) - 1,
     };
 
     /* Подсчитываем число значимых цифр */
     first_digit = p;
     ndigits = 0;
-    while (R05_DATATAG_CHAR == p->tag && isdigit((int) p->info.char_)) {
+    while (
+      R05_DATATAG_CHAR == p->tag && isdigit((unsigned char) p->info.char_)
+    ) {
       p = p->next;
       ndigits += 1;
     }
@@ -963,12 +1535,12 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
         arg_begin->tag = R05_DATATAG_CHAR;
         arg_begin->info.char_ = '-';
       } else {
-        r05_splice_to_freelist(arg_begin, first_10p->prev);
+        r05_splice_to_freelist(arg_begin, arg_begin);
       }
       r05_splice_to_freelist(last_10p->next, arg_end);
     } else {
       /* Вытягиваем порции бит из [first_10p, last_10p] */
-      int offset, power;
+      int power;
       r05_number power5 = 1;
 
       for (power = 0; power < BITS_PORTION / 2; ++power) {
@@ -982,40 +1554,52 @@ R05_DEFINE_ENTRY_FUNCTION(Numb, "Numb") {
           == y * power5 + (x >> BITS_PORTION)
       */
 
-      offset = 0;
-      accum = 0;
       target = arg_end;
       do {
-          accum |= (last_10p->info.number & PORTION_MASK) << offset;
+        r05_number cur = first_10p->info.number;
+        if (cur != 0) {
+          r05_number q1, q2, q3, q4;
+          q1 = cur & PORTION_MASK;
+          q2 = (cur >> BITS_PORTION) & PORTION_MASK;
+          q3 = (cur >> 2 * BITS_PORTION) & PORTION_MASK;
+          q4 = (cur >> 3 * BITS_PORTION) & PORTION_MASK;
 
-          if (offset < 3 * BITS_PORTION) {
-            offset += BITS_PORTION;
-          } else {
-            target->tag = R05_DATATAG_NUMBER;
-            target->info.number = accum;
-            target = target->prev;
-            accum = 0;
-            offset = 0;
+          p = first_10p;
+          while (p != last_10p) {
+            struct r05_node *next = p->next;
+            cur = next->info.number;
+#define PASS(quart) \
+            { \
+              r05_number new = (quart) * power5 + (cur >> BITS_PORTION); \
+              (quart) = cur & PORTION_MASK; \
+              cur = new; \
+            }
+
+            PASS(q1);
+            PASS(q2);
+            PASS(q3);
+            PASS(q4);
+#undef PASS
+
+            p->info.number = cur;
+            p = next;
           }
+          last_10p = last_10p->prev;
 
-          p = last_10p;
-          while (p != first_10p) {
-            struct r05_node *prev = p->prev;
-            p->info.number =
-              (prev->info.number & PORTION_MASK) * power5
-              + (p->info.number >> BITS_PORTION);
-            p = prev;
-          }
-          first_10p->info.number >>= BITS_PORTION;
+          target->tag = R05_DATATAG_NUMBER;
+          target->info.number = q1
+            | (q2 << BITS_PORTION)
+            | (q3 << 2 * BITS_PORTION)
+            | (q4 << 3 * BITS_PORTION);
+          target = target->prev;
+        } else {
+          first_10p = first_10p->next;
+        }
+      } while (first_10p != last_10p);
 
-          if (first_10p->info.number == 0) {
-            first_10p = first_10p->next;
-          }
-      } while (first_10p->prev != last_10p);
-
-      if (accum > 0) {
+      if (first_10p->info.number != 0) {
         target->tag = R05_DATATAG_NUMBER;
-        target->info.number = accum;
+        target->info.number = first_10p->info.number;
         target = target->prev;
       }
 
@@ -1075,35 +1659,27 @@ R05_DEFINE_ENTRY_FUNCTION(Open, "Open") {
   }
 
   if (R05_DATATAG_CHAR == sMode->tag) {
-    char mode = sMode->info.char_;
-    if (mode != 'r' && mode != 'w' && mode != 'a') {
-      r05_builtin_error("Bad file mode, expected 'r', 'w' or 'a'");
+    char cmode = sMode->info.char_;
+    if (cmode != 'r' && cmode != 'w' && cmode != 'a') {
+      r05_builtin_error("Bad file mode %c, expected 'r', 'w' or 'a'", cmode);
     }
-    mode_str[0] = mode;
+    mode_str[0] = cmode;
   } else {
     mode = sMode->info.function->name;
   }
 
   if (! r05_empty_hole(eFileName[1], arg_end)) {
-    static const char error_format[] =
-      "Very long file name, maximum available is %u";
-    char error[sizeof(error_format) + UINT_DIGITS];
-
-    sprintf(error, error_format, (unsigned int) FILENAME_MAX);
-    r05_builtin_error(error);
+    r05_builtin_error(
+      "Very long file name, maximum available is %u",
+      (unsigned int) FILENAME_MAX
+    );
   }
 
   ensure_close_stream(file_no);
 
   s_streams[file_no] = fopen(filename, mode);
   if (s_streams[file_no] == NULL) {
-    char mode_buffer[100] = { '\0' };
-    static const char error_format[] = "Can't open %s for \"%s\"";
-    char error[sizeof(error_format) + FILENAME_MAX + sizeof(mode_buffer)];
-
-    strncpy(mode_buffer, mode, sizeof(mode_buffer) - 1);
-    sprintf(error, error_format, filename, mode_buffer);
-    r05_builtin_error_errno(error);
+    r05_builtin_error_errno("Can't open %s for \"%s\"", filename, mode);
   }
 
   r05_splice_to_freelist(arg_begin, arg_end);
@@ -1170,10 +1746,10 @@ static void output_func(
 
 #define CHECK_PRINTF(printf_call) \
   ((printf_call) >= 0 ? (void) 0 \
-  : r05_builtin_error_errno("Error in call " #printf_call))
+  : r05_builtin_error_errno("Error in call %s", #printf_call))
 #define CHECK_PUTC(putc_call) \
   ((putc_call) != EOF ? (void) 0 \
-  : r05_builtin_error_errno("Error in call " #putc_call))
+  : r05_builtin_error_errno("Error in call %s", #putc_call))
 
   for (p = before_expr->next; p != arg_end; p = p->next) {
     switch (p->tag) {
@@ -1186,7 +1762,7 @@ static void output_func(
         break;
 
       case R05_DATATAG_NUMBER:
-        CHECK_PRINTF(fprintf(output, "%lu ", (long unsigned int) p->info.number));
+        CHECK_PRINTF(fprintf(output, "%" PRIuR05 " ", p->info.number));
         break;
 
       case R05_DATATAG_OPEN_BRACKET:
@@ -1438,6 +2014,20 @@ R05_DEFINE_ENTRY_FUNCTION(Time, "Time") {
         | 'B0' — brackets
         | '*0' — empty expression
 */
+static int is_ident(const char *name) {
+  if (isalpha((unsigned char) name[0])) {
+    const char *p = name + 1;
+    while (*p != '\0' && is_ident_tail(*p)) {
+      ++p;
+    }
+
+    return *p == '\0';
+  } else {
+    return 0;
+  }
+}
+
+
 R05_DEFINE_ENTRY_FUNCTION(Type, "Type") {
   struct r05_node *callee = arg_begin->next;
   struct r05_node *first_term = callee->next;
@@ -1447,7 +2037,7 @@ R05_DEFINE_ENTRY_FUNCTION(Type, "Type") {
     type = '*';
     subtype = '0';
   } else if (R05_DATATAG_CHAR == first_term->tag) {
-    char ch = first_term->info.char_;
+    unsigned char ch = first_term->info.char_;
 
     if (isupper(ch)) {
       subtype = 'u';
@@ -1466,18 +2056,8 @@ R05_DEFINE_ENTRY_FUNCTION(Type, "Type") {
     }
   } else if (R05_DATATAG_FUNCTION == first_term->tag) {
     type = 'W';
-    subtype = 'q';
-
-    if (isalpha((int) first_term->info.function->name[0])) {
-      const char *p = &first_term->info.function->name[1];
-      while (*p != '\0' && is_ident_tail(*p)) {
-        p++;
-      }
-
-      if (*p == '\0') {
-        subtype = 'i';
-      }
-    }
+    /* Ложное предупреждение BCC 5.5.1 на потерю значимых цифр */
+    subtype = (char) (is_ident(first_term->info.function->name) ? 'i' : 'q');
   } else if (R05_DATATAG_NUMBER == first_term->tag) {
     type = 'N';
     subtype = '0';
@@ -1518,6 +2098,525 @@ R05_DEFINE_ENTRY_FUNCTION(Upper, "Upper") {
 
   r05_splice_to_freelist(arg_begin, callee);
   r05_splice_to_freelist(arg_end, arg_end);
+}
+
+
+/**
+  35. <Sysfun 1 e.FileName> == e.Expr
+      <Sysfun 2 e.FileName (s.Width e.Expr)> == пусто
+*/
+static void sysfun_1(
+  struct r05_node *arg_begin,
+  struct r05_node *func_no,
+  struct r05_node *arg_end
+);
+
+static void sysfun_2(
+  struct r05_node *arg_begin,
+  struct r05_node *before_arg,
+  struct r05_node *arg_end
+);
+
+R05_DEFINE_ENTRY_FUNCTION(Sysfun, "Sysfun") {
+  struct r05_node *callee = arg_begin->next;
+  struct r05_node *func_no = callee->next;
+
+  if (R05_DATATAG_NUMBER != func_no->tag) {
+    r05_recognition_impossible();
+  } else if (1 == func_no->info.number) {
+    sysfun_1(arg_begin, func_no, arg_end);
+  } else if (2 == func_no->info.number) {
+    sysfun_2(arg_begin, func_no, arg_end);
+  } else {
+    r05_recognition_impossible();
+  }
+}
+
+
+static struct imploded *new_compound(size_t capacity, int line_no);
+static void compound_add_char(
+  struct imploded **compound, size_t *len, size_t *capacity,
+  int ch, int line_no
+);
+static struct r05_function *compound_register(struct imploded *new);
+static void read_quote(char open_quote, FILE *fin, int *line_no);
+static int read_escaped_char(FILE *fin, int *line_no);
+
+
+static int fgetc_no_newline(FILE *fin, int *line_no) {
+  int ch;
+  while (ch = fgetc(fin), '\n' == ch) {
+    ++*line_no;
+  }
+  return ch;
+}
+
+
+static void sysfun_1(
+  struct r05_node *arg_begin,
+  struct r05_node *func_no,
+  struct r05_node *arg_end
+) {
+  struct r05_node *fname[2];
+  char filename[FILENAME_MAX + 1];
+  size_t filename_len;
+  FILE *fin;
+  int ch, line_no = 1, opened_bracket_line_no = 0;
+  struct r05_node *brackets_stack = NULL, *open_bracket, *close_bracket;
+
+  filename_len =
+    r05_read_chars(fname, filename, FILENAME_MAX, func_no, arg_end);
+  filename[filename_len] = '\0';
+
+  if (0 == filename_len) {
+    r05_recognition_impossible();
+  } else if (! r05_empty_hole(fname[1], arg_end)) {
+    struct r05_node *p = fname[1]->next;
+    while (R05_DATATAG_CHAR == p->tag) {
+      p = p->next;
+    }
+
+    if (p == arg_end) {
+      r05_builtin_error(
+        "very long filename (max available %u)", (unsigned) FILENAME_MAX
+      );
+    } else {
+      r05_recognition_impossible();
+    }
+  }
+
+  fin = fopen(filename, "r");
+  if (NULL == fin) {
+    r05_builtin_error_errno("can\'t open file %s", filename);
+  }
+
+  r05_reset_allocator();
+
+  ch = fgetc_no_newline(fin, &line_no);
+  for ( ; ; ) {
+    while (EOF != ch && isspace(ch)) {
+      ch = fgetc_no_newline(fin, &line_no);
+    }
+
+    if (EOF == ch) {
+      break;
+    }
+
+    switch (ch) {
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        {
+          const r05_number MAX_NUM = ~(r05_number) 0;
+          const r05_number MAX_NUM_DIV_10 = MAX_NUM / 10;
+          const r05_number MAX_NUM_MOD_10 = MAX_NUM % 10;
+          r05_number result = ch - '0';
+          while (
+            ch = fgetc_no_newline(fin, &line_no),
+            '0' <= ch && ch <= '9'
+            && (
+              result < MAX_NUM_DIV_10
+              || (
+                MAX_NUM_DIV_10 == result
+                && (r05_number) (ch - '0') < MAX_NUM_MOD_10
+              )
+            )
+          ) {
+            result = result * 10 + (ch - '0');
+          }
+
+          if ('0' <= ch && ch <= '9') {
+            r05_builtin_error(
+              "Very long number constant in %s at line %d",
+              filename, line_no
+            );
+          }
+
+          r05_alloc_number(result);
+        }
+        continue;
+
+      case '(':
+        if (NULL == brackets_stack) {
+          opened_bracket_line_no = line_no;
+        }
+        r05_alloc_open_bracket(&open_bracket);
+        open_bracket->info.link = brackets_stack;
+        brackets_stack = open_bracket;
+        break;
+
+      case ')':
+        if (NULL == brackets_stack) {
+          r05_builtin_error("unbalanced ')' in line %d", line_no);
+        } else {
+          r05_alloc_close_bracket(&close_bracket);
+          open_bracket = brackets_stack;
+          brackets_stack = brackets_stack->info.link;
+          r05_link_brackets(open_bracket, close_bracket);
+        }
+        break;
+
+      case '\'': case '\"':
+        read_quote((char) ch, fin, &line_no);
+        break;
+
+      case '\\':
+        ch = read_escaped_char(fin, &line_no);
+        if (EOF == ch) {
+          r05_builtin_error(
+            "unexpected EOF in escape sequence at %d", line_no
+          );
+        }
+        r05_alloc_char((char) ch);
+        break;
+
+      default:
+        if (isalpha(ch)) {
+          struct imploded *compound;
+          size_t len, capacity;
+
+          capacity = 10;
+          len = 0;
+          compound = new_compound(capacity, line_no);
+
+          while (EOF != ch && is_ident_tail(ch)) {
+            compound_add_char(&compound, &len, &capacity, ch, line_no);
+            ch = fgetc_no_newline(fin, &line_no);
+          }
+
+          compound_add_char(&compound, &len, &capacity, '\0', line_no);
+          r05_alloc_function(compound_register(compound));
+          continue;
+        } else {
+          r05_alloc_char((char) ch);
+        }
+    }
+
+    ch = fgetc_no_newline(fin, &line_no);
+  }
+
+  if (brackets_stack != NULL) {
+    r05_builtin_error("unbalanced '(' in line %d", opened_bracket_line_no);
+  }
+
+  if (fclose(fin) == EOF) {
+    r05_builtin_error_errno("Can't close file %s", filename);
+  }
+
+  r05_splice_from_freelist(arg_begin);
+  r05_splice_to_freelist(arg_begin, arg_end);
+}
+
+
+static int decode_hex_digit(int digit) {
+  return
+    '0' <= digit && digit <= '9' ? digit - '0' :
+    'a' <= digit && digit <= 'f' ? digit - 'a' :
+    'A' <= digit && digit <= 'F' ? digit - 'A' :
+    digit;
+}
+
+
+static void read_quote(char open_quote, FILE *fin, int *line_no) {
+#define error_unclosed_quote() \
+  r05_builtin_error( \
+    "unclosed %c at EOF, opened in line %d", \
+    open_quote, open_quote_line_no \
+  )
+  int ch, open_quote_line_no = *line_no;
+  size_t capacity, len;
+  struct imploded *compound = NULL;
+  /* ↑ на самом деле, инициализация compound здесь не нужна, «= NULL»
+  добавлено, чтобы подавить предупреждение компилятора GCC 11.4.0 */
+
+  if ('"' == open_quote) {
+    capacity = 10;
+    len = 0;
+    compound = new_compound(capacity, *line_no);
+  }
+
+  while (
+    ch = fgetc_no_newline(fin, line_no),
+    EOF != ch && ch != open_quote
+  ) {
+    if ('\\' == ch) {
+      ch = read_escaped_char(fin, line_no);
+      if (EOF == ch) {
+        error_unclosed_quote();
+      }
+    }
+
+    if ('\'' == open_quote) {
+      r05_alloc_char((char) ch);
+    } else {
+      compound_add_char(&compound, &len, &capacity, ch, *line_no);
+    }
+  }
+
+  if (EOF == ch) {
+    error_unclosed_quote();
+  } else if ('"' == open_quote) {
+    compound_add_char(&compound, &len, &capacity, '\0', *line_no);
+    r05_alloc_function(compound_register(compound));
+  }
+}
+
+
+static int read_escaped_char(FILE *fin, int *line_no) {
+  int decoded, ch, high, low;
+
+  ch = fgetc_no_newline(fin, line_no);
+  switch (ch) {
+    case '\'': decoded = '\''; break;
+    case '\"': decoded = '\"'; break;
+    case '\\': decoded = '\\'; break;
+    case 'n': decoded = '\n'; break;
+    case 'r': decoded = '\r'; break;
+    case 't': decoded = '\t'; break;
+
+    case '(': case ')': case '<': case '>':
+      decoded = ch;
+      break;
+
+    case 'x':
+      high = fgetc_no_newline(fin, line_no);
+      if (EOF == high) {
+        decoded = EOF;
+        break;
+      }
+      low = fgetc_no_newline(fin, line_no);
+      if (EOF == low) {
+        decoded = EOF;
+        break;
+      }
+      decoded = decode_hex_digit(high) * 16 + decode_hex_digit(low);
+      break;
+
+    case EOF:
+      decoded = EOF;
+      break;
+
+    default:
+      r05_builtin_error(
+        "Unknown escape sequence \\%c at line %d", ch, *line_no
+      );
+  }
+
+  return decoded;
+}
+
+
+static struct imploded *new_compound(size_t capacity, int line_no) {
+  struct imploded *new = malloc(sizeof(struct imploded) + capacity);
+  if (NULL == new) {
+    r05_builtin_error("No memory for new identifier, line %d", line_no);
+  }
+  new->function.ptr = r05_enum_function_code;
+  new->function.name = new->name;
+  new->hash = HASH_INIT;
+  return new;
+}
+
+
+static void compound_add_char(
+  struct imploded **compound, size_t *len, size_t *capacity,
+  int ch, int line_no
+) {
+  if (*len == *capacity) {
+    struct imploded *new;
+    *capacity += *capacity / 2;
+    new = realloc(*compound, sizeof(struct imploded) + *capacity);
+    if (NULL == new) {
+      r05_builtin_error("No memory for new identifier, line %d", line_no);
+    }
+    new->function.name = new->name;
+    *compound = new;
+  }
+
+  (*compound)->hash *= HASH_MULTIPLIER;
+  (*compound)->hash += (unsigned char) ch;
+  (*compound)->name[(*len)++] = (char) ch;
+}
+
+
+static struct r05_function *lookup_builtin_by_str(const char *name);
+
+
+static struct r05_function *compound_register(struct imploded *new) {
+  struct r05_function *callee = lookup_builtin_by_str(new->name);
+
+  if (callee != NULL) {
+    free(new);
+  } else {
+    struct imploded **bucket, *known;
+
+    ensure_imploded_table();
+    bucket = &s_imploded[new->hash % s_imploded_size];
+    known = *bucket;
+    while (
+      known != NULL
+      && strcmp(known->name, new->name) != 0
+    ) {
+      known = known->next;
+    }
+
+    if (known != NULL) {
+      free(new);
+      callee = &known->function;
+    } else {
+      new->next = *bucket;
+      *bucket = new;
+      ++s_imploded_count;
+      callee = &new->function;
+    }
+  }
+
+  return callee;
+}
+
+
+static void fputc_width(
+  FILE *fout, char ch, r05_number *rest, r05_number width
+) {
+  if(0 == *rest) {
+    fputc('\n', fout);
+    *rest = width;
+  }
+  fputc(ch, fout);
+  --*rest;
+}
+
+
+
+static void fputc_width_escaped(
+  FILE *fout, unsigned char ch, r05_number *rest, r05_number width
+) {
+  static const char ESCAPED[] = "\'\"\\\n\r\t()<>";
+  static const char DECODED[] = "\'\"\\nrt()<>";
+  const char *p = strchr(ESCAPED, (char) ch);
+
+  if (p != NULL) {
+    fputc_width(fout, '\\', rest, width);
+    fputc_width(fout, DECODED[p - ESCAPED], rest, width);
+  } else if (ch < 32 || 127 <= ch) {
+    static const char HEX[] = "0123456789ABCDEF";
+    fputc_width(fout, '\\', rest, width);
+    fputc_width(fout, 'x', rest, width);
+    fputc_width(fout, HEX[ch / 16], rest, width);
+    fputc_width(fout, HEX[ch % 16], rest, width);
+  } else {
+    fputc_width(fout, (char) ch, rest, width);
+  }
+}
+
+
+static void sysfun_2(
+  struct r05_node *arg_begin,
+  struct r05_node *before_arg,
+  struct r05_node *arg_end
+) {
+  struct r05_node *fname[2], *open_bracket, *sWidth, *close_bracket, *p;
+  char filename[FILENAME_MAX + 1];
+  size_t filename_len;
+  FILE *fout;
+  r05_number width, rest;
+
+  filename_len =
+    r05_read_chars(fname, filename, FILENAME_MAX, before_arg, arg_end);
+  filename[filename_len] = '\0';
+  open_bracket = fname[1]->next;
+
+  if (0 == filename_len) {
+    r05_recognition_impossible();
+  } else if (open_bracket->tag != R05_DATATAG_OPEN_BRACKET) {
+    struct r05_node *p = open_bracket;
+    while (R05_DATATAG_CHAR == p->tag) {
+      p = p->next;
+    }
+
+    if (p->tag == R05_DATATAG_OPEN_BRACKET) {
+      r05_builtin_error(
+        "very long filename (max available %u)", (unsigned) FILENAME_MAX
+      );
+    } else {
+      r05_recognition_impossible();
+    }
+  } else {
+    close_bracket = open_bracket->info.link;
+    sWidth = open_bracket->next;
+    if (
+      open_bracket->next == close_bracket
+      || sWidth->tag != R05_DATATAG_NUMBER
+      || close_bracket->next != arg_end
+    ) {
+      r05_recognition_impossible();
+    }
+  }
+
+  fout = fopen(filename, "w");
+  if (NULL == fout) {
+    r05_builtin_error("can\'t open file %s", filename);
+  }
+
+  width = sWidth->info.number;
+  rest = width;
+
+  for (p = sWidth->next; p != close_bracket; /* пусто */) {
+    /* По формуле см. комментарий в функции Symb + ' ' + '\0' */
+    char macrodigit_rep[(R05_NUMBER_BITS * 28 + 92) / 93 + 1 + 1];
+    const char *pc;
+    int quoted;
+
+    switch (p->tag) {
+      case R05_DATATAG_CHAR:
+        fputc_width(fout, '\'', &rest, width);
+        p = p;
+        do {
+          unsigned char ch = p->info.char_;
+          fputc_width_escaped(fout, ch, &rest, width);
+          p = p->next;
+        } while (R05_DATATAG_CHAR == p->tag);
+        fputc_width(fout, '\'', &rest, width);
+        continue;  /* пропускаем p = p->next в конце */
+
+      case R05_DATATAG_NUMBER:
+        sprintf(macrodigit_rep, "%" PRIuR05 " ", p->info.number);
+        for (pc = macrodigit_rep; *pc != '\0'; ++pc) {
+          fputc_width(fout, *pc, &rest, width);
+        }
+        break;
+
+      case R05_DATATAG_FUNCTION:
+        quoted = ! is_ident(p->info.function->name);
+        if (quoted) {
+          fputc_width(fout, '\"', &rest, width);
+        }
+        for (pc = p->info.function->name; *pc != '\0'; ++pc) {
+          fputc_width_escaped(fout, (unsigned char) *pc, &rest, width);
+        }
+        /* Ложное предупреждение BCC 5.5.1 на потерю значимых цифр */
+        fputc_width(fout, (char) (quoted ? '\"' : ' '), &rest, width);
+        break;
+
+      case R05_DATATAG_OPEN_BRACKET:
+        fputc_width(fout, '(', &rest, width);
+        break;
+
+      case R05_DATATAG_CLOSE_BRACKET:
+        fputc_width(fout, ')', &rest, width);
+        break;
+
+      default:
+        r05_switch_default_violation(p->tag);
+    }
+
+    p = p->next;
+  }
+
+  if (fclose(fout) == EOF) {
+    r05_builtin_error_errno("Can't close file %s", filename);
+  }
+
+  r05_splice_to_freelist(arg_begin, arg_end);
 }
 
 
@@ -1641,7 +2740,7 @@ R05_DEFINE_ENTRY_FUNCTION(System, "System") {
 
 
 /**
-  53. <Exit e.RetCode>
+  53. <Exit { '+' | '-' }? s.NUMBER>
 */
 R05_DEFINE_ENTRY_FUNCTION(Exit, "Exit") {
   struct r05_node *callable = arg_begin->next;
@@ -1656,6 +2755,8 @@ R05_DEFINE_ENTRY_FUNCTION(Exit, "Exit") {
   if (R05_DATATAG_CHAR == pretcode->tag) {
     if ('-' == pretcode->info.char_) {
       sign = -1;
+      pretcode = pretcode->next;
+    } else if ('+' == pretcode->info.char_) {
       pretcode = pretcode->next;
     } else {
       r05_recognition_impossible();
@@ -1739,6 +2840,46 @@ R05_DEFINE_ENTRY_FUNCTION(ExistFile, "ExistFile") {
 
   r05_splice_to_freelist(callee, arg_end);
 }
+
+
+#if defined(R05_POSIX) || defined(R05_WINDOWS)
+
+#if defined(GetCurrentDirectory)
+#  undef GetCurrentDirectory
+#endif /* defined(GetCurrentDirectory) */
+
+/**
+  56. <GetCurrentDirectory> == e.FileName
+*/
+R05_DEFINE_ENTRY_FUNCTION(GetCurrentDirectory, "GetCurrentDirectory") {
+  char path[FILENAME_MAX + 1] = { 0 };
+
+#  if defined(R05_POSIX)
+  char *result = getcwd(path, FILENAME_MAX);
+  if (NULL == result) {
+    r05_builtin_error_errno("Can\'t retrieve current directory path");
+  }
+#  else /* defined(R05_POSIX) */
+  DWORD result = GetCurrentDirectoryA((DWORD) sizeof(path), path);
+  if (0 == result) {
+    r05_builtin_error(
+      "Can\'t retrieve current directory path (errorcode %lX)",
+      (unsigned long) GetLastError()
+    );
+  } else if (result > (DWORD) sizeof(path)) {
+    r05_builtin_error(
+      "Current path is very long (%lu > %lu)",
+      (unsigned long) result, (unsigned long) FILENAME_MAX
+    );
+  }
+#  endif /* defined(R05_POSIX) */
+
+  r05_reset_allocator();
+  r05_alloc_string(path);
+  r05_splice_from_freelist(arg_begin);
+  r05_splice_to_freelist(arg_begin, arg_end);
+}
+#endif /* defined(R05_POSIX) || defined(R05_WINDOWS) */
 
 
 /**
@@ -1856,22 +2997,43 @@ R05_DEFINE_ENTRY_FUNCTION(Compare, "Compare") {
 
   parse_arithm_arg(&arg, arg_begin, arg_end);
 
-  result =
-    arg.x.sign < arg.y.sign ? -1 :
-    arg.x.sign > arg.y.sign ? +1 : 0;
+#define compare(x, y) ((x) < (y) ? -1 : (x) > (y) ? +1 : 0)
+  result = compare(arg.x.sign, arg.y.sign);
 
   if (result == 0) {
-    result =
-      arg.x.value < arg.y.value ? -1 :
-      arg.x.value > arg.y.value ? +1 : 0;
-
+    result = compare(arg.x.len, arg.y.len);
     result *= arg.x.sign;
   }
+
+  if (result == 0) {
+    struct r05_node *const x_lim = arg.x.end->next;
+    struct r05_node *x = arg.x.begin, *y = arg.y.begin;
+
+    while (x != x_lim && x->info.number == y->info.number) {
+      x = x->next;
+      y = y->next;
+    }
+
+    if (x != x_lim) {
+      result = compare(x->info.number, y->info.number);
+      result *= arg.x.sign;
+    }
+  }
+#undef compare
 
   arg_begin->tag = R05_DATATAG_CHAR;
   /* Suppress false warning in BCC 5.5.1 */
   arg_begin->info.char_ = (char) (result < 0 ? '-' : result > 0 ? '+' : '0');
   r05_splice_to_freelist(arg_begin->next, arg_end);
+}
+
+
+/**
+  62. <DeSysfun e.FileName (s.Width e.Expr)> == пусто
+*/
+R05_DEFINE_ENTRY_FUNCTION(DeSysfun, "DeSysfun") {
+  fprintf(stderr, "DeSyfun is deprecated in Refal-05, use <Sysfun 2 ...>\n");
+  sysfun_2(arg_begin, arg_begin->next, arg_end);
 }
 
 
@@ -1998,7 +3160,7 @@ R05_DEFINE_ENTRY_FUNCTION(Write, "Write") {
 
 
 /**
-  67. <ListOfBuiltin> == (s.No s.Name s.Type)*
+  67. <ListOfBuiltin> == (s.No s.Name s.Type)+
 
       s.No ::= s.NUMBER
       s.Name ::= s.FUNCTION
@@ -2023,10 +3185,16 @@ R05_DEFINE_LOCAL_ENUM(regular, "regular")
   поскольку они — деталь внутренней реализации Рефала-5 (версии PZ).
 */
 
-R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin);
+struct builtin_info {
+  r05_number id;
+  struct r05_function *function;
+  struct r05_function *type;
+};
 
-// Fix tentative definition for MSVC, keep during merge
-static struct builtin_info s_builtin_info[100] = {
+R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin);
+R05_DECLARE_ENTRY_FUNCTION(SizeOf);
+
+static struct builtin_info s_builtin_info[] = {
 #define ALLOC_BUILTIN(id, function, type) \
   { id, &r05f_ ## function, &r05f_ ## type },
 
@@ -2045,7 +3213,7 @@ static struct builtin_info s_builtin_info[100] = {
   ALLOC_BUILTIN(13, First, regular)
   ALLOC_BUILTIN(14, Get, regular)
   ALLOC_BUILTIN(15, Implode, regular)
-  /* ALLOC_BUILTIN(16, Last, regular) */
+  ALLOC_BUILTIN(16, Last, regular)
   ALLOC_BUILTIN(17, Lenw, regular)
   ALLOC_BUILTIN(18, Lower, regular)
   ALLOC_BUILTIN(19, Mod, regular)
@@ -2064,7 +3232,7 @@ static struct builtin_info s_builtin_info[100] = {
   ALLOC_BUILTIN(32, Time, regular)
   ALLOC_BUILTIN(33, Type, regular)
   ALLOC_BUILTIN(34, Upper, regular)
-  /* ALLOC_BUILTIN(35, Sysfun, regular) */
+  ALLOC_BUILTIN(35, Sysfun, regular)
   /* ALLOC_BUILTIN(42, Impd_d_, regular) */
   /* ALLOC_BUILTIN(43, Stopd_d_, regular) */
   { 44, &r05f_, &r05f_regular },
@@ -2079,19 +3247,23 @@ static struct builtin_info s_builtin_info[100] = {
   ALLOC_BUILTIN(53, Exit, regular)
   ALLOC_BUILTIN(54, Close, regular)
   ALLOC_BUILTIN(55, ExistFile, regular)
-  /* ALLOC_BUILTIN(56, GetCurrentDirectory, regular) */
+
+#if defined(R05_POSIX) || defined(R05_WINDOWS)
+  ALLOC_BUILTIN(56, GetCurrentDirectory, regular)
+#endif /* defined(R05_POSIX) || defined(R05_WINDOWS) */
+
   ALLOC_BUILTIN(57, RemoveFile, regular)
   ALLOC_BUILTIN(58, Implodeu_Ext, regular)
   ALLOC_BUILTIN(59, Explodeu_Ext, regular)
   ALLOC_BUILTIN(60, TimeElapsed, regular)
   ALLOC_BUILTIN(61, Compare, regular)
-  /* ALLOC_BUILTIN(62, DeSysfun, regular) */
+  ALLOC_BUILTIN(62, DeSysfun, regular)
   /* ALLOC_BUILTIN(63, XMLParse, regular) */
   ALLOC_BUILTIN(64, Random, regular)
   ALLOC_BUILTIN(65, RandomDigit, regular)
   ALLOC_BUILTIN(66, Write, regular)
   ALLOC_BUILTIN(67, ListOfBuiltin, regular)
-  /* ALLOC_BUILTIN(68, SizeOf, regular) */
+  ALLOC_BUILTIN(68, SizeOf, regular)
   /* ALLOC_BUILTIN(69, GetPID, regular) */
   /* ALLOC_BUILTIN(70, int4fab_1, regular) */
   /* ALLOC_BUILTIN(71, GetPPID, regular) */
@@ -2124,3 +3296,89 @@ R05_DEFINE_ENTRY_FUNCTION(ListOfBuiltin, "ListOfBuiltin") {
   r05_splice_from_freelist(arg_begin);
   r05_splice_to_freelist(arg_begin, arg_end);
 };
+
+
+static struct r05_function *lookup_builtin_by_chain(
+  struct r05_node *name_b, struct r05_node *name_e
+) {
+  struct r05_function *callee = NULL;
+  struct builtin_info *bi = s_builtin_info;
+  struct r05_function **alias = s_arithmetic_names;
+
+  while (
+    bi->function != NULL && ! chain_str_eq(name_b, name_e, bi->function->name)
+  ) {
+    ++bi;
+  }
+  if (bi->function != NULL) {
+    callee = bi->function;
+  }
+
+  while (*alias != NULL && ! chain_str_eq(name_b, name_e, (*alias)->name)) {
+    ++alias;
+  }
+  if (*alias != NULL) {
+    assert(callee == NULL);
+    callee = *alias;
+  }
+
+  return callee;
+}
+
+
+static struct r05_function *lookup_builtin_by_str(const char *name) {
+  struct builtin_info *bi = s_builtin_info;
+  struct r05_function **alias = s_arithmetic_names;
+  struct r05_function *callee = NULL;
+
+  while (bi->function != NULL && strcmp(name, bi->function->name) != 0) {
+    ++bi;
+  }
+  if (bi->function != NULL) {
+    callee = bi->function;
+  }
+
+  while (*alias != NULL && strcmp(name, (*alias)->name) != 0) {
+    ++alias;
+  }
+  if (*alias != NULL) {
+    assert(callee == NULL);
+    callee = *alias;
+  }
+
+  return callee;
+}
+
+
+/**
+  68. <SizeOf s.CharType> == s.NUMBER
+
+      s.CharType ::= 'c' | 's' | 'i' | 'l' | 'p'
+*/
+R05_DEFINE_ENTRY_FUNCTION(SizeOf, "SizeOf") {
+  struct r05_node *callee = arg_begin->next;
+  struct r05_node *type = callee->next;
+  size_t size;
+
+  if (type->next != arg_end || type->tag != R05_DATATAG_CHAR) {
+    r05_recognition_impossible();
+  }
+
+  switch (type->info.char_) {
+    case 'c': size = sizeof(char); break;
+    case 's': size = sizeof(short); break;
+    case 'i': size = sizeof(int); break;
+    case 'l': size = sizeof(long); break;
+    case 'p': size = sizeof(char *); break;
+
+    default:
+      r05_recognition_impossible();
+#ifndef R05_NORETURN_DEFINED
+      return;
+#endif
+  }
+
+  arg_begin->tag = R05_DATATAG_NUMBER;
+  arg_begin->info.number = (r05_number) size;
+  r05_splice_to_freelist(callee, arg_end);
+}

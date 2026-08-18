@@ -1,0 +1,185 @@
+*$FROM LibraryEx
+$EXTERN ArgList, LoadFile, Map, Trim;
+
+*$FROM parser
+$EXTERN Parse-File;
+
+*$FROM generator
+$EXTERN Generate-ToFile;
+
+*$FROM Platform
+$EXTERN PathSeparator, IsDirectorySeparator, DirectorySeparator;
+
+
+$ENTRY GO {
+  = <Main <ArgList>>;
+}
+
+Main {
+  (e.ProgName) ('@' e.Config) = <Main (e.ProgName) <LoadFile e.Config>>;
+
+  (e.ProgName) e.Files
+    , <FindFiles e.Files>
+    : {
+        e.Files-B (NotFound e.FileName) e.Files-E
+          = <Map main_PrintNotFound (NotFound e.FileName) e.Files-E>;
+
+        e.FoundFiles
+          , <Map main_ProcessEachSource e.FoundFiles>
+          : {
+              e.Outputs-B Fails e.Outputs-E
+                = <Prout '*** COMPILATION FAILED ***'>
+                  <Exit 1>;
+
+              e.Outputs
+                , <CCompile e.Outputs>
+                : {
+                    /* Не установлена R05CCOMP или компиляция прошла успешно */
+                    0 = <Prout '*** Compilation successed ***'>;
+
+                    e.RetCode
+                      = <Prout
+                          '*** COMPILATION FAILED '
+                          '(C COMPILER FAILED, RETCODE: ' <Symb e.RetCode>')***'
+                        >
+                        <Exit e.RetCode>;
+                  };
+            };
+      };
+}
+
+$ENTRY main_PrintNotFound {
+  (NotFound e.FileName) =
+    <Prout 'COMMAND LINE ERROR: file ' e.FileName ' not found'>;
+
+  (Output e.FileName) = ;
+
+  (Source (e.Source) e.Output) = ;
+}
+
+$ENTRY main_ProcessEachSource {
+  (Output e.OutputName) = <Prout '+Linking ' e.OutputName> (e.OutputName);
+
+  (Source (e.Source) e.OutputName)
+    , <Prout '*Compiling ' e.Source ':'>
+      <Parse-File e.Source>
+    : {
+        Success e.Tree
+          = <Generate-ToFile (e.OutputName) e.Tree>
+            (e.OutputName);
+
+        Fails e.Errors
+          = <Map (main_WriteError e.Source) e.Errors>
+            Fails;
+      };
+}
+
+$ENTRY main_WriteError {
+  e.FileName (t.SrcPos e.Message) =
+    <Prout e.FileName ':' <StrFromSrcPos t.SrcPos> ':ERROR: ' e.Message>;
+}
+
+StrFromSrcPos {
+  (s.Line s.Col e.FileName) = <Symb s.Line> ':' <Symb s.Col>;
+}
+
+
+LoadPath {
+  = <ParsePath <GetEnv 'R05PATH'>>
+    <ParsePath <GetEnv 'REF5RSL'>>
+}
+
+ParsePath {
+  e.Folder s.Sep e.Path
+    , <PathSeparator> : s.Sep
+    = <ParseFolder e.Folder> <ParsePath e.Path>;
+
+  e.Folder = <ParseFolder e.Folder>;
+}
+
+ParseFolder {
+  e.Folder
+    , <Trim e.Folder>
+    : {
+        /* пусто */ = /* пусто */;
+        e.TrimmedFolder = (e.TrimmedFolder);
+      };
+}
+
+FindFiles {
+  e.Files = <Map (main_AnalyzeFile-ByFolders Current <LoadPath>) e.Files>
+}
+
+$ENTRY main_AnalyzeFile-ByFolders {
+  e.Folders (e.FileName)
+    , <Map (main_AnalyzeInFolder e.FileName) e.Folders>
+    : {
+        (Source (e.Source) e.Output) e.Variants
+          = (Source (e.Source) <CutFolder e.Output>);
+
+        (Output e.Output) e.Variants = (Output e.Output);
+
+        /* пусто */ = (NotFound e.FileName);
+      };
+}
+
+$ENTRY main_AnalyzeInFolder {
+  e.FileName Current = <AnalyzeFile e.FileName>;
+
+  e.FileName (e.Folder)
+    = <AnalyzeFile e.Folder <DirectorySeparator> e.FileName>;
+}
+
+AnalyzeFile {
+  e.SourceName
+    , e.SourceName : e.BaseName '.ref'
+    , <ExistFile e.SourceName> : True
+    = (Source (e.SourceName) e.BaseName '.c');
+
+  e.OutName
+    , e.OutName : e.BaseName '.c'
+    , <ExistFile e.OutName> : True
+    = (Output e.OutName);
+
+  e.BaseName
+    , e.BaseName '.ref' : e.SourceName
+    , <ExistFile e.SourceName> : True
+    = (Source (e.SourceName) e.BaseName '.c');
+
+  e.BaseName
+    , e.BaseName '.c' : e.OutName
+    , <ExistFile e.OutName> : True
+    = (Output e.OutName);
+
+  e.FileName = /* пусто */;
+}
+
+CutFolder {
+  e.Folder s.Sep e.FileName, <IsDirectorySeparator s.Sep> : True
+     = <CutFolder e.FileName>;
+
+  e.FileName = e.FileName;
+}
+
+CCompile {
+  e.CSources
+    , <GetEnv 'R05CCOMP'>
+    : {
+        /* не установлена R05CCOMP */ = 0;
+
+        e.CommandLine
+          = <System
+              e.CommandLine ' ' <GetEnv 'R05CFLAGS'>
+              <Map main_IncludeFlag <LoadPath>>
+              <Map main_QuoteFile e.CSources>
+            >;
+      }
+}
+
+$ENTRY main_IncludeFlag {
+  (e.PathEntry) = ' -I"' e.PathEntry '"';
+}
+
+$ENTRY main_QuoteFile {
+  (e.FileName) = ' "' e.FileName '"';
+}

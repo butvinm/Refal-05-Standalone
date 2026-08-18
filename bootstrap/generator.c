@@ -8,13 +8,14 @@ R05_DECLARE_ENTRY_FUNCTION(Map)
 R05_DECLARE_ENTRY_FUNCTION(Inc)
 R05_DECLARE_ENTRY_FUNCTION(InlineExpr)
 R05_DECLARE_ENTRY_FUNCTION(Transform)
-R05_DECLARE_ENTRY_FUNCTION(R05m_Generatem_ToFile)
-R05_DECLARE_ENTRY_FUNCTION(R05m_Generatem_ToLines)
-R05_DECLARE_LOCAL_FUNCTION(R05m_Generatem_Aux)
+R05_DECLARE_ENTRY_FUNCTION(Generatem_ToFile)
+R05_DECLARE_LOCAL_FUNCTION(Generatem_ToLines)
+R05_DECLARE_LOCAL_FUNCTION(Generatem_Items)
+R05_DECLARE_LOCAL_FUNCTION(R05m_Generatem_Combine)
 R05_DECLARE_ENTRY_FUNCTION(generatoru_GenTreeItem)
 R05_DECLARE_LOCAL_FUNCTION(SafeSpecialComment)
-R05_DECLARE_ENTRY_FUNCTION(r05m_generatoru_MetatableName)
-R05_DECLARE_ENTRY_FUNCTION(r05m_generatoru_GenExtern)
+R05_DECLARE_ENTRY_FUNCTION(generatoru_MetatableName)
+R05_DECLARE_ENTRY_FUNCTION(generatoru_GenExtern)
 R05_DECLARE_LOCAL_FUNCTION(Scope)
 R05_DECLARE_LOCAL_FUNCTION(GenEmptyDefinition)
 R05_DECLARE_LOCAL_FUNCTION(GenDeclaration)
@@ -22,8 +23,8 @@ R05_DECLARE_LOCAL_FUNCTION(GenFunction)
 R05_DECLARE_LOCAL_FUNCTION(AssertOneOf)
 R05_DECLARE_LOCAL_FUNCTION(DefName)
 R05_DECLARE_LOCAL_FUNCTION(EscapeName)
-R05_DECLARE_ENTRY_FUNCTION(r05m_generatoru_EscapeNameChar)
-R05_DECLARE_LOCAL_FUNCTION(r05m_generatoru_EscapeNameChar0)
+R05_DECLARE_ENTRY_FUNCTION(generatoru_EscapeNameChar)
+R05_DECLARE_LOCAL_FUNCTION(generatoru_EscapeNameChar0)
 R05_DECLARE_LOCAL_FUNCTION(EscapeNameCharm_Code)
 R05_DECLARE_LOCAL_FUNCTION(EscapeNameCharm_Codeu_check)
 R05_DECLARE_LOCAL_FUNCTION(EscapeNamem_GlueCodes)
@@ -64,7 +65,7 @@ R05_DECLARE_LOCAL_FUNCTION(CmdCorrectVar)
 R05_DECLARE_LOCAL_FUNCTION(CmdInsertVar)
 R05_DECLARE_LOCAL_FUNCTION(CmdReturnResult)
 R05_DECLARE_LOCAL_FUNCTION(EscapeString)
-R05_DECLARE_ENTRY_FUNCTION(r05m_generatoru_EscapeChar)
+R05_DECLARE_ENTRY_FUNCTION(generatoru_EscapeChar)
 R05_DECLARE_LOCAL_FUNCTION(EscapeCharm_Aux)
 R05_DECLARE_LOCAL_FUNCTION(EscapeCharm_SwCompare)
 R05_DECLARE_LOCAL_FUNCTION(Elem)
@@ -134,13 +135,13 @@ R05_DECLARE_ENTRY_FUNCTION(Compare)
 R05_DECLARE_ENTRY_FUNCTION(Div)
 R05_DECLARE_ENTRY_FUNCTION(Mod)
 R05_DECLARE_ENTRY_FUNCTION(k2B_)
-R05_DEFINE_LOCAL_ENUM(Metatable, "Metatable")
 R05_DEFINE_LOCAL_ENUM(Extern, "Extern")
 R05_DEFINE_LOCAL_ENUM(in, "in")
 R05_DEFINE_LOCAL_ENUM(Local, "Local")
 R05_DEFINE_LOCAL_ENUM(Meta, "Meta")
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
 R05_DEFINE_LOCAL_ENUM(SpecialComment, "SpecialComment")
+R05_DEFINE_LOCAL_ENUM(Metatable, "Metatable")
 R05_DEFINE_LOCAL_ENUM(Entry, "Entry")
 R05_DEFINE_LOCAL_ENUM(e, "e")
 R05_DEFINE_LOCAL_ENUM(c, "c")
@@ -171,7 +172,7 @@ R05_DEFINE_LOCAL_ENUM(TkCloseCall, "TkCloseCall")
 /*
 *$FROM R5FW-Transformer
 */
-R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToFile, "R05-Generate-ToFile") {
+R05_DEFINE_ENTRY_FUNCTION(Generatem_ToFile, "Generate-ToFile") {
   r05_this_is_generated_function();
 
   do {
@@ -193,7 +194,7 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToFile, "R05-Generate-ToFile") {
     r05_alloc_insert_pos(p+10);
     r05_alloc_close_bracket(p+11);
     r05_alloc_open_call(p+12);
-    r05_alloc_function(&r05f_R05m_Generatem_ToLines);
+    r05_alloc_function(&r05f_Generatem_ToLines);
     r05_alloc_insert_pos(p+13);
     r05_alloc_close_call(p+14);
     r05_alloc_close_call(p+15);
@@ -214,14 +215,14 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToFile, "R05-Generate-ToFile") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToLines, "R05-Generate-ToLines") {
+R05_DEFINE_LOCAL_FUNCTION(Generatem_ToLines, "Generate-ToLines") {
   r05_this_is_generated_function();
 
   do {
     /* e.Tree-B: 2 */
     /* e.Functions: 7 */
     /* e.Tree-E: 9 */
-    struct r05_node *p[23] = { 0 };
+    struct r05_node *p[19] = { 0 };
     /* e.Tree-B (Metatable e.Functions) e.Tree-E */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -238,36 +239,27 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToLines, "R05-Generate-ToLines") {
 
       r05_reset_allocator();
       r05_alloc_open_call(p+11);
-      r05_alloc_function(&r05f_R05m_Generatem_Aux);
+      r05_alloc_function(&r05f_Generatem_Items);
       r05_alloc_open_call(p+12);
-      r05_alloc_function(&r05f_MapAccum);
-      r05_alloc_function(&r05f_generatoru_GenTreeItem);
-      r05_alloc_open_bracket(p+13);
-      r05_alloc_close_bracket(p+14);
-      r05_alloc_open_call(p+15);
       r05_alloc_function(&r05f_Transform);
-      r05_alloc_insert_pos(p+16);
-      r05_alloc_close_call(p+17);
-      r05_alloc_open_bracket(p+18);
+      r05_alloc_insert_pos(p+13);
+      r05_alloc_close_call(p+14);
+      r05_alloc_open_bracket(p+15);
       r05_alloc_function(&r05f_Metatable);
-      r05_alloc_insert_pos(p+19);
-      r05_alloc_close_bracket(p+20);
-      r05_alloc_close_call(p+21);
-      r05_alloc_close_call(p+22);
-      r05_push_stack(p[22]);
+      r05_alloc_insert_pos(p+16);
+      r05_alloc_close_bracket(p+17);
+      r05_alloc_close_call(p+18);
+      r05_push_stack(p[18]);
       r05_push_stack(p[11]);
-      r05_push_stack(p[21]);
-      r05_push_stack(p[12]);
-      r05_link_brackets(p[18], p[20]);
+      r05_link_brackets(p[15], p[17]);
       r05_correct_evar(p+7);
-      r05_push_stack(p[17]);
-      r05_push_stack(p[15]);
+      r05_push_stack(p[14]);
+      r05_push_stack(p[12]);
       r05_correct_evar(p+9);
       r05_correct_evar(p+2);
-      r05_link_brackets(p[13], p[14]);
-      r05_splice_evar(p[16], p+2);
-      r05_splice_evar(p[16], p+9);
-      r05_splice_evar(p[19], p+7);
+      r05_splice_evar(p[13], p+2);
+      r05_splice_evar(p[13], p+9);
+      r05_splice_evar(p[16], p+7);
       r05_splice_from_freelist(arg_begin);
       r05_splice_to_freelist(arg_begin, arg_end);
       return;
@@ -277,7 +269,7 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToLines, "R05-Generate-ToLines") {
 
   do {
     /* e.Tree: 2 */
-    struct r05_node *p[13] = { 0 };
+    struct r05_node *p[9] = { 0 };
     /* e.Tree */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -285,34 +277,60 @@ R05_DEFINE_ENTRY_FUNCTION(R05m_Generatem_ToLines, "R05-Generate-ToLines") {
 
     r05_reset_allocator();
     r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_R05m_Generatem_Aux);
+    r05_alloc_function(&r05f_Generatem_Items);
     r05_alloc_open_call(p+5);
-    r05_alloc_function(&r05f_MapAccum);
-    r05_alloc_function(&r05f_generatoru_GenTreeItem);
-    r05_alloc_open_bracket(p+6);
-    r05_alloc_close_bracket(p+7);
-    r05_alloc_open_call(p+8);
     r05_alloc_function(&r05f_Transform);
-    r05_alloc_insert_pos(p+9);
-    r05_alloc_close_call(p+10);
-    r05_alloc_close_call(p+11);
-    r05_alloc_close_call(p+12);
-    r05_push_stack(p[12]);
-    r05_push_stack(p[4]);
-    r05_push_stack(p[11]);
-    r05_push_stack(p[5]);
-    r05_push_stack(p[10]);
+    r05_alloc_insert_pos(p+6);
+    r05_alloc_close_call(p+7);
+    r05_alloc_close_call(p+8);
     r05_push_stack(p[8]);
+    r05_push_stack(p[4]);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[5]);
     r05_correct_evar(p+2);
-    r05_link_brackets(p[6], p[7]);
-    r05_splice_evar(p[9], p+2);
+    r05_splice_evar(p[6], p+2);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
   } while (0);
 }
 
-R05_DEFINE_LOCAL_FUNCTION(R05m_Generatem_Aux, "R05-Generate-Aux") {
+R05_DEFINE_LOCAL_FUNCTION(Generatem_Items, "Generate-Items") {
+  r05_this_is_generated_function();
+
+  do {
+    /* e.TreeItems: 2 */
+    struct r05_node *p[11] = { 0 };
+    /* e.TreeItems */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_R05m_Generatem_Combine);
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_MapAccum);
+    r05_alloc_function(&r05f_generatoru_GenTreeItem);
+    r05_alloc_open_bracket(p+6);
+    r05_alloc_close_bracket(p+7);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_call(p+9);
+    r05_alloc_close_call(p+10);
+    r05_push_stack(p[10]);
+    r05_push_stack(p[4]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[5]);
+    r05_correct_evar(p+2);
+    r05_link_brackets(p[6], p[7]);
+    r05_splice_evar(p[8], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(R05m_Generatem_Combine, "R05-Generate-Combine") {
   r05_this_is_generated_function();
 
   do {
@@ -392,7 +410,7 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
     r05_alloc_insert_pos(p+12);
     r05_alloc_open_call(p+13);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_generatoru_GenExtern);
+    r05_alloc_function(&r05f_generatoru_GenExtern);
     r05_alloc_insert_pos(p+14);
     r05_alloc_close_call(p+15);
     r05_alloc_close_bracket(p+16);
@@ -610,7 +628,7 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
     r05_alloc_close_bracket(p+15);
     r05_alloc_open_call(p+16);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_generatoru_MetatableName);
+    r05_alloc_function(&r05f_generatoru_MetatableName);
     r05_alloc_insert_pos(p+17);
     r05_alloc_close_call(p+18);
     r05_alloc_open_bracket(p+19);
@@ -780,7 +798,7 @@ R05_DEFINE_LOCAL_FUNCTION(SafeSpecialComment, "SafeSpecialComment") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_MetatableName, "r05-generator_MetatableName") {
+R05_DEFINE_ENTRY_FUNCTION(generatoru_MetatableName, "generator_MetatableName") {
   r05_this_is_generated_function();
 
   do {
@@ -817,7 +835,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_MetatableName, "r05-generator_Metatabl
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_GenExtern, "r05-generator_GenExtern") {
+R05_DEFINE_ENTRY_FUNCTION(generatoru_GenExtern, "generator_GenExtern") {
   r05_this_is_generated_function();
 
   do {
@@ -1221,7 +1239,7 @@ R05_DEFINE_LOCAL_FUNCTION(EscapeName, "EscapeName") {
     r05_alloc_function(&r05f_EscapeNamem_GlueCodes);
     r05_alloc_open_call(p+5);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_generatoru_EscapeNameChar);
+    r05_alloc_function(&r05f_generatoru_EscapeNameChar);
     r05_alloc_insert_pos(p+6);
     r05_alloc_close_call(p+7);
     r05_alloc_close_call(p+8);
@@ -1237,7 +1255,7 @@ R05_DEFINE_LOCAL_FUNCTION(EscapeName, "EscapeName") {
   } while (0);
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_EscapeNameChar, "r05-generator_EscapeNameChar") {
+R05_DEFINE_ENTRY_FUNCTION(generatoru_EscapeNameChar, "generator_EscapeNameChar") {
   r05_this_is_generated_function();
 
   do {
@@ -1316,7 +1334,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_EscapeNameChar, "r05-generator_EscapeN
 
     r05_reset_allocator();
     r05_alloc_open_call(p+3);
-    r05_alloc_function(&r05f_r05m_generatoru_EscapeNameChar0);
+    r05_alloc_function(&r05f_generatoru_EscapeNameChar0);
     r05_alloc_svar(p+2);
     r05_alloc_open_call(p+4);
     r05_alloc_function(&r05f_Type);
@@ -1335,7 +1353,7 @@ R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_EscapeNameChar, "r05-generator_EscapeN
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(r05m_generatoru_EscapeNameChar0, "r05-generator_EscapeNameChar0") {
+R05_DEFINE_LOCAL_FUNCTION(generatoru_EscapeNameChar0, "generator_EscapeNameChar0") {
   r05_this_is_generated_function();
 
   do {
@@ -3126,7 +3144,7 @@ R05_DEFINE_LOCAL_FUNCTION(SymbolTextRep, "SymbolTextRep") {
     r05_reset_allocator();
     r05_alloc_char('\'');
     r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_r05m_generatoru_EscapeChar);
+    r05_alloc_function(&r05f_generatoru_EscapeChar);
     r05_alloc_svar(p+3);
     r05_alloc_close_call(p+5);
     r05_alloc_char('\'');
@@ -4064,7 +4082,7 @@ R05_DEFINE_LOCAL_FUNCTION(EscapeString, "EscapeString") {
     r05_reset_allocator();
     r05_alloc_open_call(p+4);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_r05m_generatoru_EscapeChar);
+    r05_alloc_function(&r05f_generatoru_EscapeChar);
     r05_alloc_insert_pos(p+5);
     r05_alloc_close_call(p+6);
     r05_push_stack(p[6]);
@@ -4077,7 +4095,7 @@ R05_DEFINE_LOCAL_FUNCTION(EscapeString, "EscapeString") {
   } while (0);
 }
 
-R05_DEFINE_ENTRY_FUNCTION(r05m_generatoru_EscapeChar, "r05-generator_EscapeChar") {
+R05_DEFINE_ENTRY_FUNCTION(generatoru_EscapeChar, "generator_EscapeChar") {
   r05_this_is_generated_function();
 
   do {
@@ -13053,13 +13071,14 @@ static struct r05_function *metatable_entries[] = {
   &r05f_Inc,
   &r05f_InlineExpr,
   &r05f_Transform,
-  &r05f_R05m_Generatem_ToFile,
-  &r05f_R05m_Generatem_ToLines,
-  &r05f_R05m_Generatem_Aux,
+  &r05f_Generatem_ToFile,
+  &r05f_Generatem_ToLines,
+  &r05f_Generatem_Items,
+  &r05f_R05m_Generatem_Combine,
   &r05f_generatoru_GenTreeItem,
   &r05f_SafeSpecialComment,
-  &r05f_r05m_generatoru_MetatableName,
-  &r05f_r05m_generatoru_GenExtern,
+  &r05f_generatoru_MetatableName,
+  &r05f_generatoru_GenExtern,
   &r05f_Scope,
   &r05f_GenEmptyDefinition,
   &r05f_GenDeclaration,
@@ -13067,7 +13086,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_AssertOneOf,
   &r05f_DefName,
   &r05f_EscapeName,
-  &r05f_r05m_generatoru_EscapeNameChar,
+  &r05f_generatoru_EscapeNameChar,
   &r05f_EscapeNameCharm_Code,
   &r05f_EscapeNamem_GlueCodes,
   &r05f_Hex,
@@ -13105,7 +13124,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_CmdInsertVar,
   &r05f_CmdReturnResult,
   &r05f_EscapeString,
-  &r05f_r05m_generatoru_EscapeChar,
+  &r05f_generatoru_EscapeChar,
   &r05f_EscapeCharm_Aux,
   &r05f_EscapeCharm_SwCompare,
   &r05f_Elem,

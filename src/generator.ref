@@ -9,32 +9,30 @@ $EXTERN Transform;
 
 
 /**
-  <R05-Generate-ToFile (e.OutputFile) e.Tree> == пусто
+  <Generate-ToFile (e.OutputFile) e.Tree> == пусто
 */
-$ENTRY R05-Generate-ToFile {
+$ENTRY Generate-ToFile {
   (e.OutputFile) e.Tree =
-    <SaveFile (e.OutputFile) <R05-Generate-ToLines e.Tree>>;
+    <SaveFile (e.OutputFile) <Generate-ToLines e.Tree>>;
 }
 
-/**
-  <R05-Generate-ToLines e.Tree> == (s.CHAR*)*
-*/
-$ENTRY R05-Generate-ToLines {
-  e.Tree-B (Metatable e.Functions) e.Tree-E =
-    <R05-Generate-Aux
-      <MapAccum
-        generator_GenTreeItem (/* declarations */)
+Generate-ToLines {
+  e.Tree-B (Metatable e.Functions) e.Tree-E
+    = <Generate-Items
         <Transform e.Tree-B e.Tree-E> (Metatable e.Functions)
-      >
-    >;
+      >;
 
-  e.Tree =
-    <R05-Generate-Aux
-      <MapAccum generator_GenTreeItem (/* declarations */) <Transform e.Tree>>
-    >;
+  e.Tree = <Generate-Items <Transform e.Tree>>;
 }
 
-R05-Generate-Aux {
+Generate-Items {
+  e.TreeItems
+    = <R05-Generate-Combine
+        <MapAccum generator_GenTreeItem (/* declarations */) e.TreeItems>
+      >;
+}
+
+R05-Generate-Combine {
   (e.Declarations) e.Definitions =
     ('/* Automatically generated file. Don\'t edit! */')
     ('#include "refal05rts.h"')
@@ -49,7 +47,7 @@ R05-Generate-Aux {
 
 $ENTRY generator_GenTreeItem {
   (e.Declarations) (Extern e.Names) =
-    (e.Declarations <Map r05-generator_GenExtern e.Names>)
+    (e.Declarations <Map generator_GenExtern e.Names>)
     /* пусто */;
 
   (e.Declarations) (Function t.SrcPos (e.Name) s.ScopeClass /* пусто */)
@@ -70,7 +68,7 @@ $ENTRY generator_GenTreeItem {
   (e.Declarations) (Metatable e.Names)
     = (e.Declarations)
       ('static struct r05_function *metatable_entries[] = {')
-      <Map r05-generator_MetatableName e.Names>
+      <Map generator_MetatableName e.Names>
       ('};')
       ()
       ('static struct r05_metatable metatable = {')
@@ -88,11 +86,11 @@ SafeSpecialComment {
   /* пусто */ = /* пусто */;
 }
 
-$ENTRY r05-generator_MetatableName {
+$ENTRY generator_MetatableName {
   (e.Name) = ('  &r05f_' <EscapeName e.Name> ',');
 }
 
-$ENTRY r05-generator_GenExtern {
+$ENTRY generator_GenExtern {
   (t.SrcPos e.Name) = <GenDeclaration Entry e.Name>;
 }
 
@@ -144,10 +142,10 @@ DefName {
   подряд в декорированном имени.
 */
 EscapeName {
-  e.Name = <EscapeName-GlueCodes <Map r05-generator_EscapeNameChar e.Name>>;
+  e.Name = <EscapeName-GlueCodes <Map generator_EscapeNameChar e.Name>>;
 }
 
-$ENTRY r05-generator_EscapeNameChar {
+$ENTRY generator_EscapeNameChar {
   '_' = (e 'u_');
   '-' = (e 'm-');
   '$' = (e 'd$');
@@ -158,6 +156,7 @@ $ENTRY r05-generator_EscapeNameChar {
         'L' s.st_ s.Letter = (c s.Letter);
         'D' s.st_ s.Digit = (c s.Digit);
 
+* TODO: юникод
         s.t_ s.st_ s.Encoded = (k <EscapeNameChar-Code s.Encoded>);
       };
 }
@@ -299,7 +298,7 @@ MatchArgs {
 }
 
 SymbolTextRep {
-  Char s.Char = '\'' <r05-generator_EscapeChar s.Char> '\'';
+  Char s.Char = '\'' <generator_EscapeChar s.Char> '\'';
   Number s.Number = <Symb s.Number> 'UL';
   Word e.Name = '&r05f_' <EscapeName e.Name>;
 }
@@ -393,10 +392,10 @@ CmdReturnResult {
 }
 
 EscapeString {
-  e.String = <Map r05-generator_EscapeChar e.String>;
+  e.String = <Map generator_EscapeChar e.String>;
 }
 
-$ENTRY r05-generator_EscapeChar {
+$ENTRY generator_EscapeChar {
   '\n' = '\\n';
   '\t' = '\\t';
   '\r' = '\\r';
