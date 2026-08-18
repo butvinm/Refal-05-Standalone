@@ -49,6 +49,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Bootstrap and test with the default configuration
       run: make bin/refal05c
@@ -76,6 +78,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Configure compiler
       shell: cmd

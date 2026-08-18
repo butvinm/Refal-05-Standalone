@@ -2,13 +2,18 @@
 set -ex
 
 MODULES="src/main src/generator src/parser"
-FRAMEWORK="framework/LibraryEx framework/R5FW-Parser framework/R5FW-Plainer framework/R5FW-Transformer framework/Platform"
+FRAMEWORK="framework/lib/LibraryEx framework/lib/R5FW-Parser framework/lib/R5FW-Plainer framework/lib/R5FW-Transformer framework/lib/posix/Platform"
 LIBS="./lib/refal05bif ./lib/refal05rts"
 
 MODULES_CFILES="bootstrap/main.c bootstrap/generator.c bootstrap/parser.c"
 FRAMEWORK_CFILES="bootstrap/LibraryEx.c bootstrap/R5FW-Parser.c bootstrap/R5FW-Plainer.c bootstrap/R5FW-Transformer.c bootstrap/Platform.c"
 LIBS_CFILES="./lib/refal05bif.c ./lib/refal05rts.c"
 LIBS_INCLUDE="-I./lib"
+
+if [ ! -e framework/lib/R5FW-Parser.ref ]; then
+  git submodule update --init framework \
+    || { echo "The framework submodule is missing and could not be fetched. Run: git submodule update --init"; exit 1; }
+fi
 
 set -a; source ./c-plus-plus.conf.sh set +a;
 

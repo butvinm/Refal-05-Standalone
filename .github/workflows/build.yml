@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Build Refal-05 compiler
       run: make bin/refal05c
@@ -32,11 +34,11 @@ jobs:
           "$GITHUB_WORKSPACE/src/main" \
           "$GITHUB_WORKSPACE/src/generator" \
           "$GITHUB_WORKSPACE/src/parser" \
-          "$GITHUB_WORKSPACE/framework/LibraryEx" \
-          "$GITHUB_WORKSPACE/framework/R5FW-Parser" \
-          "$GITHUB_WORKSPACE/framework/R5FW-Plainer" \
-          "$GITHUB_WORKSPACE/framework/R5FW-Transformer" \
-          "$GITHUB_WORKSPACE/framework/Platform" \
+          "$GITHUB_WORKSPACE/framework/lib/LibraryEx" \
+          "$GITHUB_WORKSPACE/framework/lib/R5FW-Parser" \
+          "$GITHUB_WORKSPACE/framework/lib/R5FW-Plainer" \
+          "$GITHUB_WORKSPACE/framework/lib/R5FW-Transformer" \
+          "$GITHUB_WORKSPACE/framework/lib/posix/Platform" \
           "$GITHUB_WORKSPACE/lib/refal05bif" \
           "$GITHUB_WORKSPACE/lib/refal05rts"
         for f in main.c generator.c parser.c LibraryEx.c R5FW-Parser.c R5FW-Plainer.c R5FW-Transformer.c Platform.c; do
@@ -81,6 +83,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Configure compiler
       shell: cmd
