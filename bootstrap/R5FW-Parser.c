@@ -6,11 +6,14 @@ R05_DECLARE_ENTRY_FUNCTION(LoadFile)
 R05_DECLARE_ENTRY_FUNCTION(Inc)
 R05_DECLARE_ENTRY_FUNCTION(Map)
 R05_DECLARE_ENTRY_FUNCTION(MapAccum)
-R05_DECLARE_ENTRY_FUNCTION(Builtins)
 R05_DECLARE_ENTRY_FUNCTION(TokName)
+R05_DECLARE_ENTRY_FUNCTION(Builtins)
+R05_DECLARE_LOCAL_FUNCTION(DoBuiltins)
 R05_DECLARE_ENTRY_FUNCTION(Scan)
 R05_DECLARE_ENTRY_FUNCTION(ScanStringm_FromPos)
 R05_DECLARE_LOCAL_FUNCTION(SkipBOM)
+R05_DECLARE_LOCAL_FUNCTION(SkipBOMu_check)
+R05_DECLARE_LOCAL_FUNCTION(SkipBOMu_cont)
 R05_DECLARE_LOCAL_FUNCTION(IncLine)
 R05_DECLARE_LOCAL_FUNCTION(IncCol)
 R05_DECLARE_LOCAL_FUNCTION(DoScan)
@@ -40,10 +43,19 @@ R05_DECLARE_LOCAL_FUNCTION(DoScanm_Number)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Numberu_check)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Numberu_cont)
 R05_DECLARE_LOCAL_FUNCTION(DropZero)
-R05_DECLARE_LOCAL_FUNCTION(MAXm_MACRODIGIT)
 R05_DECLARE_LOCAL_FUNCTION(CheckNumber)
 R05_DECLARE_LOCAL_FUNCTION(CheckNumber0)
-R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_Compare)
+R05_DECLARE_LOCAL_FUNCTION(DoCheckNumber)
+R05_DECLARE_LOCAL_FUNCTION(DoCheckNumber0)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigit)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check0)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont0)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check1)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont1)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check2)
+R05_DECLARE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont2)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Var)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Varu_check)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Varu_cont)
@@ -62,26 +74,20 @@ R05_DECLARE_LOCAL_FUNCTION(DoScanm_Ident)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Identu_check)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Identu_cont)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Chars)
-R05_DECLARE_LOCAL_FUNCTION(SimpleEscapedChar)
-R05_DECLARE_LOCAL_FUNCTION(SimpleEscapedChar0)
+R05_DECLARE_LOCAL_FUNCTION(Escape)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_check)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_cont)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_check0)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_cont0)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_check1)
+R05_DECLARE_LOCAL_FUNCTION(Escapeu_cont1)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escape)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check0)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont0)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check1)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont1)
 R05_DECLARE_LOCAL_FUNCTION(HexDigit)
 R05_DECLARE_LOCAL_FUNCTION(HexDigit0)
 R05_DECLARE_LOCAL_FUNCTION(DoHexDigit)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compound)
 R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscape)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check0)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont0)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check1)
-R05_DECLARE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont1)
+R05_DECLARE_LOCAL_FUNCTION(DoScanm_Escape)
 R05_DECLARE_ENTRY_FUNCTION(Parse)
 R05_DECLARE_LOCAL_FUNCTION(Parseu_check)
 R05_DECLARE_LOCAL_FUNCTION(Parsem_Aux)
@@ -165,15 +171,34 @@ R05_DECLARE_ENTRY_FUNCTION(r5fwm_parseru_CheckSentence)
 R05_DECLARE_LOCAL_FUNCTION(CheckSentencem_Tail)
 R05_DECLARE_LOCAL_FUNCTION(CheckResult)
 R05_DECLARE_LOCAL_FUNCTION(CheckResult0)
-R05_DECLARE_LOCAL_FUNCTION(CheckResult1)
+R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin)
+R05_DECLARE_ENTRY_FUNCTION(Explode)
 R05_DECLARE_ENTRY_FUNCTION(Type)
-R05_DECLARE_ENTRY_FUNCTION(k2B_)
 R05_DECLARE_ENTRY_FUNCTION(Ord)
-R05_DECLARE_ENTRY_FUNCTION(Lenw)
-R05_DECLARE_ENTRY_FUNCTION(Numb)
 R05_DECLARE_ENTRY_FUNCTION(Chr)
+R05_DECLARE_ENTRY_FUNCTION(k2B_)
 R05_DECLARE_ENTRY_FUNCTION(k2A_)
-R05_DECLARE_ENTRY_FUNCTION(Compare)
+R05_DECLARE_ENTRY_FUNCTION(Numb)
+R05_DECLARE_ENTRY_FUNCTION(Divmod)
+R05_DEFINE_LOCAL_ENUM(TkName, "TkName")
+R05_DEFINE_LOCAL_ENUM(TkCompound, "TkCompound")
+R05_DEFINE_LOCAL_ENUM(TkMacroDigit, "TkMacroDigit")
+R05_DEFINE_LOCAL_ENUM(TkChar, "TkChar")
+R05_DEFINE_LOCAL_ENUM(TkVariable, "TkVariable")
+R05_DEFINE_LOCAL_ENUM(TkOpenBracket, "TkOpenBracket")
+R05_DEFINE_LOCAL_ENUM(TkCloseBracket, "TkCloseBracket")
+R05_DEFINE_LOCAL_ENUM(TkOpenBlock, "TkOpenBlock")
+R05_DEFINE_LOCAL_ENUM(TkCloseBlock, "TkCloseBlock")
+R05_DEFINE_LOCAL_ENUM(TkOpenCall, "TkOpenCall")
+R05_DEFINE_LOCAL_ENUM(TkCloseCall, "TkCloseCall")
+R05_DEFINE_LOCAL_ENUM(TkComma, "TkComma")
+R05_DEFINE_LOCAL_ENUM(TkColon, "TkColon")
+R05_DEFINE_LOCAL_ENUM(TkAssign, "TkAssign")
+R05_DEFINE_LOCAL_ENUM(TkSemicolon, "TkSemicolon")
+R05_DEFINE_LOCAL_ENUM(TkExtern, "TkExtern")
+R05_DEFINE_LOCAL_ENUM(TkEntry, "TkEntry")
+R05_DEFINE_LOCAL_ENUM(TkSpecComment, "TkSpecComment")
+R05_DEFINE_LOCAL_ENUM(TkEOF, "TkEOF")
 R05_DEFINE_LOCAL_ENUM(Error, "Error")
 R05_DEFINE_LOCAL_ENUM(SpecialComment, "SpecialComment")
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
@@ -185,13 +210,9 @@ R05_DEFINE_LOCAL_ENUM(External, "External")
 R05_DEFINE_LOCAL_ENUM(Variable, "Variable")
 R05_DEFINE_LOCAL_ENUM(Brackets, "Brackets")
 R05_DEFINE_LOCAL_ENUM(Call, "Call")
-R05_DEFINE_LOCAL_ENUM(TkEOF, "TkEOF")
 R05_DEFINE_LOCAL_ENUM(True, "True")
-R05_DEFINE_LOCAL_ENUM(TkSpecComment, "TkSpecComment")
-R05_DEFINE_LOCAL_ENUM(TkOpenCall, "TkOpenCall")
 R05_DEFINE_LOCAL_ENUM(Len, "Len")
 R05_DEFINE_LOCAL_ENUM(TkError, "TkError")
-R05_DEFINE_LOCAL_ENUM(TkSemicolon, "TkSemicolon")
 R05_DEFINE_LOCAL_ENUM(Entry, "Entry")
 R05_DEFINE_LOCAL_ENUM(HasEntry, "HasEntry")
 R05_DEFINE_LOCAL_ENUM(Local, "Local")
@@ -199,23 +220,11 @@ R05_DEFINE_LOCAL_ENUM(Condition, "Condition")
 R05_DEFINE_LOCAL_ENUM(RETURN, "RETURN")
 R05_DEFINE_LOCAL_ENUM(CALLm_BLOCK, "CALL-BLOCK")
 R05_DEFINE_LOCAL_ENUM(False, "False")
-R05_DEFINE_LOCAL_ENUM(TkVariable, "TkVariable")
-R05_DEFINE_LOCAL_ENUM(TkOpenBracket, "TkOpenBracket")
-R05_DEFINE_LOCAL_ENUM(TkCloseBracket, "TkCloseBracket")
-R05_DEFINE_LOCAL_ENUM(TkOpenBlock, "TkOpenBlock")
-R05_DEFINE_LOCAL_ENUM(TkCloseBlock, "TkCloseBlock")
-R05_DEFINE_LOCAL_ENUM(TkCloseCall, "TkCloseCall")
-R05_DEFINE_LOCAL_ENUM(TkComma, "TkComma")
-R05_DEFINE_LOCAL_ENUM(TkColon, "TkColon")
-R05_DEFINE_LOCAL_ENUM(TkAssign, "TkAssign")
-R05_DEFINE_LOCAL_ENUM(TkName, "TkName")
-R05_DEFINE_LOCAL_ENUM(TkChar, "TkChar")
-R05_DEFINE_LOCAL_ENUM(TkCompound, "TkCompound")
+R05_DEFINE_LOCAL_ENUM(Ok, "Ok")
+R05_DEFINE_LOCAL_ENUM(Errorm_EOL, "Error-EOL")
 R05_DEFINE_LOCAL_ENUM(Success, "Success")
 R05_DEFINE_LOCAL_ENUM(Fails, "Fails")
-R05_DEFINE_LOCAL_ENUM(TkExtern, "TkExtern")
-R05_DEFINE_LOCAL_ENUM(TkEntry, "TkEntry")
-R05_DEFINE_LOCAL_ENUM(TkMacroDigit, "TkMacroDigit")
+R05_DEFINE_LOCAL_ENUM(Overflow, "Overflow")
 R05_DEFINE_LOCAL_ENUM(NoEntry, "NoEntry")
 R05_DEFINE_LOCAL_ENUM(Word, "Word")
 R05_DEFINE_LOCAL_ENUM(Number, "Number")
@@ -225,9 +234,453 @@ R05_DEFINE_LOCAL_ENUM(Symbol, "Symbol")
 /*
 *$FROM LibraryEx
 */
-/*
-*$FROM R5FW-Parser-Defs
-*/
+R05_DEFINE_ENTRY_FUNCTION(TokName, "TokName") {
+  r05_this_is_generated_function();
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkName */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkName))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("identifier", 10);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkCompound */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkCompound))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("compound symbol", 15);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkMacroDigit */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkMacroDigit))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("number", 6);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkChar */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkChar))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("character", 9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkVariable */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkVariable))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("variable", 8);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkOpenBracket */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkOpenBracket))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'(\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkCloseBracket */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkCloseBracket))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\')\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkOpenBlock */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkOpenBlock))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'{\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkCloseBlock */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkCloseBlock))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'}\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkOpenCall */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkOpenCall))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'<\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkCloseCall */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkCloseCall))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'>\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkComma */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkComma))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\',\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkColon */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkColon))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\':\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkAssign */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkAssign))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'=\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkSemicolon */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkSemicolon))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\';\'", 3);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkExtern */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkExtern))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("$EXTERN", 7);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkEntry */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkEntry))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("$ENTRY", 6);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkSpecComment */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkSpecComment))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("\'*$\'-comment", 12);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[3] = { 0 };
+    /* TkEOF */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_left(p+2, p[0], p[1], &r05f_TkEOF))
+      continue;
+    if (! r05_empty_hole(p[2], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("end of file", 11);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_ENTRY_FUNCTION(Builtins, "Builtins") {
+  r05_this_is_generated_function();
+
+  do {
+    struct r05_node *p[18] = { 0 };
+    /*  */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_empty_hole(p[0], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+2);
+    r05_alloc_char('+');
+    r05_alloc_close_bracket(p+3);
+    r05_alloc_open_bracket(p+4);
+    r05_alloc_char('-');
+    r05_alloc_close_bracket(p+5);
+    r05_alloc_open_bracket(p+6);
+    r05_alloc_char('*');
+    r05_alloc_close_bracket(p+7);
+    r05_alloc_open_bracket(p+8);
+    r05_alloc_char('/');
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_bracket(p+10);
+    r05_alloc_char('%');
+    r05_alloc_close_bracket(p+11);
+    r05_alloc_open_bracket(p+12);
+    r05_alloc_char('?');
+    r05_alloc_close_bracket(p+13);
+    r05_alloc_open_call(p+14);
+    r05_alloc_function(&r05f_DoBuiltins);
+    r05_alloc_open_call(p+15);
+    r05_alloc_function(&r05f_ListOfBuiltin);
+    r05_alloc_close_call(p+16);
+    r05_alloc_close_call(p+17);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[14]);
+    r05_push_stack(p[16]);
+    r05_push_stack(p[15]);
+    r05_link_brackets(p[12], p[13]);
+    r05_link_brackets(p[10], p[11]);
+    r05_link_brackets(p[8], p[9]);
+    r05_link_brackets(p[6], p[7]);
+    r05_link_brackets(p[4], p[5]);
+    r05_link_brackets(p[2], p[3]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(DoBuiltins, "DoBuiltins") {
+  r05_this_is_generated_function();
+
+  do {
+    /* e.Builtins: 4 */
+    /* s.Number: 6 */
+    /* s.Name: 7 */
+    /* s.Type: 8 */
+    struct r05_node *p[16] = { 0 };
+    /* (s.Number s.Name s.Type) e.Builtins */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    r05_close_evar(p+4, p[3], p[1]);
+    if (! r05_svar_left(p+6, p[2], p[3]))
+      continue;
+    if (! r05_svar_left(p+7, p[6], p[3]))
+      continue;
+    if (! r05_svar_left(p+8, p[7], p[3]))
+      continue;
+    if (! r05_empty_hole(p[8], p[3]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_Explode);
+    r05_alloc_svar(p+7);
+    r05_alloc_close_call(p+11);
+    r05_alloc_close_bracket(p+12);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_DoBuiltins);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_correct_evar(p+4);
+    r05_link_brackets(p[9], p[12]);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[10]);
+    r05_splice_evar(p[14], p+4);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    struct r05_node *p[2] = { 0 };
+    /*  */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_empty_hole(p[0], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
 R05_DEFINE_ENTRY_FUNCTION(Scan, "Scan") {
   r05_this_is_generated_function();
 
@@ -341,6 +794,159 @@ R05_DEFINE_LOCAL_FUNCTION(SkipBOM, "SkipBOM") {
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
   } while (0);
+
+  do {
+    /* e.Lines: 4 */
+    /* s.BOM: 6 */
+    /* e.FirstLine: 7 */
+    struct r05_node *p[19] = { 0 };
+    /* (s.BOM e.FirstLine) e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    r05_close_evar(p+4, p[3], p[1]);
+    if (! r05_svar_left(p+6, p[2], p[3]))
+      continue;
+    r05_close_evar(p+7, p[6], p[3]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_SkipBOMu_check);
+    r05_alloc_svar(p+6);
+    r05_alloc_open_bracket(p+10);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_bracket(p+12);
+    r05_alloc_open_bracket(p+13);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_bracket(p+15);
+    r05_alloc_open_call(p+16);
+    r05_alloc_function(&r05f_Ord);
+    r05_alloc_svar(p+6);
+    r05_alloc_close_call(p+17);
+    r05_alloc_close_call(p+18);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[16]);
+    r05_link_brackets(p[13], p[15]);
+    r05_correct_evar(p+4);
+    r05_link_brackets(p[10], p[12]);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[11], p+7);
+    r05_splice_evar(p[14], p+4);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_SkipBOMu_cont);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(SkipBOMu_check, "SkipBOM_check") {
+  r05_this_is_generated_function();
+
+  do {
+    /* e.FirstLine: 7 */
+    /* e.Lines: 9 */
+    /* s.BOM: 11 */
+    struct r05_node *p[16] = { 0 };
+    /* s.BOM (e.FirstLine) (e.Lines) 65279 */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_number_right(p+2, p[0], p[1], 65279UL))
+      continue;
+    if (! r05_brackets_right(p+3, p[0], p[2]))
+      continue;
+    if (! r05_brackets_right(p+5, p[0], p[3]))
+      continue;
+    r05_close_evar(p+7, p[5], p[6]);
+    r05_close_evar(p+9, p[3], p[4]);
+    if (! r05_svar_left(p+11, p[0], p[5]))
+      continue;
+    if (! r05_empty_hole(p[11], p[5]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+12);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_bracket(p+14);
+    r05_alloc_insert_pos(p+15);
+    r05_correct_evar(p+9);
+    r05_link_brackets(p[12], p[14]);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[13], p+7);
+    r05_splice_evar(p[15], p+9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* s.BOM: 2 */
+    /* e.FirstLine: 7 */
+    /* e.Lines: 9 */
+    /* e.Other: 11 */
+    struct r05_node *p[19] = { 0 };
+    /* s.BOM (e.FirstLine) (e.Lines) e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_brackets_left(p+5, p[4], p[1]))
+      continue;
+    r05_close_evar(p+7, p[3], p[4]);
+    r05_close_evar(p+9, p[5], p[6]);
+    r05_close_evar(p+11, p[6], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_SkipBOMu_cont);
+    r05_alloc_open_bracket(p+14);
+    r05_alloc_svar(p+2);
+    r05_alloc_insert_pos(p+15);
+    r05_alloc_close_bracket(p+16);
+    r05_alloc_insert_pos(p+17);
+    r05_alloc_close_call(p+18);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[13]);
+    r05_correct_evar(p+9);
+    r05_link_brackets(p[14], p[16]);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[15], p+7);
+    r05_splice_evar(p[17], p+9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(SkipBOMu_cont, "SkipBOM_cont") {
+  r05_this_is_generated_function();
 
   do {
     /* e.Lines: 2 */
@@ -667,6 +1273,50 @@ R05_DEFINE_LOCAL_FUNCTION(DoScan, "DoScan") {
     if (! r05_brackets_left(p+4, p[3], p[1]))
       continue;
     if (! r05_char_left(p+6, p[4], p[5], '\t'))
+      continue;
+    r05_close_evar(p+7, p[6], p[5]);
+    r05_close_evar(p+9, p[5], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_open_call(p+12);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_call(p+14);
+    r05_alloc_open_bracket(p+15);
+    r05_alloc_insert_pos(p+16);
+    r05_alloc_close_bracket(p+17);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_close_call(p+19);
+    r05_push_stack(p[19]);
+    r05_push_stack(p[11]);
+    r05_correct_evar(p+9);
+    r05_link_brackets(p[15], p[17]);
+    r05_correct_evar(p+7);
+    r05_push_stack(p[14]);
+    r05_push_stack(p[12]);
+    r05_splice_tvar(p[13], p+2);
+    r05_splice_evar(p[16], p+7);
+    r05_splice_evar(p[18], p+9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* e.Line: 7 */
+    /* e.Lines: 9 */
+    struct r05_node *p[20] = { 0 };
+    /* t.Pos ('\r' e.Line) e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_char_left(p+6, p[4], p[5], '\r'))
       continue;
     r05_close_evar(p+7, p[6], p[5]);
     r05_close_evar(p+9, p[5], p[1]);
@@ -2149,6 +2799,53 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanu_cont4, "DoScan_cont4") {
 
   do {
     /* t.Pos: 2 */
+    /* e.Line: 7 */
+    /* e.Lines: 9 */
+    struct r05_node *p[20] = { 0 };
+    /* t.Pos ('\\' e.Line) e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_char_left(p+6, p[4], p[5], '\\'))
+      continue;
+    r05_close_evar(p+7, p[6], p[5]);
+    r05_close_evar(p+9, p[5], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_DoScanm_Escape);
+    r05_alloc_insert_pos(p+12);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Escape);
+    r05_alloc_open_call(p+14);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_tvar(p+2);
+    r05_alloc_close_call(p+15);
+    r05_alloc_insert_pos(p+16);
+    r05_alloc_close_call(p+17);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_close_call(p+19);
+    r05_push_stack(p[19]);
+    r05_push_stack(p[11]);
+    r05_correct_evar(p+9);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[13]);
+    r05_correct_evar(p+7);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[14]);
+    r05_splice_tvar(p[12], p+2);
+    r05_splice_evar(p[16], p+7);
+    r05_splice_evar(p[18], p+9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
     /* e.Lines: 6 */
     /* s.Other: 8 */
     /* e.Line: 9 */
@@ -3333,34 +4030,13 @@ R05_DEFINE_LOCAL_FUNCTION(DropZero, "DropZero") {
   } while (0);
 }
 
-R05_DEFINE_LOCAL_FUNCTION(MAXm_MACRODIGIT, "MAX-MACRODIGIT") {
-  r05_this_is_generated_function();
-
-  do {
-    struct r05_node *p[2] = { 0 };
-    /*  */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_empty_hole(p[0], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_chars("4294967295", 10);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
 R05_DEFINE_LOCAL_FUNCTION(CheckNumber, "CheckNumber") {
   r05_this_is_generated_function();
 
   do {
     /* t.Pos: 2 */
     /* e.Number: 4 */
-    struct r05_node *p[26] = { 0 };
+    struct r05_node *p[14] = { 0 };
     /* t.Pos e.Number */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -3376,40 +4052,15 @@ R05_DEFINE_LOCAL_FUNCTION(CheckNumber, "CheckNumber") {
     r05_alloc_insert_pos(p+9);
     r05_alloc_close_bracket(p+10);
     r05_alloc_open_call(p+11);
-    r05_alloc_function(&r05f_CheckNumberm_Compare);
-    r05_alloc_open_call(p+12);
-    r05_alloc_function(&r05f_Ord);
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_open_call(p+14);
-    r05_alloc_function(&r05f_Lenw);
+    r05_alloc_function(&r05f_DoCheckNumber);
+    r05_alloc_number(0UL);
     r05_alloc_evar(p+4);
-    r05_alloc_close_call(p+15);
-    r05_alloc_close_bracket(p+16);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_open_call(p+18);
-    r05_alloc_function(&r05f_Lenw);
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_MAXm_MACRODIGIT);
-    r05_alloc_close_call(p+20);
-    r05_alloc_close_call(p+21);
-    r05_alloc_close_bracket(p+22);
-    r05_alloc_close_call(p+23);
-    r05_alloc_close_call(p+24);
-    r05_alloc_close_call(p+25);
-    r05_push_stack(p[25]);
+    r05_alloc_close_call(p+12);
+    r05_alloc_close_call(p+13);
+    r05_push_stack(p[13]);
     r05_push_stack(p[6]);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[11]);
-    r05_push_stack(p[23]);
     r05_push_stack(p[12]);
-    r05_link_brackets(p[17], p[22]);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[18]);
-    r05_push_stack(p[20]);
-    r05_push_stack(p[19]);
-    r05_link_brackets(p[13], p[16]);
-    r05_push_stack(p[15]);
-    r05_push_stack(p[14]);
+    r05_push_stack(p[11]);
     r05_link_brackets(p[8], p[10]);
     r05_correct_evar(p+4);
     r05_splice_tvar(p[7], p+2);
@@ -3426,13 +4077,46 @@ R05_DEFINE_LOCAL_FUNCTION(CheckNumber0, "CheckNumber0") {
   r05_this_is_generated_function();
 
   do {
+    /* t.Pos: 2 */
+    /* e.Number: 7 */
+    /* s.Value: 9 */
+    struct r05_node *p[13] = { 0 };
+    /* t.Pos (e.Number) Ok s.Value */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_function_left(p+6, p[5], p[1], &r05f_Ok))
+      continue;
+    r05_close_evar(p+7, p[4], p[5]);
+    if (! r05_svar_left(p+9, p[6], p[1]))
+      continue;
+    if (! r05_empty_hole(p[9], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+10);
+    r05_alloc_function(&r05f_TkMacroDigit);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_svar(p+9);
+    r05_alloc_close_bracket(p+12);
+    r05_link_brackets(p[10], p[12]);
+    r05_splice_tvar(p[11], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
     /* e.Number: 5 */
     /* t.Pos: 7 */
     struct r05_node *p[13] = { 0 };
-    /* t.Pos (e.Number) '+' */
+    /* t.Pos (e.Number) Overflow */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_char_right(p+2, p[0], p[1], '+'))
+    if (! r05_function_right(p+2, p[0], p[1], &r05f_Overflow))
       continue;
     if (! r05_brackets_right(p+3, p[0], p[2]))
       continue;
@@ -3458,39 +4142,66 @@ R05_DEFINE_LOCAL_FUNCTION(CheckNumber0, "CheckNumber0") {
     return;
   } while (0);
 
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(DoCheckNumber, "DoCheckNumber") {
+  r05_this_is_generated_function();
+
   do {
-    /* t.Pos: 2 */
-    /* e.Number: 6 */
-    /* s.Other: 8 */
-    struct r05_node *p[15] = { 0 };
-    /* t.Pos (e.Number) s.Other */
+    /* s.Value: 2 */
+    struct r05_node *p[3] = { 0 };
+    /* s.Value */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
+    if (! r05_svar_left(p+2, p[0], p[1]))
       continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    r05_close_evar(p+6, p[4], p[5]);
-    if (! r05_svar_left(p+8, p[5], p[1]))
-      continue;
-    if (! r05_empty_hole(p[8], p[1]))
+    if (! r05_empty_hole(p[2], p[1]))
       continue;
 
     r05_reset_allocator();
-    r05_alloc_open_bracket(p+9);
-    r05_alloc_function(&r05f_TkMacroDigit);
-    r05_alloc_insert_pos(p+10);
-    r05_alloc_open_call(p+11);
-    r05_alloc_function(&r05f_Numb);
-    r05_alloc_insert_pos(p+12);
-    r05_alloc_close_call(p+13);
-    r05_alloc_close_bracket(p+14);
-    r05_link_brackets(p[9], p[14]);
-    r05_push_stack(p[13]);
+    r05_alloc_function(&r05f_Ok);
+    r05_alloc_svar(p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* e.Digits: 4 */
+    struct r05_node *p[13] = { 0 };
+    /* s.Value s.Digit e.Digits */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    r05_close_evar(p+4, p[3], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_DoCheckNumber0);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigit);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_close_call(p+11);
+    r05_alloc_close_call(p+12);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[6]);
     r05_push_stack(p[11]);
-    r05_correct_evar(p+6);
-    r05_splice_tvar(p[10], p+2);
-    r05_splice_evar(p[12], p+6);
+    r05_push_stack(p[10]);
+    r05_link_brackets(p[7], p[9]);
+    r05_correct_evar(p+4);
+    r05_splice_evar(p[8], p+4);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -3499,106 +4210,554 @@ R05_DEFINE_LOCAL_FUNCTION(CheckNumber0, "CheckNumber0") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_Compare, "CheckNumber-Compare") {
+R05_DEFINE_LOCAL_FUNCTION(DoCheckNumber0, "DoCheckNumber0") {
   r05_this_is_generated_function();
 
   do {
-    struct r05_node *p[6] = { 0 };
-    /* () () */
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* e.Digits: 7 */
+    /* s.NewValue: 9 */
+    struct r05_node *p[13] = { 0 };
+    /* s.Value s.Digit (e.Digits) Ok s.NewValue */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
       continue;
     if (! r05_brackets_left(p+4, p[3], p[1]))
       continue;
-    if (! r05_empty_hole(p[2], p[3]))
+    if (! r05_function_left(p+6, p[5], p[1], &r05f_Ok))
       continue;
-    if (! r05_empty_hole(p[4], p[5]))
+    r05_close_evar(p+7, p[4], p[5]);
+    if (! r05_svar_left(p+9, p[6], p[1]))
       continue;
-    if (! r05_empty_hole(p[5], p[1]))
+    if (! r05_empty_hole(p[9], p[1]))
       continue;
 
     r05_reset_allocator();
-    r05_alloc_char('0');
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* s.Eq: 6, 7 */
-    /* e.X: 8 */
-    /* e.Y: 10 */
-    struct r05_node *p[20] = { 0 };
-    /* (s.Eq e.X) (s.Eq e.Y) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_empty_hole(p[5], p[1]))
-      continue;
-    if (! r05_svar_left(p+6, p[2], p[3]))
-      continue;
-    if (! r05_repeated_svar_left(p+7, p[4], p[5], p+6))
-      continue;
-    r05_close_evar(p+8, p[6], p[3]);
-    r05_close_evar(p+10, p[7], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+12);
-    r05_alloc_function(&r05f_CheckNumberm_Compare);
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_bracket(p+18);
-    r05_alloc_close_call(p+19);
-    r05_push_stack(p[19]);
-    r05_push_stack(p[12]);
-    r05_link_brackets(p[16], p[18]);
-    r05_correct_evar(p+10);
-    r05_link_brackets(p[13], p[15]);
-    r05_correct_evar(p+8);
-    r05_splice_evar(p[14], p+8);
-    r05_splice_evar(p[17], p+10);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* s.X: 6 */
-    /* e.X: 7 */
-    /* s.Y: 9 */
-    /* e.Y: 10 */
-    struct r05_node *p[14] = { 0 };
-    /* (s.X e.X) (s.Y e.Y) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_empty_hole(p[5], p[1]))
-      continue;
-    if (! r05_svar_left(p+6, p[2], p[3]))
-      continue;
-    r05_close_evar(p+7, p[6], p[3]);
-    if (! r05_svar_left(p+9, p[4], p[5]))
-      continue;
-    r05_close_evar(p+10, p[9], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+12);
-    r05_alloc_function(&r05f_Compare);
-    r05_alloc_svar(p+6);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_DoCheckNumber);
     r05_alloc_svar(p+9);
-    r05_alloc_close_call(p+13);
-    r05_push_stack(p[13]);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_call(p+12);
     r05_push_stack(p[12]);
+    r05_push_stack(p[10]);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[11], p+7);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Digits: 5 */
+    /* s.Value: 7 */
+    /* s.Digit: 8 */
+    struct r05_node *p[9] = { 0 };
+    /* s.Value s.Digit (e.Digits) Overflow */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_function_right(p+2, p[0], p[1], &r05f_Overflow))
+      continue;
+    if (! r05_brackets_right(p+3, p[0], p[2]))
+      continue;
+    r05_close_evar(p+5, p[3], p[4]);
+    if (! r05_svar_left(p+7, p[0], p[3]))
+      continue;
+    if (! r05_svar_left(p+8, p[7], p[3]))
+      continue;
+    if (! r05_empty_hole(p[8], p[3]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Overflow);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigit, "CheckNumber-AppendDigit") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    struct r05_node *p[8] = { 0 };
+    /* s.Value s.Digit */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_empty_hole(p[3], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_check);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_Numb);
+    r05_alloc_svar(p+3);
+    r05_alloc_close_call(p+6);
+    r05_alloc_close_call(p+7);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[4]);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[5]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check, "CheckNumber-AppendDigit_check") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    struct r05_node *p[9] = { 0 };
+    /* s.Value s.Digit s.DigitValue */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_empty_hole(p[4], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_check0);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_k2A_);
+    r05_alloc_svar(p+2);
+    r05_alloc_number(10UL);
+    r05_alloc_close_call(p+7);
+    r05_alloc_close_call(p+8);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[5]);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[6]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont0);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont, "CheckNumber-AppendDigit_cont") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    struct r05_node *p[4] = { 0 };
+    /* s.Value s.Digit */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_empty_hole(p[3], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Overflow);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check0, "CheckNumber-AppendDigit_check0") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    /* s.Value10: 5 */
+    struct r05_node *p[10] = { 0 };
+    /* s.Value s.Digit s.DigitValue s.Value10 */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_empty_hole(p[5], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_check1);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_k2B_);
+    r05_alloc_svar(p+5);
+    r05_alloc_svar(p+4);
+    r05_alloc_close_call(p+8);
+    r05_alloc_close_call(p+9);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[7]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont1);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont0, "CheckNumber-AppendDigit_cont0") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* e.Other: 4 */
+    struct r05_node *p[8] = { 0 };
+    /* s.Value s.Digit e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    r05_close_evar(p+4, p[3], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_close_call(p+7);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[6]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check1, "CheckNumber-AppendDigit_check1") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    /* s.Value10: 5 */
+    /* s.NewValue: 6 */
+    struct r05_node *p[11] = { 0 };
+    /* s.Value s.Digit s.DigitValue s.Value10 s.NewValue */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_svar_left(p+6, p[5], p[1]))
+      continue;
+    if (! r05_empty_hole(p[6], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_check2);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_svar(p+6);
+    r05_alloc_open_call(p+8);
+    r05_alloc_function(&r05f_Divmod);
+    r05_alloc_svar(p+6);
+    r05_alloc_number(10UL);
+    r05_alloc_close_call(p+9);
+    r05_alloc_close_call(p+10);
+    r05_push_stack(p[10]);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[8]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont2);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont1, "CheckNumber-AppendDigit_cont1") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    /* e.Other: 5 */
+    struct r05_node *p[9] = { 0 };
+    /* s.Value s.Digit s.DigitValue e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    r05_close_evar(p+5, p[4], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont0);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_close_call(p+8);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[7]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_check2, "CheckNumber-AppendDigit_check2") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2, 8 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4, 5 */
+    /* s.Value10: 9 */
+    /* s.NewValue: 10 */
+    struct r05_node *p[11] = { 0 };
+    /* s.Value s.Digit s.DigitValue s.Value10 s.NewValue (s.Value) s.DigitValue */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_repeated_svar_right(p+5, p[4], p[1], p+4))
+      continue;
+    if (! r05_brackets_right(p+6, p[4], p[5]))
+      continue;
+    if (! r05_repeated_svar_left(p+8, p[6], p[7], p+2))
+      continue;
+    if (! r05_empty_hole(p[8], p[7]))
+      continue;
+    if (! r05_svar_left(p+9, p[4], p[6]))
+      continue;
+    if (! r05_svar_left(p+10, p[9], p[6]))
+      continue;
+    if (! r05_empty_hole(p[10], p[6]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Ok);
+    r05_alloc_svar(p+10);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    /* s.Value10: 5 */
+    /* s.NewValue: 6 */
+    /* e.Other: 7 */
+    struct r05_node *p[11] = { 0 };
+    /* s.Value s.Digit s.DigitValue s.Value10 s.NewValue e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_svar_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+7, p[6], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont2);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_svar(p+6);
+    r05_alloc_close_call(p+10);
+    r05_push_stack(p[10]);
+    r05_push_stack(p[9]);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckNumberm_AppendDigitu_cont2, "CheckNumber-AppendDigit_cont2") {
+  r05_this_is_generated_function();
+
+  do {
+    /* s.Value: 2 */
+    /* s.Digit: 3 */
+    /* s.DigitValue: 4 */
+    /* s.Value10: 5 */
+    /* e.Other: 6 */
+    struct r05_node *p[10] = { 0 };
+    /* s.Value s.Digit s.DigitValue s.Value10 e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_svar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+3, p[2], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    r05_close_evar(p+6, p[5], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+8);
+    r05_alloc_function(&r05f_CheckNumberm_AppendDigitu_cont1);
+    r05_alloc_svar(p+2);
+    r05_alloc_svar(p+3);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_call(p+9);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[8]);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -5097,7 +6256,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Chars, "DoScan-Chars") {
     /* t.Pos: 2 */
     /* e.Line: 7 */
     /* e.Lines: 9 */
-    struct r05_node *p[18] = { 0 };
+    struct r05_node *p[20] = { 0 };
     /* t.Pos ('\\' e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -5114,19 +6273,27 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Chars, "DoScan-Chars") {
     r05_alloc_open_call(p+11);
     r05_alloc_function(&r05f_DoScanm_Charsm_Escape);
     r05_alloc_insert_pos(p+12);
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Escape);
+    r05_alloc_open_call(p+14);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_tvar(p+2);
+    r05_alloc_close_call(p+15);
     r05_alloc_insert_pos(p+16);
     r05_alloc_close_call(p+17);
-    r05_push_stack(p[17]);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_close_call(p+19);
+    r05_push_stack(p[19]);
     r05_push_stack(p[11]);
     r05_correct_evar(p+9);
-    r05_link_brackets(p[13], p[15]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[13]);
     r05_correct_evar(p+7);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[14]);
     r05_splice_tvar(p[12], p+2);
-    r05_splice_evar(p[14], p+7);
-    r05_splice_evar(p[16], p+9);
+    r05_splice_evar(p[16], p+7);
+    r05_splice_evar(p[18], p+9);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -5272,67 +6439,194 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Chars, "DoScan-Chars") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(SimpleEscapedChar, "SimpleEscapedChar") {
+R05_DEFINE_LOCAL_FUNCTION(Escape, "Escape") {
   r05_this_is_generated_function();
 
   do {
-    /* s.Escaped: 2 */
-    struct r05_node *p[25] = { 0 };
-    /* s.Escaped */
+    /* t.Pos: 2 */
+    /* s.Escaped: 4 */
+    /* e.Line: 5 */
+    struct r05_node *p[33] = { 0 };
+    /* t.Pos s.Escaped e.Line */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_svar_left(p+2, p[0], p[1]))
+    if (! r05_tvar_left(p+2, p[0], p[1]))
       continue;
-    if (! r05_empty_hole(p[2], p[1]))
+    if (! r05_svar_left(p+4, p[3], p[1]))
       continue;
+    r05_close_evar(p+5, p[4], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+3);
-    r05_alloc_function(&r05f_SimpleEscapedChar0);
-    r05_alloc_svar(p+2);
-    r05_alloc_open_bracket(p+4);
-    r05_alloc_chars("\'\'", 2);
-    r05_alloc_close_bracket(p+5);
-    r05_alloc_open_bracket(p+6);
-    r05_alloc_chars("\"\"", 2);
-    r05_alloc_close_bracket(p+7);
-    r05_alloc_open_bracket(p+8);
-    r05_alloc_chars("\\\\", 2);
-    r05_alloc_close_bracket(p+9);
-    r05_alloc_open_bracket(p+10);
-    r05_alloc_chars("n\n", 2);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_Escapeu_check);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_svar(p+4);
+    r05_alloc_open_bracket(p+9);
+    r05_alloc_insert_pos(p+10);
     r05_alloc_close_bracket(p+11);
     r05_alloc_open_bracket(p+12);
-    r05_alloc_chars("r\r", 2);
+    r05_alloc_chars("\'\'", 2);
     r05_alloc_close_bracket(p+13);
     r05_alloc_open_bracket(p+14);
-    r05_alloc_chars("t\t", 2);
+    r05_alloc_chars("\"\"", 2);
     r05_alloc_close_bracket(p+15);
     r05_alloc_open_bracket(p+16);
-    r05_alloc_chars("<<", 2);
+    r05_alloc_chars("\\\\", 2);
     r05_alloc_close_bracket(p+17);
     r05_alloc_open_bracket(p+18);
-    r05_alloc_chars(">>", 2);
+    r05_alloc_chars("n\n", 2);
     r05_alloc_close_bracket(p+19);
     r05_alloc_open_bracket(p+20);
-    r05_alloc_chars("((", 2);
+    r05_alloc_chars("r\r", 2);
     r05_alloc_close_bracket(p+21);
     r05_alloc_open_bracket(p+22);
-    r05_alloc_chars("))", 2);
+    r05_alloc_chars("t\t", 2);
     r05_alloc_close_bracket(p+23);
-    r05_alloc_close_call(p+24);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[3]);
+    r05_alloc_open_bracket(p+24);
+    r05_alloc_chars("<<", 2);
+    r05_alloc_close_bracket(p+25);
+    r05_alloc_open_bracket(p+26);
+    r05_alloc_chars(">>", 2);
+    r05_alloc_close_bracket(p+27);
+    r05_alloc_open_bracket(p+28);
+    r05_alloc_chars("((", 2);
+    r05_alloc_close_bracket(p+29);
+    r05_alloc_open_bracket(p+30);
+    r05_alloc_chars("))", 2);
+    r05_alloc_close_bracket(p+31);
+    r05_alloc_close_call(p+32);
+    r05_push_stack(p[32]);
+    r05_push_stack(p[7]);
+    r05_link_brackets(p[30], p[31]);
+    r05_link_brackets(p[28], p[29]);
+    r05_link_brackets(p[26], p[27]);
+    r05_link_brackets(p[24], p[25]);
     r05_link_brackets(p[22], p[23]);
     r05_link_brackets(p[20], p[21]);
     r05_link_brackets(p[18], p[19]);
     r05_link_brackets(p[16], p[17]);
     r05_link_brackets(p[14], p[15]);
     r05_link_brackets(p[12], p[13]);
-    r05_link_brackets(p[10], p[11]);
-    r05_link_brackets(p[8], p[9]);
-    r05_link_brackets(p[6], p[7]);
-    r05_link_brackets(p[4], p[5]);
+    r05_link_brackets(p[9], p[11]);
+    r05_correct_evar(p+5);
+    r05_splice_tvar(p[8], p+2);
+    r05_splice_evar(p[10], p+5);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_Escapeu_cont);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_check, "Escape_check") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Escaped: 4, 13 */
+    /* e.Line: 7 */
+    /* e.Escapes-B: 9 */
+    /* e.Escapes-E: 14 */
+    /* s.Char: 16 */
+    struct r05_node *p[23] = { 0 };
+    /* t.Pos s.Escaped (e.Line) e.Escapes-B (s.Escaped s.Char) e.Escapes-E */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_brackets_left(p+5, p[4], p[1]))
+      continue;
+    r05_close_evar(p+7, p[5], p[6]);
+    p[9] = p[6]->next;
+    p[10] = p[6];
+    r05_start_e_loop();
+    do {
+      if (! r05_brackets_left(p+11, p[10], p[1]))
+        continue;
+      if (! r05_repeated_svar_left(p+13, p[11], p[12], p+4))
+        continue;
+      r05_close_evar(p+14, p[12], p[1]);
+      if (! r05_svar_left(p+16, p[13], p[12]))
+        continue;
+      if (! r05_empty_hole(p[16], p[12]))
+        continue;
+
+      r05_reset_allocator();
+      r05_alloc_function(&r05f_Ok);
+      r05_alloc_svar(p+16);
+      r05_alloc_open_call(p+17);
+      r05_alloc_function(&r05f_IncCol);
+      r05_alloc_insert_pos(p+18);
+      r05_alloc_close_call(p+19);
+      r05_alloc_open_bracket(p+20);
+      r05_alloc_insert_pos(p+21);
+      r05_alloc_close_bracket(p+22);
+      r05_link_brackets(p[20], p[22]);
+      r05_correct_evar(p+7);
+      r05_push_stack(p[19]);
+      r05_push_stack(p[17]);
+      r05_splice_tvar(p[18], p+2);
+      r05_splice_evar(p[21], p+7);
+      r05_splice_from_freelist(arg_begin);
+      r05_splice_to_freelist(arg_begin, arg_end);
+      return;
+    } while (r05_open_evar_advance(p+9, p[1]));
+    r05_stop_e_loop();
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Escaped: 4 */
+    /* e.Line: 7 */
+    /* e.Other: 9 */
+    struct r05_node *p[15] = { 0 };
+    /* t.Pos s.Escaped (e.Line) e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_brackets_left(p+5, p[4], p[1]))
+      continue;
+    r05_close_evar(p+7, p[5], p[6]);
+    r05_close_evar(p+9, p[6], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_Escapeu_cont);
+    r05_alloc_insert_pos(p+12);
+    r05_alloc_svar(p+4);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_call(p+14);
+    r05_push_stack(p[14]);
+    r05_push_stack(p[11]);
+    r05_correct_evar(p+7);
+    r05_splice_tvar(p[12], p+2);
+    r05_splice_evar(p[13], p+7);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -5341,55 +6635,415 @@ R05_DEFINE_LOCAL_FUNCTION(SimpleEscapedChar, "SimpleEscapedChar") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(SimpleEscapedChar0, "SimpleEscapedChar0") {
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_cont, "Escape_cont") {
   r05_this_is_generated_function();
 
   do {
-    /* s.Escaped: 2, 7 */
-    /* e.Escapes-B: 3 */
-    /* e.Escapes-E: 8 */
-    /* s.Char: 10 */
-    struct r05_node *p[11] = { 0 };
-    /* s.Escaped e.Escapes-B (s.Escaped s.Char) e.Escapes-E */
+    /* t.Pos: 2 */
+    /* s.Hex1: 5 */
+    /* s.Hex2: 6 */
+    /* e.Line: 7 */
+    struct r05_node *p[17] = { 0 };
+    /* t.Pos 'x' s.Hex1 s.Hex2 e.Line */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_svar_left(p+2, p[0], p[1]))
+    if (! r05_tvar_left(p+2, p[0], p[1]))
       continue;
-    p[3] = p[2]->next;
-    p[4] = p[2];
-    r05_start_e_loop();
-    do {
-      if (! r05_brackets_left(p+5, p[4], p[1]))
-        continue;
-      if (! r05_repeated_svar_left(p+7, p[5], p[6], p+2))
-        continue;
-      r05_close_evar(p+8, p[6], p[1]);
-      if (! r05_svar_left(p+10, p[7], p[6]))
-        continue;
-      if (! r05_empty_hole(p[10], p[6]))
-        continue;
+    if (! r05_char_left(p+4, p[3], p[1], 'x'))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_svar_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+7, p[6], p[1]);
 
-      r05_reset_allocator();
-      r05_alloc_svar(p+10);
-      r05_splice_from_freelist(arg_begin);
-      r05_splice_to_freelist(arg_begin, arg_end);
-      return;
-    } while (r05_open_evar_advance(p+3, p[1]));
-    r05_stop_e_loop();
+    r05_reset_allocator();
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_Escapeu_check0);
+    r05_alloc_insert_pos(p+10);
+    r05_alloc_svar(p+5);
+    r05_alloc_svar(p+6);
+    r05_alloc_open_bracket(p+11);
+    r05_alloc_insert_pos(p+12);
+    r05_alloc_close_bracket(p+13);
+    r05_alloc_open_call(p+14);
+    r05_alloc_function(&r05f_HexDigit);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_call(p+15);
+    r05_alloc_close_call(p+16);
+    r05_push_stack(p[16]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[14]);
+    r05_link_brackets(p[11], p[13]);
+    r05_correct_evar(p+7);
+    r05_splice_tvar(p[10], p+2);
+    r05_splice_evar(p[12], p+7);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
   } while (0);
 
   do {
-    /* s.Escaped: 2 */
-    /* e.Escapes: 3 */
-    struct r05_node *p[5] = { 0 };
-    /* s.Escaped e.Escapes */
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
     p[0] = arg_begin->next;
     p[1] = arg_end;
-    if (! r05_svar_left(p+2, p[0], p[1]))
-      continue;
-    r05_close_evar(p+3, p[2], p[1]);
+    r05_close_evar(p+2, p[0], p[1]);
 
     r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_Escapeu_cont0);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_check0, "Escape_check0") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Hex1: 4 */
+    /* s.Hex2: 5 */
+    /* e.Line: 8 */
+    /* s.Num1: 10 */
+    struct r05_node *p[19] = { 0 };
+    /* t.Pos s.Hex1 s.Hex2 (e.Line) s.Num1 */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+8, p[6], p[7]);
+    if (! r05_svar_left(p+10, p[7], p[1]))
+      continue;
+    if (! r05_empty_hole(p[10], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_Escapeu_check1);
+    r05_alloc_insert_pos(p+12);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_open_bracket(p+13);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_bracket(p+15);
+    r05_alloc_svar(p+10);
+    r05_alloc_open_call(p+16);
+    r05_alloc_function(&r05f_HexDigit);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_call(p+17);
+    r05_alloc_close_call(p+18);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[16]);
+    r05_link_brackets(p[13], p[15]);
+    r05_correct_evar(p+8);
+    r05_splice_tvar(p[12], p+2);
+    r05_splice_evar(p[14], p+8);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Other: 2 */
+    struct r05_node *p[7] = { 0 };
+    /* e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    r05_close_evar(p+2, p[0], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+4);
+    r05_alloc_function(&r05f_Escapeu_cont1);
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_close_call(p+6);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[4]);
+    r05_correct_evar(p+2);
+    r05_splice_evar(p[5], p+2);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_cont0, "Escape_cont0") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* e.Line: 5 */
+    struct r05_node *p[15] = { 0 };
+    /* t.Pos 'x' e.Line */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_char_left(p+4, p[3], p[1], 'x'))
+      continue;
+    r05_close_evar(p+5, p[4], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Error);
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_chars("After \\x must be two hex digits", 31);
+    r05_alloc_close_bracket(p+8);
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_insert_pos(p+10);
+    r05_alloc_close_call(p+11);
+    r05_alloc_open_bracket(p+12);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_bracket(p+14);
+    r05_link_brackets(p[12], p[14]);
+    r05_correct_evar(p+5);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[9]);
+    r05_link_brackets(p[7], p[8]);
+    r05_splice_tvar(p[10], p+2);
+    r05_splice_evar(p[13], p+5);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Other: 4 */
+    /* e.Line: 5 */
+    struct r05_node *p[15] = { 0 };
+    /* t.Pos s.Other e.Line */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    r05_close_evar(p+5, p[4], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Error);
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_chars("Bad escape sequence \\", 21);
+    r05_alloc_svar(p+4);
+    r05_alloc_close_bracket(p+8);
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_insert_pos(p+10);
+    r05_alloc_close_call(p+11);
+    r05_alloc_open_bracket(p+12);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_bracket(p+14);
+    r05_link_brackets(p[12], p[14]);
+    r05_correct_evar(p+5);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[9]);
+    r05_link_brackets(p[7], p[8]);
+    r05_splice_tvar(p[10], p+2);
+    r05_splice_evar(p[13], p+5);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    struct r05_node *p[4] = { 0 };
+    /* t.Pos */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_empty_hole(p[3], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Errorm_EOL);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_check1, "Escape_check1") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Hex1: 4 */
+    /* s.Hex2: 5 */
+    /* e.Line: 8 */
+    /* s.Num1: 10 */
+    /* s.Num2: 11 */
+    struct r05_node *p[24] = { 0 };
+    /* t.Pos s.Hex1 s.Hex2 (e.Line) s.Num1 s.Num2 */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+8, p[6], p[7]);
+    if (! r05_svar_left(p+10, p[7], p[1]))
+      continue;
+    if (! r05_svar_left(p+11, p[10], p[1]))
+      continue;
+    if (! r05_empty_hole(p[11], p[1]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_function(&r05f_Ok);
+    r05_alloc_open_call(p+12);
+    r05_alloc_function(&r05f_Chr);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_k2B_);
+    r05_alloc_open_call(p+14);
+    r05_alloc_function(&r05f_k2A_);
+    r05_alloc_svar(p+10);
+    r05_alloc_number(16UL);
+    r05_alloc_close_call(p+15);
+    r05_alloc_svar(p+11);
+    r05_alloc_close_call(p+16);
+    r05_alloc_close_call(p+17);
+    r05_alloc_open_call(p+18);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_insert_pos(p+19);
+    r05_alloc_function(&r05f_Len);
+    r05_alloc_char('x');
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_call(p+20);
+    r05_alloc_open_bracket(p+21);
+    r05_alloc_insert_pos(p+22);
+    r05_alloc_close_bracket(p+23);
+    r05_link_brackets(p[21], p[23]);
+    r05_correct_evar(p+8);
+    r05_push_stack(p[20]);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[16]);
+    r05_push_stack(p[13]);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[14]);
+    r05_splice_tvar(p[19], p+2);
+    r05_splice_evar(p[22], p+8);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Hex1: 4 */
+    /* s.Hex2: 5 */
+    /* e.Line: 8 */
+    /* s.Num1: 10 */
+    /* e.Other: 11 */
+    struct r05_node *p[19] = { 0 };
+    /* t.Pos s.Hex1 s.Hex2 (e.Line) s.Num1 e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+8, p[6], p[7]);
+    if (! r05_svar_left(p+10, p[7], p[1]))
+      continue;
+    r05_close_evar(p+11, p[10], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Escapeu_cont1);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_open_bracket(p+15);
+    r05_alloc_insert_pos(p+16);
+    r05_alloc_close_bracket(p+17);
+    r05_alloc_svar(p+10);
+    r05_alloc_close_call(p+18);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[13]);
+    r05_link_brackets(p[15], p[17]);
+    r05_correct_evar(p+8);
+    r05_splice_tvar(p[14], p+2);
+    r05_splice_evar(p[16], p+8);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Escapeu_cont1, "Escape_cont1") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Hex1: 4 */
+    /* s.Hex2: 5 */
+    /* e.Line: 8 */
+    /* e.Other: 10 */
+    struct r05_node *p[16] = { 0 };
+    /* t.Pos s.Hex1 s.Hex2 (e.Line) e.Other */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[1]))
+      continue;
+    r05_close_evar(p+8, p[6], p[7]);
+    r05_close_evar(p+10, p[7], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+12);
+    r05_alloc_function(&r05f_Escapeu_cont0);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_char('x');
+    r05_alloc_svar(p+4);
+    r05_alloc_svar(p+5);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[12]);
+    r05_correct_evar(p+8);
+    r05_splice_tvar(p[13], p+2);
+    r05_splice_evar(p[14], p+8);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -5403,709 +7057,145 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escape, "DoScan-Chars-Escape") {
 
   do {
     /* t.Pos: 2 */
-    /* e.Lines: 6 */
-    /* s.Escaped: 8 */
-    /* e.Line: 9 */
-    struct r05_node *p[22] = { 0 };
-    /* t.Pos (s.Escaped e.Line) e.Lines */
+    /* s.Char: 5 */
+    /* t.NextPos: 6 */
+    /* e.Line: 10 */
+    /* e.Lines: 12 */
+    struct r05_node *p[24] = { 0 };
+    /* t.Pos Ok s.Char t.NextPos (e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_tvar_left(p+2, p[0], p[1]))
       continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Ok))
       continue;
-    r05_close_evar(p+6, p[5], p[1]);
-    if (! r05_svar_left(p+8, p[4], p[5]))
+    if (! r05_svar_left(p+5, p[4], p[1]))
       continue;
-    r05_close_evar(p+9, p[8], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+11);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_check);
-    r05_alloc_insert_pos(p+12);
-    r05_alloc_svar(p+8);
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_bracket(p+18);
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_SimpleEscapedChar);
-    r05_alloc_svar(p+8);
-    r05_alloc_close_call(p+20);
-    r05_alloc_close_call(p+21);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[11]);
-    r05_push_stack(p[20]);
-    r05_push_stack(p[19]);
-    r05_link_brackets(p[16], p[18]);
-    r05_correct_evar(p+6);
-    r05_link_brackets(p[13], p[15]);
-    r05_correct_evar(p+9);
-    r05_splice_tvar(p[12], p+2);
-    r05_splice_evar(p[14], p+9);
-    r05_splice_evar(p[17], p+6);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check, "DoScan-Chars-Escape_check") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.Pos: 2 */
-    /* s.Escaped: 4 */
-    /* e.Line: 9 */
-    /* e.Lines: 11 */
-    /* s.Char: 13 */
-    struct r05_node *p[25] = { 0 };
-    /* t.Pos s.Escaped (e.Line) (e.Lines) s.Char */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
+    if (! r05_tvar_left(p+6, p[5], p[1]))
       continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
+    if (! r05_brackets_left(p+8, p[7], p[1]))
       continue;
-    if (! r05_brackets_left(p+5, p[4], p[1]))
-      continue;
-    if (! r05_brackets_left(p+7, p[6], p[1]))
-      continue;
-    r05_close_evar(p+9, p[5], p[6]);
-    r05_close_evar(p+11, p[7], p[8]);
-    if (! r05_svar_left(p+13, p[8], p[1]))
-      continue;
-    if (! r05_empty_hole(p[13], p[1]))
-      continue;
+    r05_close_evar(p+10, p[8], p[9]);
+    r05_close_evar(p+12, p[9], p[1]);
 
     r05_reset_allocator();
     r05_alloc_open_bracket(p+14);
     r05_alloc_function(&r05f_TkChar);
     r05_alloc_insert_pos(p+15);
-    r05_alloc_svar(p+13);
+    r05_alloc_svar(p+5);
     r05_alloc_close_bracket(p+16);
     r05_alloc_open_call(p+17);
     r05_alloc_function(&r05f_DoScanm_Chars);
-    r05_alloc_open_call(p+18);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+2);
-    r05_alloc_function(&r05f_Len);
-    r05_alloc_char('\\');
-    r05_alloc_svar(p+4);
-    r05_alloc_close_call(p+19);
-    r05_alloc_open_bracket(p+20);
-    r05_alloc_insert_pos(p+21);
-    r05_alloc_close_bracket(p+22);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_close_call(p+24);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[17]);
-    r05_correct_evar(p+11);
-    r05_link_brackets(p[20], p[22]);
-    r05_correct_evar(p+9);
-    r05_push_stack(p[19]);
-    r05_push_stack(p[18]);
-    r05_link_brackets(p[14], p[16]);
-    r05_splice_tvar(p[15], p+2);
-    r05_splice_evar(p[21], p+9);
-    r05_splice_evar(p[23], p+11);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.Pos: 2 */
-    /* s.Escaped: 4 */
-    /* e.Line: 9 */
-    /* e.Lines: 11 */
-    /* e.Other: 13 */
-    struct r05_node *p[22] = { 0 };
-    /* t.Pos s.Escaped (e.Line) (e.Lines) e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+5, p[4], p[1]))
-      continue;
-    if (! r05_brackets_left(p+7, p[6], p[1]))
-      continue;
-    r05_close_evar(p+9, p[5], p[6]);
-    r05_close_evar(p+11, p[7], p[8]);
-    r05_close_evar(p+13, p[8], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont);
-    r05_alloc_insert_pos(p+16);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_svar(p+4);
     r05_alloc_insert_pos(p+18);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_close_call(p+21);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[15]);
-    r05_correct_evar(p+11);
-    r05_link_brackets(p[17], p[19]);
-    r05_correct_evar(p+9);
-    r05_splice_tvar(p[16], p+2);
-    r05_splice_evar(p[18], p+9);
-    r05_splice_evar(p[20], p+11);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont, "DoScan-Chars-Escape_cont") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.Pos: 2 */
-    /* e.Lines: 7 */
-    /* s.Hex1: 9 */
-    /* s.Hex2: 10 */
-    /* e.Line: 11 */
-    struct r05_node *p[24] = { 0 };
-    /* t.Pos ('x' s.Hex1 s.Hex2 e.Line) e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_char_left(p+6, p[4], p[5], 'x'))
-      continue;
-    r05_close_evar(p+7, p[5], p[1]);
-    if (! r05_svar_left(p+9, p[6], p[5]))
-      continue;
-    if (! r05_svar_left(p+10, p[9], p[5]))
-      continue;
-    r05_close_evar(p+11, p[10], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+13);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_check0);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_svar(p+9);
-    r05_alloc_svar(p+10);
-    r05_alloc_open_bracket(p+15);
-    r05_alloc_insert_pos(p+16);
-    r05_alloc_close_bracket(p+17);
-    r05_alloc_open_bracket(p+18);
-    r05_alloc_insert_pos(p+19);
-    r05_alloc_close_bracket(p+20);
-    r05_alloc_open_call(p+21);
-    r05_alloc_function(&r05f_HexDigit);
-    r05_alloc_svar(p+9);
-    r05_alloc_close_call(p+22);
-    r05_alloc_close_call(p+23);
-    r05_push_stack(p[23]);
-    r05_push_stack(p[13]);
-    r05_push_stack(p[22]);
-    r05_push_stack(p[21]);
-    r05_link_brackets(p[18], p[20]);
-    r05_correct_evar(p+7);
-    r05_link_brackets(p[15], p[17]);
-    r05_correct_evar(p+11);
-    r05_splice_tvar(p[14], p+2);
-    r05_splice_evar(p[16], p+11);
-    r05_splice_evar(p[19], p+7);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont0);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check0, "DoScan-Chars-Escape_check0") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.Pos: 2 */
-    /* s.Hex1: 4 */
-    /* s.Hex2: 5 */
-    /* e.Line: 10 */
-    /* e.Lines: 12 */
-    /* s.Num1: 14 */
-    struct r05_node *p[26] = { 0 };
-    /* t.Pos s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_svar_left(p+5, p[4], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[8], p[9]);
-    if (! r05_svar_left(p+14, p[9], p[1]))
-      continue;
-    if (! r05_empty_hole(p[14], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_check1);
-    r05_alloc_insert_pos(p+16);
-    r05_alloc_svar(p+4);
-    r05_alloc_svar(p+5);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_open_bracket(p+20);
-    r05_alloc_insert_pos(p+21);
-    r05_alloc_close_bracket(p+22);
-    r05_alloc_svar(p+14);
-    r05_alloc_open_call(p+23);
-    r05_alloc_function(&r05f_HexDigit);
-    r05_alloc_svar(p+5);
-    r05_alloc_close_call(p+24);
-    r05_alloc_close_call(p+25);
-    r05_push_stack(p[25]);
-    r05_push_stack(p[15]);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[23]);
-    r05_link_brackets(p[20], p[22]);
-    r05_correct_evar(p+12);
-    r05_link_brackets(p[17], p[19]);
-    r05_correct_evar(p+10);
-    r05_splice_tvar(p[16], p+2);
-    r05_splice_evar(p[18], p+10);
-    r05_splice_evar(p[21], p+12);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont1);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont0, "DoScan-Chars-Escape_cont0") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.Pos: 2 */
-    /* e.Line: 7 */
-    /* e.Lines: 9 */
-    struct r05_node *p[22] = { 0 };
-    /* t.Pos ('x' e.Line) e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_char_left(p+6, p[4], p[5], 'x'))
-      continue;
-    r05_close_evar(p+7, p[6], p[5]);
-    r05_close_evar(p+9, p[5], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+11);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+12);
-    r05_alloc_chars("After \\x must be two hex digits", 31);
-    r05_alloc_close_bracket(p+13);
-    r05_alloc_open_call(p+14);
-    r05_alloc_function(&r05f_DoScanm_Chars);
-    r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+2);
-    r05_alloc_function(&r05f_Len);
-    r05_alloc_chars("\\x", 2);
-    r05_alloc_close_call(p+16);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_close_call(p+21);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[14]);
-    r05_correct_evar(p+9);
-    r05_link_brackets(p[17], p[19]);
-    r05_correct_evar(p+7);
-    r05_push_stack(p[16]);
-    r05_push_stack(p[15]);
-    r05_link_brackets(p[11], p[13]);
-    r05_splice_tvar(p[12], p+2);
-    r05_splice_evar(p[18], p+7);
-    r05_splice_evar(p[20], p+9);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.Pos: 2 */
-    /* e.Lines: 6 */
-    /* s.Other: 8 */
-    /* e.Line: 9 */
-    struct r05_node *p[22] = { 0 };
-    /* t.Pos (s.Other e.Line) e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    r05_close_evar(p+6, p[5], p[1]);
-    if (! r05_svar_left(p+8, p[4], p[5]))
-      continue;
-    r05_close_evar(p+9, p[8], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+11);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+12);
-    r05_alloc_chars("Bad escape sequence \\", 21);
-    r05_alloc_svar(p+8);
-    r05_alloc_close_bracket(p+13);
-    r05_alloc_open_call(p+14);
-    r05_alloc_function(&r05f_DoScanm_Chars);
-    r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+2);
-    r05_alloc_function(&r05f_Len);
-    r05_alloc_char('\\');
-    r05_alloc_svar(p+8);
-    r05_alloc_close_call(p+16);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_close_call(p+21);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[14]);
-    r05_correct_evar(p+6);
-    r05_link_brackets(p[17], p[19]);
-    r05_correct_evar(p+9);
-    r05_push_stack(p[16]);
-    r05_push_stack(p[15]);
-    r05_link_brackets(p[11], p[13]);
-    r05_splice_tvar(p[12], p+2);
-    r05_splice_evar(p[18], p+9);
-    r05_splice_evar(p[20], p+6);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.Pos: 2 */
-    /* e.Lines: 6 */
-    struct r05_node *p[16] = { 0 };
-    /* t.Pos () e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_empty_hole(p[4], p[5]))
-      continue;
-    r05_close_evar(p+6, p[5], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+8);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+9);
-    r05_alloc_chars("Unexpected \\ at end of string literal", 37);
-    r05_alloc_close_bracket(p+10);
-    r05_alloc_open_call(p+11);
-    r05_alloc_function(&r05f_DoScan);
-    r05_alloc_open_call(p+12);
-    r05_alloc_function(&r05f_IncLine);
-    r05_alloc_tvar(p+2);
-    r05_alloc_close_call(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_call(p+15);
-    r05_push_stack(p[15]);
-    r05_push_stack(p[11]);
-    r05_correct_evar(p+6);
-    r05_push_stack(p[13]);
-    r05_push_stack(p[12]);
-    r05_link_brackets(p[8], p[10]);
-    r05_splice_tvar(p[9], p+2);
-    r05_splice_evar(p[14], p+6);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_check1, "DoScan-Chars-Escape_check1") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.Pos: 2 */
-    /* s.Hex1: 4 */
-    /* s.Hex2: 5 */
-    /* e.Line: 10 */
-    /* e.Lines: 12 */
-    /* s.Num1: 14 */
-    /* s.Num2: 15 */
-    struct r05_node *p[33] = { 0 };
-    /* t.Pos s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 s.Num2 */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_svar_left(p+5, p[4], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[8], p[9]);
-    if (! r05_svar_left(p+14, p[9], p[1]))
-      continue;
-    if (! r05_svar_left(p+15, p[14], p[1]))
-      continue;
-    if (! r05_empty_hole(p[15], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_function(&r05f_TkChar);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_open_call(p+18);
-    r05_alloc_function(&r05f_Chr);
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_k2B_);
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_k2A_);
-    r05_alloc_svar(p+14);
-    r05_alloc_number(16UL);
-    r05_alloc_close_call(p+21);
-    r05_alloc_svar(p+15);
-    r05_alloc_close_call(p+22);
-    r05_alloc_close_call(p+23);
-    r05_alloc_close_bracket(p+24);
-    r05_alloc_open_call(p+25);
-    r05_alloc_function(&r05f_DoScanm_Chars);
-    r05_alloc_open_call(p+26);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+2);
-    r05_alloc_function(&r05f_Len);
-    r05_alloc_chars("\\x", 2);
-    r05_alloc_svar(p+4);
-    r05_alloc_svar(p+5);
-    r05_alloc_close_call(p+27);
-    r05_alloc_open_bracket(p+28);
-    r05_alloc_insert_pos(p+29);
-    r05_alloc_close_bracket(p+30);
-    r05_alloc_insert_pos(p+31);
-    r05_alloc_close_call(p+32);
-    r05_push_stack(p[32]);
-    r05_push_stack(p[25]);
-    r05_correct_evar(p+12);
-    r05_link_brackets(p[28], p[30]);
-    r05_correct_evar(p+10);
-    r05_push_stack(p[27]);
-    r05_push_stack(p[26]);
-    r05_link_brackets(p[16], p[24]);
-    r05_push_stack(p[23]);
-    r05_push_stack(p[18]);
-    r05_push_stack(p[22]);
-    r05_push_stack(p[19]);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[20]);
-    r05_splice_tvar(p[17], p+2);
-    r05_splice_evar(p[29], p+10);
-    r05_splice_evar(p[31], p+12);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.Pos: 2 */
-    /* s.Hex1: 4 */
-    /* s.Hex2: 5 */
-    /* e.Line: 10 */
-    /* e.Lines: 12 */
-    /* s.Num1: 14 */
-    /* e.Other: 15 */
-    struct r05_node *p[26] = { 0 };
-    /* t.Pos s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_svar_left(p+5, p[4], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[8], p[9]);
-    if (! r05_svar_left(p+14, p[9], p[1]))
-      continue;
-    r05_close_evar(p+15, p[14], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+17);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont1);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_svar(p+4);
-    r05_alloc_svar(p+5);
     r05_alloc_open_bracket(p+19);
     r05_alloc_insert_pos(p+20);
     r05_alloc_close_bracket(p+21);
-    r05_alloc_open_bracket(p+22);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_close_bracket(p+24);
-    r05_alloc_svar(p+14);
-    r05_alloc_close_call(p+25);
-    r05_push_stack(p[25]);
+    r05_alloc_insert_pos(p+22);
+    r05_alloc_close_call(p+23);
+    r05_push_stack(p[23]);
     r05_push_stack(p[17]);
-    r05_link_brackets(p[22], p[24]);
     r05_correct_evar(p+12);
     r05_link_brackets(p[19], p[21]);
     r05_correct_evar(p+10);
-    r05_splice_tvar(p[18], p+2);
+    r05_link_brackets(p[14], p[16]);
+    r05_splice_tvar(p[15], p+2);
+    r05_splice_tvar(p[18], p+6);
     r05_splice_evar(p[20], p+10);
-    r05_splice_evar(p[23], p+12);
+    r05_splice_evar(p[22], p+12);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
   } while (0);
 
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Charsm_Escapeu_cont1, "DoScan-Chars-Escape_cont1") {
-  r05_this_is_generated_function();
-
   do {
     /* t.Pos: 2 */
-    /* s.Hex1: 4 */
-    /* s.Hex2: 5 */
-    /* e.Line: 10 */
-    /* e.Lines: 12 */
-    /* e.Other: 14 */
-    struct r05_node *p[23] = { 0 };
-    /* t.Pos s.Hex1 s.Hex2 (e.Line) (e.Lines) e.Other */
+    /* e.Message: 7 */
+    /* t.NextPos: 9 */
+    /* e.Line: 13 */
+    /* e.Lines: 15 */
+    struct r05_node *p[27] = { 0 };
+    /* t.Pos Error (e.Message) t.NextPos (e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_tvar_left(p+2, p[0], p[1]))
       continue;
-    if (! r05_svar_left(p+4, p[3], p[1]))
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Error))
       continue;
-    if (! r05_svar_left(p+5, p[4], p[1]))
+    if (! r05_brackets_left(p+5, p[4], p[1]))
       continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
+    r05_close_evar(p+7, p[5], p[6]);
+    if (! r05_tvar_left(p+9, p[6], p[1]))
       continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
+    if (! r05_brackets_left(p+11, p[10], p[1]))
       continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[8], p[9]);
-    r05_close_evar(p+14, p[9], p[1]);
+    r05_close_evar(p+13, p[11], p[12]);
+    r05_close_evar(p+15, p[12], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+16);
-    r05_alloc_function(&r05f_DoScanm_Charsm_Escapeu_cont0);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_open_bracket(p+18);
-    r05_alloc_char('x');
-    r05_alloc_svar(p+4);
-    r05_alloc_svar(p+5);
-    r05_alloc_insert_pos(p+19);
-    r05_alloc_close_bracket(p+20);
+    r05_alloc_open_bracket(p+17);
+    r05_alloc_function(&r05f_TkError);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_close_bracket(p+19);
+    r05_alloc_open_call(p+20);
+    r05_alloc_function(&r05f_DoScanm_Chars);
     r05_alloc_insert_pos(p+21);
-    r05_alloc_close_call(p+22);
-    r05_push_stack(p[22]);
-    r05_push_stack(p[16]);
-    r05_correct_evar(p+12);
-    r05_link_brackets(p[18], p[20]);
-    r05_correct_evar(p+10);
-    r05_splice_tvar(p[17], p+2);
-    r05_splice_evar(p[19], p+10);
-    r05_splice_evar(p[21], p+12);
+    r05_alloc_open_bracket(p+22);
+    r05_alloc_insert_pos(p+23);
+    r05_alloc_close_bracket(p+24);
+    r05_alloc_insert_pos(p+25);
+    r05_alloc_close_call(p+26);
+    r05_push_stack(p[26]);
+    r05_push_stack(p[20]);
+    r05_correct_evar(p+15);
+    r05_link_brackets(p[22], p[24]);
+    r05_correct_evar(p+13);
+    r05_link_brackets(p[17], p[19]);
+    r05_correct_evar(p+7);
+    r05_splice_tvar(p[18], p+2);
+    r05_splice_evar(p[18], p+7);
+    r05_splice_tvar(p[21], p+9);
+    r05_splice_evar(p[23], p+13);
+    r05_splice_evar(p[25], p+15);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* e.Lines: 5 */
+    struct r05_node *p[15] = { 0 };
+    /* t.Pos Error-EOL e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Errorm_EOL))
+      continue;
+    r05_close_evar(p+5, p[4], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_function(&r05f_TkError);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_chars("Unexpected \\ at end of string literal", 37);
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_IncLine);
+    r05_alloc_tvar(p+2);
+    r05_alloc_close_call(p+12);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_call(p+14);
+    r05_push_stack(p[14]);
+    r05_push_stack(p[10]);
+    r05_correct_evar(p+5);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[11]);
+    r05_link_brackets(p[7], p[9]);
+    r05_splice_tvar(p[8], p+2);
+    r05_splice_evar(p[13], p+5);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -6245,16 +7335,22 @@ R05_DEFINE_LOCAL_FUNCTION(HexDigit0, "HexDigit0") {
 
   do {
     /* s.Digit: 2 */
-    /* s.Other: 3 */
-    struct r05_node *p[4] = { 0 };
-    /* s.Digit s.Other */
+    /* s.OtherType: 3 */
+    /* s.OtherSubtype: 4 */
+    /* s.OtherChar: 5 */
+    struct r05_node *p[6] = { 0 };
+    /* s.Digit s.OtherType s.OtherSubtype s.OtherChar */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_svar_left(p+2, p[0], p[1]))
       continue;
     if (! r05_svar_left(p+3, p[2], p[1]))
       continue;
-    if (! r05_empty_hole(p[3], p[1]))
+    if (! r05_svar_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_empty_hole(p[5], p[1]))
       continue;
 
     r05_reset_allocator();
@@ -6421,7 +7517,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compound, "DoScan-Compound") {
     /* e.Compound: 11 */
     /* e.Line: 13 */
     /* e.Lines: 15 */
-    struct r05_node *p[30] = { 0 };
+    struct r05_node *p[29] = { 0 };
     /* t.StartPos t.Pos (e.Compound) ('\\' e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -6443,32 +7539,34 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compound, "DoScan-Compound") {
     r05_alloc_open_call(p+17);
     r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscape);
     r05_alloc_insert_pos(p+18);
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_open_bracket(p+19);
     r05_alloc_insert_pos(p+20);
-    r05_alloc_close_call(p+21);
-    r05_alloc_open_bracket(p+22);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_close_bracket(p+24);
-    r05_alloc_open_bracket(p+25);
-    r05_alloc_insert_pos(p+26);
-    r05_alloc_close_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_call(p+29);
-    r05_push_stack(p[29]);
+    r05_alloc_close_bracket(p+21);
+    r05_alloc_open_call(p+22);
+    r05_alloc_function(&r05f_Escape);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_IncCol);
+    r05_alloc_tvar(p+4);
+    r05_alloc_close_call(p+24);
+    r05_alloc_insert_pos(p+25);
+    r05_alloc_close_call(p+26);
+    r05_alloc_insert_pos(p+27);
+    r05_alloc_close_call(p+28);
+    r05_push_stack(p[28]);
     r05_push_stack(p[17]);
     r05_correct_evar(p+15);
-    r05_link_brackets(p[25], p[27]);
+    r05_push_stack(p[26]);
+    r05_push_stack(p[22]);
     r05_correct_evar(p+13);
-    r05_link_brackets(p[22], p[24]);
+    r05_push_stack(p[24]);
+    r05_push_stack(p[23]);
+    r05_link_brackets(p[19], p[21]);
     r05_correct_evar(p+11);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[19]);
     r05_splice_tvar(p[18], p+2);
-    r05_splice_tvar(p[20], p+4);
-    r05_splice_evar(p[23], p+11);
-    r05_splice_evar(p[26], p+13);
-    r05_splice_evar(p[28], p+15);
+    r05_splice_tvar(p[18], p+4);
+    r05_splice_evar(p[20], p+11);
+    r05_splice_evar(p[25], p+13);
+    r05_splice_evar(p[27], p+15);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -6592,13 +7690,14 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscape, "DoScan-Compound-Handl
 
   do {
     /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 10 */
-    /* e.Lines: 12 */
-    /* s.Escaped: 14 */
-    /* e.Line: 15 */
-    struct r05_node *p[31] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) (s.Escaped e.Line) e.Lines */
+    /* t.EscapePos: 4 */
+    /* e.Compound: 9 */
+    /* s.Char: 11 */
+    /* t.NextPos: 12 */
+    /* e.Line: 16 */
+    /* e.Lines: 18 */
+    struct r05_node *p[30] = { 0 };
+    /* t.StartPos t.EscapePos (e.Compound) Ok s.Char t.NextPos (e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_tvar_left(p+2, p[0], p[1]))
@@ -6607,142 +7706,43 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscape, "DoScan-Compound-Handl
       continue;
     if (! r05_brackets_left(p+6, p[5], p[1]))
       continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
+    if (! r05_function_left(p+8, p[7], p[1], &r05f_Ok))
       continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[9], p[1]);
-    if (! r05_svar_left(p+14, p[8], p[9]))
+    r05_close_evar(p+9, p[6], p[7]);
+    if (! r05_svar_left(p+11, p[8], p[1]))
       continue;
-    r05_close_evar(p+15, p[14], p[9]);
+    if (! r05_tvar_left(p+12, p[11], p[1]))
+      continue;
+    if (! r05_brackets_left(p+14, p[13], p[1]))
+      continue;
+    r05_close_evar(p+16, p[14], p[15]);
+    r05_close_evar(p+18, p[15], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+17);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_check);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_open_bracket(p+19);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_close_bracket(p+21);
-    r05_alloc_svar(p+14);
+    r05_alloc_open_call(p+20);
+    r05_alloc_function(&r05f_DoScanm_Compound);
+    r05_alloc_insert_pos(p+21);
     r05_alloc_open_bracket(p+22);
     r05_alloc_insert_pos(p+23);
+    r05_alloc_svar(p+11);
     r05_alloc_close_bracket(p+24);
     r05_alloc_open_bracket(p+25);
     r05_alloc_insert_pos(p+26);
     r05_alloc_close_bracket(p+27);
-    r05_alloc_open_call(p+28);
-    r05_alloc_function(&r05f_SimpleEscapedChar);
-    r05_alloc_svar(p+14);
+    r05_alloc_insert_pos(p+28);
     r05_alloc_close_call(p+29);
-    r05_alloc_close_call(p+30);
-    r05_push_stack(p[30]);
-    r05_push_stack(p[17]);
     r05_push_stack(p[29]);
-    r05_push_stack(p[28]);
+    r05_push_stack(p[20]);
+    r05_correct_evar(p+18);
     r05_link_brackets(p[25], p[27]);
-    r05_correct_evar(p+12);
+    r05_correct_evar(p+16);
     r05_link_brackets(p[22], p[24]);
-    r05_correct_evar(p+15);
-    r05_link_brackets(p[19], p[21]);
-    r05_correct_evar(p+10);
-    r05_splice_tvar(p[18], p+2);
-    r05_splice_tvar(p[18], p+4);
-    r05_splice_evar(p[20], p+10);
-    r05_splice_evar(p[23], p+15);
-    r05_splice_evar(p[26], p+12);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check, "DoScan-Compound-HandleEscape_check") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Escaped: 10 */
-    /* e.Line: 15 */
-    /* e.Lines: 17 */
-    /* s.Char: 19 */
-    struct r05_node *p[33] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Escaped (e.Line) (e.Lines) s.Char */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
-      continue;
-    if (! r05_brackets_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+13, p[12], p[1]))
-      continue;
-    r05_close_evar(p+15, p[11], p[12]);
-    r05_close_evar(p+17, p[13], p[14]);
-    if (! r05_svar_left(p+19, p[14], p[1]))
-      continue;
-    if (! r05_empty_hole(p[19], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_DoScanm_Compound);
-    r05_alloc_insert_pos(p+21);
-    r05_alloc_open_call(p+22);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_close_call(p+24);
-    r05_alloc_open_bracket(p+25);
-    r05_alloc_insert_pos(p+26);
-    r05_alloc_svar(p+19);
-    r05_alloc_close_bracket(p+27);
-    r05_alloc_open_bracket(p+28);
-    r05_alloc_insert_pos(p+29);
-    r05_alloc_close_bracket(p+30);
-    r05_alloc_insert_pos(p+31);
-    r05_alloc_close_call(p+32);
-    r05_push_stack(p[32]);
-    r05_push_stack(p[20]);
-    r05_correct_evar(p+17);
-    r05_link_brackets(p[28], p[30]);
-    r05_correct_evar(p+15);
-    r05_link_brackets(p[25], p[27]);
-    r05_correct_evar(p+8);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[22]);
+    r05_correct_evar(p+9);
     r05_splice_tvar(p[21], p+2);
-    r05_splice_tvar(p[23], p+4);
-    r05_splice_evar(p[26], p+8);
-    r05_splice_evar(p[29], p+15);
-    r05_splice_evar(p[31], p+17);
+    r05_splice_tvar(p[21], p+12);
+    r05_splice_evar(p[23], p+9);
+    r05_splice_evar(p[26], p+16);
+    r05_splice_evar(p[28], p+18);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -6750,79 +7750,14 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check, "DoScan-Compoun
 
   do {
     /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Escaped: 10 */
-    /* e.Line: 15 */
-    /* e.Lines: 17 */
-    /* e.Other: 19 */
-    struct r05_node *p[31] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Escaped (e.Line) (e.Lines) e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
-      continue;
-    if (! r05_brackets_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+13, p[12], p[1]))
-      continue;
-    r05_close_evar(p+15, p[11], p[12]);
-    r05_close_evar(p+17, p[13], p[14]);
-    r05_close_evar(p+19, p[14], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+21);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont);
-    r05_alloc_insert_pos(p+22);
-    r05_alloc_open_bracket(p+23);
-    r05_alloc_insert_pos(p+24);
-    r05_alloc_close_bracket(p+25);
-    r05_alloc_open_bracket(p+26);
-    r05_alloc_svar(p+10);
-    r05_alloc_insert_pos(p+27);
-    r05_alloc_close_bracket(p+28);
-    r05_alloc_insert_pos(p+29);
-    r05_alloc_close_call(p+30);
-    r05_push_stack(p[30]);
-    r05_push_stack(p[21]);
-    r05_correct_evar(p+17);
-    r05_link_brackets(p[26], p[28]);
-    r05_correct_evar(p+15);
-    r05_link_brackets(p[23], p[25]);
-    r05_correct_evar(p+8);
-    r05_splice_tvar(p[22], p+2);
-    r05_splice_tvar(p[22], p+4);
-    r05_splice_evar(p[24], p+8);
-    r05_splice_evar(p[27], p+15);
-    r05_splice_evar(p[29], p+17);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont, "DoScan-Compound-HandleEscape_cont") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
+    /* t.EscapePos: 4 */
     /* e.Compound: 11 */
-    /* e.Lines: 13 */
-    /* s.Hex1: 15 */
-    /* s.Hex2: 16 */
-    /* e.Line: 17 */
-    struct r05_node *p[33] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) ('x' s.Hex1 s.Hex2 e.Line) e.Lines */
+    /* e.Message: 13 */
+    /* t.NextPos: 15 */
+    /* e.Line: 19 */
+    /* e.Lines: 21 */
+    struct r05_node *p[36] = { 0 };
+    /* t.StartPos t.EscapePos (e.Compound) Error (e.Message) t.NextPos (e.Line) e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_tvar_left(p+2, p[0], p[1]))
@@ -6831,563 +7766,63 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont, "DoScan-Compound
       continue;
     if (! r05_brackets_left(p+6, p[5], p[1]))
       continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
+    if (! r05_function_left(p+8, p[7], p[1], &r05f_Error))
       continue;
-    if (! r05_char_left(p+10, p[8], p[9], 'x'))
+    if (! r05_brackets_left(p+9, p[8], p[1]))
       continue;
     r05_close_evar(p+11, p[6], p[7]);
-    r05_close_evar(p+13, p[9], p[1]);
-    if (! r05_svar_left(p+15, p[10], p[9]))
+    r05_close_evar(p+13, p[9], p[10]);
+    if (! r05_tvar_left(p+15, p[10], p[1]))
       continue;
-    if (! r05_svar_left(p+16, p[15], p[9]))
+    if (! r05_brackets_left(p+17, p[16], p[1]))
       continue;
-    r05_close_evar(p+17, p[16], p[9]);
+    r05_close_evar(p+19, p[17], p[18]);
+    r05_close_evar(p+21, p[18], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_check0);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_open_bracket(p+21);
-    r05_alloc_insert_pos(p+22);
-    r05_alloc_close_bracket(p+23);
-    r05_alloc_svar(p+15);
-    r05_alloc_svar(p+16);
-    r05_alloc_open_bracket(p+24);
-    r05_alloc_insert_pos(p+25);
-    r05_alloc_close_bracket(p+26);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_bracket(p+29);
-    r05_alloc_open_call(p+30);
-    r05_alloc_function(&r05f_HexDigit);
-    r05_alloc_svar(p+15);
-    r05_alloc_close_call(p+31);
-    r05_alloc_close_call(p+32);
-    r05_push_stack(p[32]);
-    r05_push_stack(p[19]);
-    r05_push_stack(p[31]);
-    r05_push_stack(p[30]);
-    r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+13);
-    r05_link_brackets(p[24], p[26]);
-    r05_correct_evar(p+17);
-    r05_link_brackets(p[21], p[23]);
-    r05_correct_evar(p+11);
-    r05_splice_tvar(p[20], p+2);
-    r05_splice_tvar(p[20], p+4);
-    r05_splice_evar(p[22], p+11);
-    r05_splice_evar(p[25], p+17);
-    r05_splice_evar(p[28], p+13);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont0);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check0, "DoScan-Compound-HandleEscape_check0") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Hex1: 10 */
-    /* s.Hex2: 11 */
-    /* e.Line: 16 */
-    /* e.Lines: 18 */
-    /* s.Num1: 20 */
-    struct r05_node *p[35] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
-      continue;
-    if (! r05_svar_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    if (! r05_svar_left(p+20, p[15], p[1]))
-      continue;
-    if (! r05_empty_hole(p[20], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+21);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_check1);
-    r05_alloc_insert_pos(p+22);
     r05_alloc_open_bracket(p+23);
+    r05_alloc_function(&r05f_TkError);
     r05_alloc_insert_pos(p+24);
     r05_alloc_close_bracket(p+25);
-    r05_alloc_svar(p+10);
-    r05_alloc_svar(p+11);
-    r05_alloc_open_bracket(p+26);
+    r05_alloc_open_call(p+26);
+    r05_alloc_function(&r05f_DoScanm_Compound);
     r05_alloc_insert_pos(p+27);
-    r05_alloc_close_bracket(p+28);
-    r05_alloc_open_bracket(p+29);
-    r05_alloc_insert_pos(p+30);
-    r05_alloc_close_bracket(p+31);
-    r05_alloc_svar(p+20);
-    r05_alloc_open_call(p+32);
-    r05_alloc_function(&r05f_HexDigit);
-    r05_alloc_svar(p+11);
-    r05_alloc_close_call(p+33);
-    r05_alloc_close_call(p+34);
-    r05_push_stack(p[34]);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[33]);
-    r05_push_stack(p[32]);
-    r05_link_brackets(p[29], p[31]);
-    r05_correct_evar(p+18);
-    r05_link_brackets(p[26], p[28]);
-    r05_correct_evar(p+16);
-    r05_link_brackets(p[23], p[25]);
-    r05_correct_evar(p+8);
-    r05_splice_tvar(p[22], p+2);
-    r05_splice_tvar(p[22], p+4);
-    r05_splice_evar(p[24], p+8);
-    r05_splice_evar(p[27], p+16);
-    r05_splice_evar(p[30], p+18);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Other: 2 */
-    struct r05_node *p[7] = { 0 };
-    /* e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    r05_close_evar(p+2, p[0], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+4);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont1);
-    r05_alloc_insert_pos(p+5);
-    r05_alloc_close_call(p+6);
-    r05_push_stack(p[6]);
-    r05_push_stack(p[4]);
-    r05_correct_evar(p+2);
-    r05_splice_evar(p[5], p+2);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont0, "DoScan-Compound-HandleEscape_cont0") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 11 */
-    /* e.Line: 13 */
-    /* e.Lines: 15 */
-    struct r05_node *p[32] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) ('x' e.Line) e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    if (! r05_char_left(p+10, p[8], p[9], 'x'))
-      continue;
-    r05_close_evar(p+11, p[6], p[7]);
-    r05_close_evar(p+13, p[10], p[9]);
-    r05_close_evar(p+15, p[9], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_chars("After \\x must be two hex digits", 31);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_DoScanm_Compound);
-    r05_alloc_insert_pos(p+21);
-    r05_alloc_open_call(p+22);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+4);
-    r05_alloc_close_call(p+23);
-    r05_alloc_open_bracket(p+24);
-    r05_alloc_insert_pos(p+25);
-    r05_alloc_close_bracket(p+26);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_bracket(p+29);
-    r05_alloc_insert_pos(p+30);
-    r05_alloc_close_call(p+31);
-    r05_push_stack(p[31]);
-    r05_push_stack(p[20]);
-    r05_correct_evar(p+15);
-    r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+13);
-    r05_link_brackets(p[24], p[26]);
-    r05_correct_evar(p+11);
-    r05_push_stack(p[23]);
-    r05_push_stack(p[22]);
-    r05_link_brackets(p[17], p[19]);
-    r05_splice_tvar(p[18], p+4);
-    r05_splice_tvar(p[21], p+2);
-    r05_splice_evar(p[25], p+11);
-    r05_splice_evar(p[28], p+13);
-    r05_splice_evar(p[30], p+15);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 10 */
-    /* e.Lines: 12 */
-    /* s.Other: 14 */
-    /* e.Line: 15 */
-    struct r05_node *p[32] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) (s.Other e.Line) e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[9], p[1]);
-    if (! r05_svar_left(p+14, p[8], p[9]))
-      continue;
-    r05_close_evar(p+15, p[14], p[9]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_chars("Bad escape sequence \\", 21);
-    r05_alloc_svar(p+14);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_DoScanm_Compound);
-    r05_alloc_insert_pos(p+21);
-    r05_alloc_open_call(p+22);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_tvar(p+4);
-    r05_alloc_close_call(p+23);
-    r05_alloc_open_bracket(p+24);
-    r05_alloc_insert_pos(p+25);
-    r05_alloc_close_bracket(p+26);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_bracket(p+29);
-    r05_alloc_insert_pos(p+30);
-    r05_alloc_close_call(p+31);
-    r05_push_stack(p[31]);
-    r05_push_stack(p[20]);
-    r05_correct_evar(p+12);
-    r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+15);
-    r05_link_brackets(p[24], p[26]);
-    r05_correct_evar(p+10);
-    r05_push_stack(p[23]);
-    r05_push_stack(p[22]);
-    r05_link_brackets(p[17], p[19]);
-    r05_splice_tvar(p[18], p+4);
-    r05_splice_tvar(p[21], p+2);
-    r05_splice_evar(p[25], p+10);
-    r05_splice_evar(p[28], p+15);
-    r05_splice_evar(p[30], p+12);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 10 */
-    /* e.Lines: 12 */
-    struct r05_node *p[25] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) () e.Lines */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+8, p[7], p[1]))
-      continue;
-    if (! r05_empty_hole(p[8], p[9]))
-      continue;
-    r05_close_evar(p+10, p[6], p[7]);
-    r05_close_evar(p+12, p[9], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+14);
-    r05_alloc_function(&r05f_TkError);
-    r05_alloc_insert_pos(p+15);
-    r05_alloc_chars("Unexpected \\ at end of compound literal", 39);
-    r05_alloc_close_bracket(p+16);
-    r05_alloc_open_bracket(p+17);
-    r05_alloc_function(&r05f_TkCompound);
-    r05_alloc_insert_pos(p+18);
-    r05_alloc_close_bracket(p+19);
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_DoScan);
-    r05_alloc_open_call(p+21);
-    r05_alloc_function(&r05f_IncLine);
-    r05_alloc_tvar(p+4);
-    r05_alloc_close_call(p+22);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_close_call(p+24);
-    r05_push_stack(p[24]);
-    r05_push_stack(p[20]);
-    r05_correct_evar(p+12);
-    r05_push_stack(p[22]);
-    r05_push_stack(p[21]);
-    r05_link_brackets(p[17], p[19]);
-    r05_correct_evar(p+10);
-    r05_link_brackets(p[14], p[16]);
-    r05_splice_tvar(p[15], p+4);
-    r05_splice_tvar(p[18], p+2);
-    r05_splice_evar(p[18], p+10);
-    r05_splice_evar(p[23], p+12);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_check1, "DoScan-Compound-HandleEscape_check1") {
-  r05_this_is_generated_function();
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Hex1: 10 */
-    /* s.Hex2: 11 */
-    /* e.Line: 16 */
-    /* e.Lines: 18 */
-    /* s.Num1: 20 */
-    /* s.Num2: 21 */
-    struct r05_node *p[41] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 s.Num2 */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
-      continue;
-    if (! r05_svar_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    if (! r05_svar_left(p+20, p[15], p[1]))
-      continue;
-    if (! r05_svar_left(p+21, p[20], p[1]))
-      continue;
-    if (! r05_empty_hole(p[21], p[1]))
-      continue;
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+22);
-    r05_alloc_function(&r05f_DoScanm_Compound);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_open_call(p+24);
-    r05_alloc_function(&r05f_IncCol);
-    r05_alloc_insert_pos(p+25);
-    r05_alloc_function(&r05f_Len);
-    r05_alloc_char('x');
-    r05_alloc_svar(p+10);
-    r05_alloc_svar(p+11);
-    r05_alloc_close_call(p+26);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_open_call(p+29);
-    r05_alloc_function(&r05f_Chr);
-    r05_alloc_open_call(p+30);
-    r05_alloc_function(&r05f_k2B_);
-    r05_alloc_open_call(p+31);
-    r05_alloc_function(&r05f_k2A_);
-    r05_alloc_svar(p+20);
-    r05_alloc_number(16UL);
-    r05_alloc_close_call(p+32);
-    r05_alloc_svar(p+21);
-    r05_alloc_close_call(p+33);
-    r05_alloc_close_call(p+34);
-    r05_alloc_close_bracket(p+35);
-    r05_alloc_open_bracket(p+36);
-    r05_alloc_insert_pos(p+37);
-    r05_alloc_close_bracket(p+38);
-    r05_alloc_insert_pos(p+39);
-    r05_alloc_close_call(p+40);
-    r05_push_stack(p[40]);
-    r05_push_stack(p[22]);
-    r05_correct_evar(p+18);
-    r05_link_brackets(p[36], p[38]);
-    r05_correct_evar(p+16);
-    r05_link_brackets(p[27], p[35]);
-    r05_push_stack(p[34]);
-    r05_push_stack(p[29]);
-    r05_push_stack(p[33]);
-    r05_push_stack(p[30]);
-    r05_push_stack(p[32]);
-    r05_push_stack(p[31]);
-    r05_correct_evar(p+8);
-    r05_push_stack(p[26]);
-    r05_push_stack(p[24]);
-    r05_splice_tvar(p[23], p+2);
-    r05_splice_tvar(p[25], p+4);
-    r05_splice_evar(p[28], p+8);
-    r05_splice_evar(p[37], p+16);
-    r05_splice_evar(p[39], p+18);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Hex1: 10 */
-    /* s.Hex2: 11 */
-    /* e.Line: 16 */
-    /* e.Lines: 18 */
-    /* s.Num1: 20 */
-    /* e.Other: 21 */
-    struct r05_node *p[35] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Hex1 s.Hex2 (e.Line) (e.Lines) s.Num1 e.Other */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_tvar_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_tvar_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_brackets_left(p+6, p[5], p[1]))
-      continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
-      continue;
-    if (! r05_svar_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    if (! r05_svar_left(p+20, p[15], p[1]))
-      continue;
-    r05_close_evar(p+21, p[20], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+23);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont1);
-    r05_alloc_insert_pos(p+24);
-    r05_alloc_open_bracket(p+25);
-    r05_alloc_insert_pos(p+26);
-    r05_alloc_close_bracket(p+27);
-    r05_alloc_svar(p+10);
-    r05_alloc_svar(p+11);
     r05_alloc_open_bracket(p+28);
     r05_alloc_insert_pos(p+29);
     r05_alloc_close_bracket(p+30);
     r05_alloc_open_bracket(p+31);
     r05_alloc_insert_pos(p+32);
     r05_alloc_close_bracket(p+33);
-    r05_alloc_svar(p+20);
-    r05_alloc_close_call(p+34);
-    r05_push_stack(p[34]);
-    r05_push_stack(p[23]);
+    r05_alloc_insert_pos(p+34);
+    r05_alloc_close_call(p+35);
+    r05_push_stack(p[35]);
+    r05_push_stack(p[26]);
+    r05_correct_evar(p+21);
     r05_link_brackets(p[31], p[33]);
-    r05_correct_evar(p+18);
+    r05_correct_evar(p+19);
     r05_link_brackets(p[28], p[30]);
-    r05_correct_evar(p+16);
-    r05_link_brackets(p[25], p[27]);
-    r05_correct_evar(p+8);
-    r05_splice_tvar(p[24], p+2);
+    r05_correct_evar(p+11);
+    r05_link_brackets(p[23], p[25]);
+    r05_correct_evar(p+13);
     r05_splice_tvar(p[24], p+4);
-    r05_splice_evar(p[26], p+8);
-    r05_splice_evar(p[29], p+16);
-    r05_splice_evar(p[32], p+18);
+    r05_splice_evar(p[24], p+13);
+    r05_splice_tvar(p[27], p+2);
+    r05_splice_tvar(p[27], p+15);
+    r05_splice_evar(p[29], p+11);
+    r05_splice_evar(p[32], p+19);
+    r05_splice_evar(p[34], p+21);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
   } while (0);
 
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont1, "DoScan-Compound-HandleEscape_cont1") {
-  r05_this_is_generated_function();
-
   do {
     /* t.StartPos: 2 */
-    /* t.Pos: 4 */
-    /* e.Compound: 8 */
-    /* s.Hex1: 10 */
-    /* s.Hex2: 11 */
-    /* e.Line: 16 */
-    /* e.Lines: 18 */
-    /* e.Other: 20 */
-    struct r05_node *p[32] = { 0 };
-    /* t.StartPos t.Pos (e.Compound) s.Hex1 s.Hex2 (e.Line) (e.Lines) e.Other */
+    /* t.EscapePos: 4 */
+    /* e.Compound: 9 */
+    /* e.Lines: 11 */
+    struct r05_node *p[24] = { 0 };
+    /* t.StartPos t.EscapePos (e.Compound) Error-EOL e.Lines */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_tvar_left(p+2, p[0], p[1]))
@@ -7396,46 +7831,193 @@ R05_DEFINE_LOCAL_FUNCTION(DoScanm_Compoundm_HandleEscapeu_cont1, "DoScan-Compoun
       continue;
     if (! r05_brackets_left(p+6, p[5], p[1]))
       continue;
-    r05_close_evar(p+8, p[6], p[7]);
-    if (! r05_svar_left(p+10, p[7], p[1]))
+    if (! r05_function_left(p+8, p[7], p[1], &r05f_Errorm_EOL))
       continue;
-    if (! r05_svar_left(p+11, p[10], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    r05_close_evar(p+20, p[15], p[1]);
+    r05_close_evar(p+9, p[6], p[7]);
+    r05_close_evar(p+11, p[8], p[1]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+22);
-    r05_alloc_function(&r05f_DoScanm_Compoundm_HandleEscapeu_cont0);
+    r05_alloc_open_bracket(p+13);
+    r05_alloc_function(&r05f_TkError);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_chars("Unexpected \\ at end of compound literal", 39);
+    r05_alloc_close_bracket(p+15);
+    r05_alloc_open_bracket(p+16);
+    r05_alloc_function(&r05f_TkCompound);
+    r05_alloc_insert_pos(p+17);
+    r05_alloc_close_bracket(p+18);
+    r05_alloc_open_call(p+19);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_open_call(p+20);
+    r05_alloc_function(&r05f_IncLine);
+    r05_alloc_tvar(p+4);
+    r05_alloc_close_call(p+21);
+    r05_alloc_insert_pos(p+22);
+    r05_alloc_close_call(p+23);
+    r05_push_stack(p[23]);
+    r05_push_stack(p[19]);
+    r05_correct_evar(p+11);
+    r05_push_stack(p[21]);
+    r05_push_stack(p[20]);
+    r05_link_brackets(p[16], p[18]);
+    r05_correct_evar(p+9);
+    r05_link_brackets(p[13], p[15]);
+    r05_splice_tvar(p[14], p+4);
+    r05_splice_tvar(p[17], p+2);
+    r05_splice_evar(p[17], p+9);
+    r05_splice_evar(p[22], p+11);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(DoScanm_Escape, "DoScan-Escape") {
+  r05_this_is_generated_function();
+
+  do {
+    /* t.Pos: 2 */
+    /* s.Char: 5 */
+    /* t.NextPos: 6 */
+    /* e.Line: 10 */
+    /* e.Lines: 12 */
+    struct r05_node *p[24] = { 0 };
+    /* t.Pos Ok s.Char t.NextPos (e.Line) e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Ok))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[1]))
+      continue;
+    if (! r05_tvar_left(p+6, p[5], p[1]))
+      continue;
+    if (! r05_brackets_left(p+8, p[7], p[1]))
+      continue;
+    r05_close_evar(p+10, p[8], p[9]);
+    r05_close_evar(p+12, p[9], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+14);
+    r05_alloc_function(&r05f_TkChar);
+    r05_alloc_insert_pos(p+15);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_bracket(p+16);
+    r05_alloc_open_call(p+17);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_open_bracket(p+19);
+    r05_alloc_insert_pos(p+20);
+    r05_alloc_close_bracket(p+21);
+    r05_alloc_insert_pos(p+22);
+    r05_alloc_close_call(p+23);
+    r05_push_stack(p[23]);
+    r05_push_stack(p[17]);
+    r05_correct_evar(p+12);
+    r05_link_brackets(p[19], p[21]);
+    r05_correct_evar(p+10);
+    r05_link_brackets(p[14], p[16]);
+    r05_splice_tvar(p[15], p+2);
+    r05_splice_tvar(p[18], p+6);
+    r05_splice_evar(p[20], p+10);
+    r05_splice_evar(p[22], p+12);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* e.Message: 7 */
+    /* t.NextPos: 9 */
+    /* e.Line: 13 */
+    /* e.Lines: 15 */
+    struct r05_node *p[27] = { 0 };
+    /* t.Pos Error (e.Message) t.NextPos (e.Line) e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Error))
+      continue;
+    if (! r05_brackets_left(p+5, p[4], p[1]))
+      continue;
+    r05_close_evar(p+7, p[5], p[6]);
+    if (! r05_tvar_left(p+9, p[6], p[1]))
+      continue;
+    if (! r05_brackets_left(p+11, p[10], p[1]))
+      continue;
+    r05_close_evar(p+13, p[11], p[12]);
+    r05_close_evar(p+15, p[12], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+17);
+    r05_alloc_function(&r05f_TkError);
+    r05_alloc_insert_pos(p+18);
+    r05_alloc_close_bracket(p+19);
+    r05_alloc_open_call(p+20);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_insert_pos(p+21);
+    r05_alloc_open_bracket(p+22);
     r05_alloc_insert_pos(p+23);
-    r05_alloc_open_bracket(p+24);
+    r05_alloc_close_bracket(p+24);
     r05_alloc_insert_pos(p+25);
-    r05_alloc_close_bracket(p+26);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_char('x');
-    r05_alloc_svar(p+10);
-    r05_alloc_svar(p+11);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_bracket(p+29);
-    r05_alloc_insert_pos(p+30);
-    r05_alloc_close_call(p+31);
-    r05_push_stack(p[31]);
-    r05_push_stack(p[22]);
-    r05_correct_evar(p+18);
-    r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+16);
-    r05_link_brackets(p[24], p[26]);
-    r05_correct_evar(p+8);
-    r05_splice_tvar(p[23], p+2);
-    r05_splice_tvar(p[23], p+4);
-    r05_splice_evar(p[25], p+8);
-    r05_splice_evar(p[28], p+16);
-    r05_splice_evar(p[30], p+18);
+    r05_alloc_close_call(p+26);
+    r05_push_stack(p[26]);
+    r05_push_stack(p[20]);
+    r05_correct_evar(p+15);
+    r05_link_brackets(p[22], p[24]);
+    r05_correct_evar(p+13);
+    r05_link_brackets(p[17], p[19]);
+    r05_correct_evar(p+7);
+    r05_splice_tvar(p[18], p+2);
+    r05_splice_evar(p[18], p+7);
+    r05_splice_tvar(p[21], p+9);
+    r05_splice_evar(p[23], p+13);
+    r05_splice_evar(p[25], p+15);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* t.Pos: 2 */
+    /* e.Lines: 5 */
+    struct r05_node *p[15] = { 0 };
+    /* t.Pos Error-EOL e.Lines */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_tvar_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_function_left(p+4, p[3], p[1], &r05f_Errorm_EOL))
+      continue;
+    r05_close_evar(p+5, p[4], p[1]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_function(&r05f_TkError);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_chars("Unexpected \\ at end of line", 27);
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_DoScan);
+    r05_alloc_open_call(p+11);
+    r05_alloc_function(&r05f_IncLine);
+    r05_alloc_tvar(p+2);
+    r05_alloc_close_call(p+12);
+    r05_alloc_insert_pos(p+13);
+    r05_alloc_close_call(p+14);
+    r05_push_stack(p[14]);
+    r05_push_stack(p[10]);
+    r05_correct_evar(p+5);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[11]);
+    r05_link_brackets(p[7], p[9]);
+    r05_splice_tvar(p[8], p+2);
+    r05_splice_evar(p[13], p+5);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -14959,13 +15541,13 @@ R05_DEFINE_LOCAL_FUNCTION(Termu_cont, "Term_cont") {
 
   do {
     /* e.Errors: 9 */
-    /* t.Pso: 11 */
+    /* t.Pos: 11 */
     /* s.VarType: 13 */
     /* e.Index: 14 */
     /* s.Kind: 16 */
     /* e.Tokens: 17 */
     struct r05_node *p[29] = { 0 };
-    /* () (TkVariable t.Pso s.VarType e.Index) e.Tokens s.Kind (e.Errors) */
+    /* () (TkVariable t.Pos s.VarType e.Index) e.Tokens s.Kind (e.Errors) */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_brackets_left(p+2, p[0], p[1]))
@@ -18058,12 +18640,85 @@ R05_DEFINE_LOCAL_FUNCTION(CheckResult, "CheckResult") {
   r05_this_is_generated_function();
 
   do {
+    /* e.Variables: 9 */
+    /* e.Items: 11 */
+    /* t.Pos: 13 */
+    /* e.Name: 15, 21 */
+    /* e.FuncNames-B: 17 */
+    /* e.FuncNames-E: 23 */
+    struct r05_node *p[38] = { 0 };
+    /* (e.FuncNames-B (e.Name) e.FuncNames-E) (e.Variables) (Call t.Pos e.Name) e.Items */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[1]))
+      continue;
+    if (! r05_function_left(p+8, p[6], p[7], &r05f_Call))
+      continue;
+    r05_close_evar(p+9, p[4], p[5]);
+    r05_close_evar(p+11, p[7], p[1]);
+    if (! r05_tvar_left(p+13, p[8], p[7]))
+      continue;
+    r05_close_evar(p+15, p[14], p[7]);
+    p[17] = p[2]->next;
+    p[18] = p[2];
+    r05_start_e_loop();
+    do {
+      if (! r05_brackets_left(p+19, p[18], p[3]))
+        continue;
+      if (! r05_repeated_evar_left(p+21, p[19], p[20], p+15))
+        continue;
+      if (! r05_empty_hole(p[22], p[20]))
+        continue;
+      r05_close_evar(p+23, p[20], p[3]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+25);
+      r05_alloc_function(&r05f_CheckResult);
+      r05_alloc_open_bracket(p+26);
+      r05_alloc_insert_pos(p+27);
+      r05_alloc_open_bracket(p+28);
+      r05_alloc_insert_pos(p+29);
+      r05_alloc_close_bracket(p+30);
+      r05_alloc_insert_pos(p+31);
+      r05_alloc_close_bracket(p+32);
+      r05_alloc_open_bracket(p+33);
+      r05_alloc_insert_pos(p+34);
+      r05_alloc_close_bracket(p+35);
+      r05_alloc_insert_pos(p+36);
+      r05_alloc_close_call(p+37);
+      r05_push_stack(p[37]);
+      r05_push_stack(p[25]);
+      r05_correct_evar(p+11);
+      r05_link_brackets(p[33], p[35]);
+      r05_correct_evar(p+9);
+      r05_link_brackets(p[26], p[32]);
+      r05_correct_evar(p+23);
+      r05_link_brackets(p[28], p[30]);
+      r05_correct_evar(p+15);
+      r05_correct_evar(p+17);
+      r05_splice_evar(p[27], p+17);
+      r05_splice_evar(p[29], p+15);
+      r05_splice_evar(p[31], p+23);
+      r05_splice_evar(p[34], p+9);
+      r05_splice_evar(p[36], p+11);
+      r05_splice_from_freelist(arg_begin);
+      r05_splice_to_freelist(arg_begin, arg_end);
+      return;
+    } while (r05_open_evar_advance(p+17, p[3]));
+    r05_stop_e_loop();
+  } while (0);
+
+  do {
     /* e.FuncNames: 9 */
     /* e.Variables: 11 */
     /* e.Items: 13 */
     /* t.Pos: 15 */
     /* e.Name: 17 */
-    struct r05_node *p[34] = { 0 };
+    struct r05_node *p[32] = { 0 };
     /* (e.FuncNames) (e.Variables) (Call t.Pos e.Name) e.Items */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -18083,38 +18738,36 @@ R05_DEFINE_LOCAL_FUNCTION(CheckResult, "CheckResult") {
     r05_close_evar(p+17, p[16], p[7]);
 
     r05_reset_allocator();
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_CheckResult0);
-    r05_alloc_open_bracket(p+20);
+    r05_alloc_open_bracket(p+19);
+    r05_alloc_insert_pos(p+20);
+    r05_alloc_chars("function ", 9);
     r05_alloc_insert_pos(p+21);
+    r05_alloc_chars(" is not declared", 16);
     r05_alloc_close_bracket(p+22);
-    r05_alloc_open_bracket(p+23);
-    r05_alloc_insert_pos(p+24);
-    r05_alloc_close_bracket(p+25);
-    r05_alloc_insert_pos(p+26);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_CheckResult);
+    r05_alloc_open_bracket(p+24);
+    r05_alloc_insert_pos(p+25);
+    r05_alloc_close_bracket(p+26);
     r05_alloc_open_bracket(p+27);
     r05_alloc_insert_pos(p+28);
     r05_alloc_close_bracket(p+29);
-    r05_alloc_open_bracket(p+30);
-    r05_alloc_insert_pos(p+31);
-    r05_alloc_close_bracket(p+32);
-    r05_alloc_evar(p+9);
-    r05_alloc_close_call(p+33);
-    r05_push_stack(p[33]);
-    r05_push_stack(p[19]);
-    r05_link_brackets(p[30], p[32]);
+    r05_alloc_insert_pos(p+30);
+    r05_alloc_close_call(p+31);
+    r05_push_stack(p[31]);
+    r05_push_stack(p[23]);
     r05_correct_evar(p+13);
     r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+17);
-    r05_link_brackets(p[23], p[25]);
     r05_correct_evar(p+11);
-    r05_link_brackets(p[20], p[22]);
+    r05_link_brackets(p[24], p[26]);
     r05_correct_evar(p+9);
-    r05_splice_evar(p[21], p+9);
-    r05_splice_evar(p[24], p+11);
-    r05_splice_tvar(p[26], p+15);
-    r05_splice_evar(p[28], p+17);
-    r05_splice_evar(p[31], p+13);
+    r05_link_brackets(p[19], p[22]);
+    r05_correct_evar(p+17);
+    r05_splice_tvar(p[20], p+15);
+    r05_splice_evar(p[21], p+17);
+    r05_splice_evar(p[25], p+9);
+    r05_splice_evar(p[28], p+11);
+    r05_splice_evar(p[30], p+13);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -18150,7 +18803,7 @@ R05_DEFINE_LOCAL_FUNCTION(CheckResult, "CheckResult") {
 
     r05_reset_allocator();
     r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_CheckResult1);
+    r05_alloc_function(&r05f_CheckResult0);
     r05_alloc_open_bracket(p+21);
     r05_alloc_insert_pos(p+22);
     r05_alloc_close_bracket(p+23);
@@ -18213,141 +18866,6 @@ R05_DEFINE_LOCAL_FUNCTION(CheckResult, "CheckResult") {
 }
 
 R05_DEFINE_LOCAL_FUNCTION(CheckResult0, "CheckResult0") {
-  r05_this_is_generated_function();
-
-  do {
-    /* e.FuncNames: 6 */
-    /* e.Variables: 8 */
-    /* t.Pos: 10 */
-    /* e.Name: 16, 24 */
-    /* e.Items: 18 */
-    /* e.Names-B: 20 */
-    /* e.Names-E: 26 */
-    struct r05_node *p[37] = { 0 };
-    /* (e.FuncNames) (e.Variables) t.Pos (e.Name) (e.Items) e.Names-B (e.Name) e.Names-E */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    r05_close_evar(p+6, p[2], p[3]);
-    r05_close_evar(p+8, p[4], p[5]);
-    if (! r05_tvar_left(p+10, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    p[20] = p[15]->next;
-    p[21] = p[15];
-    r05_start_e_loop();
-    do {
-      if (! r05_brackets_left(p+22, p[21], p[1]))
-        continue;
-      if (! r05_repeated_evar_left(p+24, p[22], p[23], p+16))
-        continue;
-      if (! r05_empty_hole(p[25], p[23]))
-        continue;
-      r05_close_evar(p+26, p[23], p[1]);
-
-      r05_reset_allocator();
-      r05_alloc_open_call(p+28);
-      r05_alloc_function(&r05f_CheckResult);
-      r05_alloc_open_bracket(p+29);
-      r05_alloc_insert_pos(p+30);
-      r05_alloc_close_bracket(p+31);
-      r05_alloc_open_bracket(p+32);
-      r05_alloc_insert_pos(p+33);
-      r05_alloc_close_bracket(p+34);
-      r05_alloc_insert_pos(p+35);
-      r05_alloc_close_call(p+36);
-      r05_push_stack(p[36]);
-      r05_push_stack(p[28]);
-      r05_correct_evar(p+18);
-      r05_link_brackets(p[32], p[34]);
-      r05_correct_evar(p+8);
-      r05_link_brackets(p[29], p[31]);
-      r05_correct_evar(p+6);
-      r05_splice_evar(p[30], p+6);
-      r05_splice_evar(p[33], p+8);
-      r05_splice_evar(p[35], p+18);
-      r05_splice_from_freelist(arg_begin);
-      r05_splice_to_freelist(arg_begin, arg_end);
-      return;
-    } while (r05_open_evar_advance(p+20, p[1]));
-    r05_stop_e_loop();
-  } while (0);
-
-  do {
-    /* e.FuncNames: 6 */
-    /* e.Variables: 8 */
-    /* t.Pos: 10 */
-    /* e.Name: 16 */
-    /* e.Items: 18 */
-    /* e.Names: 20 */
-    struct r05_node *p[35] = { 0 };
-    /* (e.FuncNames) (e.Variables) t.Pos (e.Name) (e.Items) e.Names */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    r05_close_evar(p+6, p[2], p[3]);
-    r05_close_evar(p+8, p[4], p[5]);
-    if (! r05_tvar_left(p+10, p[5], p[1]))
-      continue;
-    if (! r05_brackets_left(p+12, p[11], p[1]))
-      continue;
-    if (! r05_brackets_left(p+14, p[13], p[1]))
-      continue;
-    r05_close_evar(p+16, p[12], p[13]);
-    r05_close_evar(p+18, p[14], p[15]);
-    r05_close_evar(p+20, p[15], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+22);
-    r05_alloc_insert_pos(p+23);
-    r05_alloc_chars("function ", 9);
-    r05_alloc_insert_pos(p+24);
-    r05_alloc_chars(" is not declared", 16);
-    r05_alloc_close_bracket(p+25);
-    r05_alloc_open_call(p+26);
-    r05_alloc_function(&r05f_CheckResult);
-    r05_alloc_open_bracket(p+27);
-    r05_alloc_insert_pos(p+28);
-    r05_alloc_close_bracket(p+29);
-    r05_alloc_open_bracket(p+30);
-    r05_alloc_insert_pos(p+31);
-    r05_alloc_close_bracket(p+32);
-    r05_alloc_insert_pos(p+33);
-    r05_alloc_close_call(p+34);
-    r05_push_stack(p[34]);
-    r05_push_stack(p[26]);
-    r05_correct_evar(p+18);
-    r05_link_brackets(p[30], p[32]);
-    r05_correct_evar(p+8);
-    r05_link_brackets(p[27], p[29]);
-    r05_correct_evar(p+6);
-    r05_link_brackets(p[22], p[25]);
-    r05_correct_evar(p+16);
-    r05_splice_tvar(p[23], p+10);
-    r05_splice_evar(p[24], p+16);
-    r05_splice_evar(p[28], p+6);
-    r05_splice_evar(p[31], p+8);
-    r05_splice_evar(p[33], p+18);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(CheckResult1, "CheckResult1") {
   r05_this_is_generated_function();
 
   do {

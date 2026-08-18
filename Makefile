@@ -15,4 +15,4 @@ bin/refal05c.exe: c-plus-plus.conf.cmd
 .PHONY: clear
 clear:
 	./clear.sh
-	rm -f ./*.c
+	rm -f ./*.c framework/*.c

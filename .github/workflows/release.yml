@@ -49,11 +49,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc make
+      with:
+        submodules: recursive
 
     - name: Bootstrap and test with the default configuration
       run: make bin/refal05c
@@ -61,10 +58,7 @@ jobs:
     - name: Rebuild the compiler with release flags
       run: |
         gcc -O2 -s -static -I./lib -o bin/refal05c \
-          bootstrap/main.c bootstrap/generator.c bootstrap/parser.c \
-          bootstrap/R5FW-Parser-Defs.c bootstrap/R5FW-Plainer.c bootstrap/Platform.c \
-          bootstrap/LibraryEx.c bootstrap/R5FW-Parser.c bootstrap/R5FW-Transformer.c \
-          lib/refal05bif.c lib/refal05rts.c
+          bootstrap/*.c lib/refal05bif.c lib/refal05rts.c
         file bin/refal05c
         ls -l bin/refal05c
 
@@ -84,6 +78,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Configure compiler
       shell: cmd
