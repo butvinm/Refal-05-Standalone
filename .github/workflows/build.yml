@@ -31,15 +31,20 @@ jobs:
     - name: Verify bootstrap fixpoint
       run: |
         mkdir -p /tmp/fixpoint/regenerated
-        cp bootstrap/main.c bootstrap/generator.c bootstrap/parser.c /tmp/fixpoint/
+        cp bootstrap/*.c /tmp/fixpoint/
         cd /tmp/fixpoint/regenerated
         R05CCOMP= R05PATH= "$GITHUB_WORKSPACE/bin/refal05c" \
           "$GITHUB_WORKSPACE/src/main" \
           "$GITHUB_WORKSPACE/src/generator" \
           "$GITHUB_WORKSPACE/src/parser" \
+          "$GITHUB_WORKSPACE/framework/LibraryEx" \
+          "$GITHUB_WORKSPACE/framework/R5FW-Parser" \
+          "$GITHUB_WORKSPACE/framework/R5FW-Plainer" \
+          "$GITHUB_WORKSPACE/framework/R5FW-Transformer" \
+          "$GITHUB_WORKSPACE/framework/Platform" \
           "$GITHUB_WORKSPACE/lib/refal05bif" \
           "$GITHUB_WORKSPACE/lib/refal05rts"
-        for f in main.c generator.c parser.c; do
+        for f in main.c generator.c parser.c LibraryEx.c R5FW-Parser.c R5FW-Plainer.c R5FW-Transformer.c Platform.c; do
           cmp "/tmp/fixpoint/$f" "/tmp/fixpoint/regenerated/$f" \
             || { echo "::error::Bootstrap is not a fixpoint: $f differs after regeneration"; exit 1; }
         done

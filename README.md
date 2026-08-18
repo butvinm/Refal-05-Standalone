@@ -15,7 +15,7 @@ make bin/refal05c.exe  # Windows
 Тег релиза соответствует последнему коммиту оригинального репозитория, влитому в форк.
 
 Файлы, принадлежащие оригинальному репозиторию, здесь не изменяются, чтобы обновление из него оставалось бесконфликтным.
-Форку принадлежат только `bootstrap`, `Makefile`, `src/standalone-bootstrap.sh`, `src/standalone-bootstrap.cmd`, `autotests/run.sh`, `autotests/run.cmd` и `.github`.
+Форку принадлежат только `bootstrap`, `framework`, `Makefile`, `src/standalone-bootstrap.sh`, `src/standalone-bootstrap.cmd`, `autotests/run.sh`, `autotests/run.cmd` и `.github`.
 Ниже следует документация оригинального репозитория.
 
 ---

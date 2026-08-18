@@ -6,11 +6,11 @@ R05_DECLARE_ENTRY_FUNCTION(MapAccum)
 R05_DECLARE_ENTRY_FUNCTION(DelAccumulator)
 R05_DECLARE_ENTRY_FUNCTION(Map)
 R05_DECLARE_ENTRY_FUNCTION(Unique)
-R05_DECLARE_ENTRY_FUNCTION(Builtins)
 R05_DECLARE_ENTRY_FUNCTION(Transform)
 R05_DECLARE_LOCAL_FUNCTION(Transformm_Step)
-R05_DECLARE_LOCAL_FUNCTION(GetFunctionNames)
-R05_DECLARE_ENTRY_FUNCTION(refal5m_transformeru_RemovePos)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_BuiltinName)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_GetFunctionName)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_RemovePos)
 R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_TransformUnit)
 R05_DECLARE_LOCAL_FUNCTION(UnBlock)
 R05_DECLARE_LOCAL_FUNCTION(DoUnBlock)
@@ -26,8 +26,8 @@ R05_DECLARE_LOCAL_FUNCTION(DoUnBlockm_NextFunction)
 R05_DECLARE_LOCAL_FUNCTION(WithBlock)
 R05_DECLARE_LOCAL_FUNCTION(DoWithBlock)
 R05_DECLARE_LOCAL_FUNCTION(BlockScopeVars)
-R05_DECLARE_ENTRY_FUNCTION(transformeru_MakeVariables)
-R05_DECLARE_ENTRY_FUNCTION(transformeru_AddScopeVars)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_MakeVariables)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_AddScopeVars)
 R05_DECLARE_LOCAL_FUNCTION(UnCondition)
 R05_DECLARE_LOCAL_FUNCTION(DoUnCondition)
 R05_DECLARE_LOCAL_FUNCTION(DoUnConditionm_ConditionSentence)
@@ -50,7 +50,7 @@ R05_DECLARE_LOCAL_FUNCTION(DoPatternSteps0u_forward0)
 R05_DECLARE_LOCAL_FUNCTION(DoPatternSteps0u_next0)
 R05_DECLARE_LOCAL_FUNCTION(DoPatternSteps0u_cont0)
 R05_DECLARE_LOCAL_FUNCTION(HardItem)
-R05_DECLARE_ENTRY_FUNCTION(transformeru_BindBrackets)
+R05_DECLARE_ENTRY_FUNCTION(r5fwm_transformeru_BindBrackets)
 R05_DECLARE_LOCAL_FUNCTION(DoBindBrackets)
 R05_DECLARE_LOCAL_FUNCTION(DoBindBracketsu_check)
 R05_DECLARE_LOCAL_FUNCTION(DoBindBracketsu_cont)
@@ -132,11 +132,13 @@ R05_DECLARE_LOCAL_FUNCTION(ExtractVariablesm_Expr)
 R05_DECLARE_LOCAL_FUNCTION(NewName)
 R05_DECLARE_LOCAL_FUNCTION(DoNewName)
 R05_DECLARE_LOCAL_FUNCTION(DoNewNamem_NameGenerated)
+R05_DECLARE_ENTRY_FUNCTION(Explode)
 R05_DEFINE_METAFUNCTION(Mu, "Mu")
 R05_DEFINE_METAFUNCTION(Up, "Up")
 R05_DEFINE_METAFUNCTION(Evm_met, "Ev-met")
 R05_DEFINE_METAFUNCTION(Residue, "Residue")
 R05_DEFINE_METAFUNCTION(k3F_, "?")
+R05_DECLARE_ENTRY_FUNCTION(ListOfBuiltin)
 R05_DECLARE_ENTRY_FUNCTION(Symb)
 R05_DECLARE_ENTRY_FUNCTION(k2B_)
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
@@ -161,9 +163,6 @@ R05_DEFINE_LOCAL_ENUM(False, "False")
 
 /*
 *$FROM LibraryEx
-*/
-/*
-*$FROM R5FW-Parser-Defs
 */
 R05_DEFINE_ENTRY_FUNCTION(Transform, "Transform") {
   r05_this_is_generated_function();
@@ -204,7 +203,7 @@ R05_DEFINE_LOCAL_FUNCTION(Transformm_Step, "Transform-Step") {
   do {
     /* s.FnMode: 2 */
     /* e.Units: 3 */
-    struct r05_node *p[18] = { 0 };
+    struct r05_node *p[20] = { 0 };
     /* s.FnMode e.Units */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -222,28 +221,35 @@ R05_DEFINE_LOCAL_FUNCTION(Transformm_Step, "Transform-Step") {
     r05_alloc_svar(p+2);
     r05_alloc_close_bracket(p+8);
     r05_alloc_open_call(p+9);
-    r05_alloc_function(&r05f_GetFunctionNames);
+    r05_alloc_function(&r05f_MapAccum);
+    r05_alloc_function(&r05f_r5fwm_transformeru_GetFunctionName);
     r05_alloc_open_bracket(p+10);
     r05_alloc_open_call(p+11);
-    r05_alloc_function(&r05f_Builtins);
-    r05_alloc_close_call(p+12);
-    r05_alloc_close_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_call(p+15);
-    r05_alloc_close_call(p+16);
+    r05_alloc_function(&r05f_Map);
+    r05_alloc_function(&r05f_r5fwm_transformeru_BuiltinName);
+    r05_alloc_open_call(p+12);
+    r05_alloc_function(&r05f_ListOfBuiltin);
+    r05_alloc_close_call(p+13);
+    r05_alloc_close_call(p+14);
+    r05_alloc_close_bracket(p+15);
+    r05_alloc_insert_pos(p+16);
     r05_alloc_close_call(p+17);
-    r05_push_stack(p[17]);
+    r05_alloc_close_call(p+18);
+    r05_alloc_close_call(p+19);
+    r05_push_stack(p[19]);
     r05_push_stack(p[5]);
-    r05_push_stack(p[16]);
+    r05_push_stack(p[18]);
     r05_push_stack(p[6]);
-    r05_push_stack(p[15]);
+    r05_push_stack(p[17]);
     r05_push_stack(p[9]);
     r05_correct_evar(p+3);
-    r05_link_brackets(p[10], p[13]);
-    r05_push_stack(p[12]);
+    r05_link_brackets(p[10], p[15]);
+    r05_push_stack(p[14]);
     r05_push_stack(p[11]);
+    r05_push_stack(p[13]);
+    r05_push_stack(p[12]);
     r05_link_brackets(p[7], p[8]);
-    r05_splice_evar(p[14], p+3);
+    r05_splice_evar(p[16], p+3);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -252,190 +258,40 @@ R05_DEFINE_LOCAL_FUNCTION(Transformm_Step, "Transform-Step") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_LOCAL_FUNCTION(GetFunctionNames, "GetFunctionNames") {
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_BuiltinName, "r5fw-transformer_BuiltinName") {
   r05_this_is_generated_function();
 
   do {
-    /* e.Names: 7 */
-    /* e.Units: 9 */
-    /* t.SrcPos: 11 */
-    /* e.Name: 15 */
-    /* s.Scope: 17 */
-    /* e.Sentences: 18 */
-    struct r05_node *p[35] = { 0 };
-    /* (e.Names) e.Units (Function t.SrcPos (e.Name) s.Scope e.Sentences) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_right(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_Function))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    r05_close_evar(p+9, p[3], p[4]);
-    if (! r05_tvar_left(p+11, p[6], p[5]))
-      continue;
-    if (! r05_brackets_left(p+13, p[12], p[5]))
-      continue;
-    r05_close_evar(p+15, p[13], p[14]);
-    if (! r05_svar_left(p+17, p[14], p[5]))
-      continue;
-    r05_close_evar(p+18, p[17], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+20);
-    r05_alloc_function(&r05f_GetFunctionNames);
-    r05_alloc_open_bracket(p+21);
-    r05_alloc_insert_pos(p+22);
-    r05_alloc_open_bracket(p+23);
-    r05_alloc_insert_pos(p+24);
-    r05_alloc_close_bracket(p+25);
-    r05_alloc_close_bracket(p+26);
-    r05_alloc_insert_pos(p+27);
-    r05_alloc_close_call(p+28);
-    r05_alloc_open_bracket(p+29);
-    r05_alloc_function(&r05f_Function);
-    r05_alloc_insert_pos(p+30);
-    r05_alloc_open_bracket(p+31);
-    r05_alloc_evar(p+15);
-    r05_alloc_close_bracket(p+32);
-    r05_alloc_svar(p+17);
-    r05_alloc_insert_pos(p+33);
-    r05_alloc_close_bracket(p+34);
-    r05_link_brackets(p[29], p[34]);
-    r05_correct_evar(p+18);
-    r05_link_brackets(p[31], p[32]);
-    r05_push_stack(p[28]);
-    r05_push_stack(p[20]);
-    r05_correct_evar(p+9);
-    r05_link_brackets(p[21], p[26]);
-    r05_link_brackets(p[23], p[25]);
-    r05_correct_evar(p+15);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[22], p+7);
-    r05_splice_evar(p[24], p+15);
-    r05_splice_evar(p[27], p+9);
-    r05_splice_tvar(p[30], p+11);
-    r05_splice_evar(p[33], p+18);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Names: 7 */
-    /* e.Units: 9 */
-    /* e.ExternalNames: 11 */
-    struct r05_node *p[21] = { 0 };
-    /* (e.Names) e.Units (Extern e.ExternalNames) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_right(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_Extern))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    r05_close_evar(p+9, p[3], p[4]);
-    r05_close_evar(p+11, p[6], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+13);
-    r05_alloc_function(&r05f_GetFunctionNames);
-    r05_alloc_open_bracket(p+14);
-    r05_alloc_insert_pos(p+15);
-    r05_alloc_close_bracket(p+16);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_call(p+18);
-    r05_alloc_open_bracket(p+19);
-    r05_alloc_function(&r05f_Extern);
-    r05_alloc_evar(p+11);
-    r05_alloc_close_bracket(p+20);
-    r05_link_brackets(p[19], p[20]);
-    r05_push_stack(p[18]);
-    r05_push_stack(p[13]);
-    r05_correct_evar(p+9);
-    r05_link_brackets(p[14], p[16]);
-    r05_correct_evar(p+11);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[15], p+7);
-    r05_splice_evar(p[15], p+11);
-    r05_splice_evar(p[17], p+9);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Names: 7 */
-    /* e.Units: 9 */
-    /* t.SrcPos: 11 */
-    /* e.Text: 13 */
-    struct r05_node *p[24] = { 0 };
-    /* (e.Names) e.Units (SpecialComment t.SrcPos e.Text) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_right(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_SpecialComment))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    r05_close_evar(p+9, p[3], p[4]);
-    if (! r05_tvar_left(p+11, p[6], p[5]))
-      continue;
-    r05_close_evar(p+13, p[12], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_GetFunctionNames);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_bracket(p+18);
-    r05_alloc_insert_pos(p+19);
-    r05_alloc_close_call(p+20);
-    r05_alloc_open_bracket(p+21);
-    r05_alloc_function(&r05f_SpecialComment);
-    r05_alloc_insert_pos(p+22);
-    r05_alloc_close_bracket(p+23);
-    r05_link_brackets(p[21], p[23]);
-    r05_correct_evar(p+13);
-    r05_push_stack(p[20]);
-    r05_push_stack(p[15]);
-    r05_correct_evar(p+9);
-    r05_link_brackets(p[16], p[18]);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[17], p+7);
-    r05_splice_evar(p[19], p+9);
-    r05_splice_tvar(p[22], p+11);
-    r05_splice_evar(p[22], p+13);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Names: 4 */
-    struct r05_node *p[9] = { 0 };
-    /* (e.Names) */
+    /* s.No: 4 */
+    /* s.Name: 5 */
+    /* s.Type: 6 */
+    struct r05_node *p[11] = { 0 };
+    /* (s.No s.Name s.Type) */
     p[0] = arg_begin->next;
     p[1] = arg_end;
     if (! r05_brackets_left(p+2, p[0], p[1]))
       continue;
     if (! r05_empty_hole(p[3], p[1]))
       continue;
-    r05_close_evar(p+4, p[2], p[3]);
+    if (! r05_svar_left(p+4, p[2], p[3]))
+      continue;
+    if (! r05_svar_left(p+5, p[4], p[3]))
+      continue;
+    if (! r05_svar_left(p+6, p[5], p[3]))
+      continue;
+    if (! r05_empty_hole(p[6], p[3]))
+      continue;
 
     r05_reset_allocator();
-    r05_alloc_open_bracket(p+6);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_close_bracket(p+8);
-    r05_link_brackets(p[6], p[8]);
-    r05_correct_evar(p+4);
-    r05_splice_evar(p[7], p+4);
+    r05_alloc_open_bracket(p+7);
+    r05_alloc_open_call(p+8);
+    r05_alloc_function(&r05f_Explode);
+    r05_alloc_svar(p+5);
+    r05_alloc_close_call(p+9);
+    r05_alloc_close_bracket(p+10);
+    r05_link_brackets(p[7], p[10]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[8]);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -444,7 +300,158 @@ R05_DEFINE_LOCAL_FUNCTION(GetFunctionNames, "GetFunctionNames") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(refal5m_transformeru_RemovePos, "refal5-transformer_RemovePos") {
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_GetFunctionName, "r5fw-transformer_GetFunctionName") {
+  r05_this_is_generated_function();
+
+  do {
+    /* e.Names: 7 */
+    /* t.SrcPos: 9 */
+    /* e.Name: 13 */
+    /* s.Scope: 15 */
+    /* e.Sentences: 16 */
+    struct r05_node *p[30] = { 0 };
+    /* (e.Names) (Function t.SrcPos (e.Name) s.Scope e.Sentences) */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_function_left(p+6, p[4], p[5], &r05f_Function))
+      continue;
+    if (! r05_empty_hole(p[5], p[1]))
+      continue;
+    r05_close_evar(p+7, p[2], p[3]);
+    if (! r05_tvar_left(p+9, p[6], p[5]))
+      continue;
+    if (! r05_brackets_left(p+11, p[10], p[5]))
+      continue;
+    r05_close_evar(p+13, p[11], p[12]);
+    if (! r05_svar_left(p+15, p[12], p[5]))
+      continue;
+    r05_close_evar(p+16, p[15], p[5]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+18);
+    r05_alloc_insert_pos(p+19);
+    r05_alloc_open_bracket(p+20);
+    r05_alloc_insert_pos(p+21);
+    r05_alloc_close_bracket(p+22);
+    r05_alloc_close_bracket(p+23);
+    r05_alloc_open_bracket(p+24);
+    r05_alloc_function(&r05f_Function);
+    r05_alloc_insert_pos(p+25);
+    r05_alloc_open_bracket(p+26);
+    r05_alloc_evar(p+13);
+    r05_alloc_close_bracket(p+27);
+    r05_alloc_svar(p+15);
+    r05_alloc_insert_pos(p+28);
+    r05_alloc_close_bracket(p+29);
+    r05_link_brackets(p[24], p[29]);
+    r05_correct_evar(p+16);
+    r05_link_brackets(p[26], p[27]);
+    r05_link_brackets(p[18], p[23]);
+    r05_link_brackets(p[20], p[22]);
+    r05_correct_evar(p+13);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[19], p+7);
+    r05_splice_evar(p[21], p+13);
+    r05_splice_tvar(p[25], p+9);
+    r05_splice_evar(p[28], p+16);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Names: 7 */
+    /* e.ExternalNames: 9 */
+    struct r05_node *p[19] = { 0 };
+    /* (e.Names) (Extern e.ExternalNames) */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_function_left(p+6, p[4], p[5], &r05f_Extern))
+      continue;
+    if (! r05_empty_hole(p[5], p[1]))
+      continue;
+    r05_close_evar(p+7, p[2], p[3]);
+    r05_close_evar(p+9, p[6], p[5]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+11);
+    r05_alloc_insert_pos(p+12);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Map);
+    r05_alloc_function(&r05f_r5fwm_transformeru_RemovePos);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_alloc_close_bracket(p+16);
+    r05_alloc_open_bracket(p+17);
+    r05_alloc_function(&r05f_Extern);
+    r05_alloc_evar(p+9);
+    r05_alloc_close_bracket(p+18);
+    r05_link_brackets(p[17], p[18]);
+    r05_link_brackets(p[11], p[16]);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_correct_evar(p+9);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[12], p+7);
+    r05_splice_evar(p[14], p+9);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  do {
+    /* e.Names: 7 */
+    /* t.SrcPos: 9 */
+    /* e.Text: 11 */
+    struct r05_node *p[19] = { 0 };
+    /* (e.Names) (SpecialComment t.SrcPos e.Text) */
+    p[0] = arg_begin->next;
+    p[1] = arg_end;
+    if (! r05_brackets_left(p+2, p[0], p[1]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[1]))
+      continue;
+    if (! r05_function_left(p+6, p[4], p[5], &r05f_SpecialComment))
+      continue;
+    if (! r05_empty_hole(p[5], p[1]))
+      continue;
+    r05_close_evar(p+7, p[2], p[3]);
+    if (! r05_tvar_left(p+9, p[6], p[5]))
+      continue;
+    r05_close_evar(p+11, p[10], p[5]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+13);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_bracket(p+15);
+    r05_alloc_open_bracket(p+16);
+    r05_alloc_function(&r05f_SpecialComment);
+    r05_alloc_insert_pos(p+17);
+    r05_alloc_close_bracket(p+18);
+    r05_link_brackets(p[16], p[18]);
+    r05_correct_evar(p+11);
+    r05_link_brackets(p[13], p[15]);
+    r05_correct_evar(p+7);
+    r05_splice_evar(p[14], p+7);
+    r05_splice_tvar(p[17], p+9);
+    r05_splice_evar(p[17], p+11);
+    r05_splice_from_freelist(arg_begin);
+    r05_splice_to_freelist(arg_begin, arg_end);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_RemovePos, "r5fw-transformer_RemovePos") {
   r05_this_is_generated_function();
 
   do {
@@ -1999,7 +2006,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoUnBlocku_check1, "DoUnBlock_check1") {
     r05_alloc_open_call(p+97);
     r05_alloc_function(&r05f_Map);
     r05_alloc_open_bracket(p+98);
-    r05_alloc_function(&r05f_transformeru_AddScopeVars);
+    r05_alloc_function(&r05f_r5fwm_transformeru_AddScopeVars);
     r05_alloc_evar(p+61);
     r05_alloc_close_bracket(p+99);
     r05_alloc_insert_pos(p+100);
@@ -2682,7 +2689,7 @@ R05_DEFINE_LOCAL_FUNCTION(BlockScopeVars, "BlockScopeVars") {
     r05_reset_allocator();
     r05_alloc_open_call(p+8);
     r05_alloc_function(&r05f_Map);
-    r05_alloc_function(&r05f_transformeru_MakeVariables);
+    r05_alloc_function(&r05f_r5fwm_transformeru_MakeVariables);
     r05_alloc_open_call(p+9);
     r05_alloc_function(&r05f_ExtractVariables);
     r05_alloc_open_bracket(p+10);
@@ -2715,7 +2722,7 @@ R05_DEFINE_LOCAL_FUNCTION(BlockScopeVars, "BlockScopeVars") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(transformeru_MakeVariables, "transformer_MakeVariables") {
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_MakeVariables, "r5fw-transformer_MakeVariables") {
   r05_this_is_generated_function();
 
   do {
@@ -2784,7 +2791,7 @@ R05_DEFINE_ENTRY_FUNCTION(transformeru_MakeVariables, "transformer_MakeVariables
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(transformeru_AddScopeVars, "transformer_AddScopeVars") {
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_AddScopeVars, "r5fw-transformer_AddScopeVars") {
   r05_this_is_generated_function();
 
   do {
@@ -5353,7 +5360,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoPatternSteps0u_cont0, "DoPatternSteps0_cont0") {
       r05_alloc_open_bracket(p+46);
       r05_alloc_open_call(p+47);
       r05_alloc_function(&r05f_Map);
-      r05_alloc_function(&r05f_transformeru_BindBrackets);
+      r05_alloc_function(&r05f_r5fwm_transformeru_BindBrackets);
       r05_alloc_open_call(p+48);
       r05_alloc_function(&r05f_T1);
       r05_alloc_tvar(p+2);
@@ -5465,7 +5472,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoPatternSteps0u_cont0, "DoPatternSteps0_cont0") {
     r05_reset_allocator();
     r05_alloc_open_bracket(p+14);
     r05_alloc_open_call(p+15);
-    r05_alloc_function(&r05f_transformeru_BindBrackets);
+    r05_alloc_function(&r05f_r5fwm_transformeru_BindBrackets);
     r05_alloc_open_call(p+16);
     r05_alloc_function(&r05f_T0);
     r05_alloc_insert_pos(p+17);
@@ -5679,7 +5686,7 @@ R05_DEFINE_LOCAL_FUNCTION(HardItem, "HardItem") {
   r05_recognition_impossible();
 }
 
-R05_DEFINE_ENTRY_FUNCTION(transformeru_BindBrackets, "transformer_BindBrackets") {
+R05_DEFINE_ENTRY_FUNCTION(r5fwm_transformeru_BindBrackets, "r5fw-transformer_BindBrackets") {
   r05_this_is_generated_function();
 
   do {
@@ -14647,11 +14654,11 @@ static struct r05_function *metatable_entries[] = {
   &r05f_DelAccumulator,
   &r05f_Map,
   &r05f_Unique,
-  &r05f_Builtins,
   &r05f_Transform,
   &r05f_Transformm_Step,
-  &r05f_GetFunctionNames,
-  &r05f_refal5m_transformeru_RemovePos,
+  &r05f_r5fwm_transformeru_BuiltinName,
+  &r05f_r5fwm_transformeru_GetFunctionName,
+  &r05f_r5fwm_transformeru_RemovePos,
   &r05f_r5fwm_transformeru_TransformUnit,
   &r05f_UnBlock,
   &r05f_DoUnBlock,
@@ -14659,8 +14666,8 @@ static struct r05_function *metatable_entries[] = {
   &r05f_WithBlock,
   &r05f_DoWithBlock,
   &r05f_BlockScopeVars,
-  &r05f_transformeru_MakeVariables,
-  &r05f_transformeru_AddScopeVars,
+  &r05f_r5fwm_transformeru_MakeVariables,
+  &r05f_r5fwm_transformeru_AddScopeVars,
   &r05f_UnCondition,
   &r05f_DoUnCondition,
   &r05f_DoUnConditionm_ConditionSentence,
@@ -14673,7 +14680,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_PatternSteps,
   &r05f_DoPatternSteps,
   &r05f_HardItem,
-  &r05f_transformeru_BindBrackets,
+  &r05f_r5fwm_transformeru_BindBrackets,
   &r05f_DoBindBrackets,
   &r05f_T1,
   &r05f_PassiveHoles,

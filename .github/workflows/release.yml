@@ -61,10 +61,7 @@ jobs:
     - name: Rebuild the compiler with release flags
       run: |
         gcc -O2 -s -static -I./lib -o bin/refal05c \
-          bootstrap/main.c bootstrap/generator.c bootstrap/parser.c \
-          bootstrap/R5FW-Parser-Defs.c bootstrap/R5FW-Plainer.c bootstrap/Platform.c \
-          bootstrap/LibraryEx.c bootstrap/R5FW-Parser.c bootstrap/R5FW-Transformer.c \
-          lib/refal05bif.c lib/refal05rts.c
+          bootstrap/*.c lib/refal05bif.c lib/refal05rts.c
         file bin/refal05c
         ls -l bin/refal05c
 
