@@ -202,6 +202,20 @@ If upstream renamed or split modules, update the module lists in `src/standalone
 Verify the result by reaching a **fixpoint**: regenerate the C, rebuild, regenerate again, and require the second and third generations to be byte-identical.
 A successful build alone does not prove the update took.
 
+### Upstream-sync PRs must be merged as merge commits
+
+The whole point of a sync PR is the second parent: it records the upstream commit as an ancestor of `master`, which is what makes the next `git merge upstream/master` a no-op instead of a re-resolution of everything already settled.
+
+Squash and rebase both destroy that, silently and irreversibly once `master` moves:
+
+- **Squash** collapses the merge into a single-parent commit. The merge base falls back to the previous sync point, 64 upstream commits keep looking unmerged, and `Makefile`, `autotests/run.sh` and `autotests/run.cmd` conflict again on every future update, forever. Upstream's authorship is collapsed into yours, and the release tag can no longer be checked against the history.
+- **Rebase** replays all upstream commits onto `master` one by one and fails almost immediately on the README.
+
+The repository is configured to allow only merge commits (`allow_squash_merge` and `allow_rebase_merge` are off), and `master` is protected: pull requests only, both CI jobs required, no force pushes or deletions, enforced for admins.
+If those settings are ever loosened, this rule still stands.
+
+Note that `required_linear_history` must stay **off** - it would forbid the merge commits this workflow depends on.
+
 ### Automated weekly sync
 
 `.github/workflows/upstream-sync.yml` runs every Monday at 04:17 UTC, and on demand via `workflow_dispatch`.
