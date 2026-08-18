@@ -230,9 +230,16 @@ The workflow deliberately **fails** rather than improvising in the two cases aut
 Both cases surface as a failed workflow run, which is what GitHub emails about.
 That mail is the only alerting in place, so do not mute Actions notifications for this repository.
 
-The workflow needs a fine-grained PAT in the repository secret `SYNC_TOKEN`, with **Contents: read and write** and **Pull requests: read and write** on this repository.
+The workflow needs a fine-grained PAT with **Contents: read and write** and **Pull requests: read and write** on this repository, stored as the secret `SYNC_TOKEN` in the **`upstream-sync` environment** - not as a repository secret.
 The default `GITHUB_TOKEN` cannot be used: pull requests opened with it do not trigger workflows, so the required checks would never run and the pull request could never merge.
 The workflow checks for the secret first and fails with an explanatory message if it is missing.
+
+The environment is restricted to the `master` branch, so the token is only readable by jobs running there.
+This matters because a repository secret is readable by any workflow on any branch, and only `master` is protected - a workflow file pushed to a throwaway branch could otherwise read a token that has write access to contents and pull requests.
+Scheduled workflows always run on the default branch, so the restriction costs the automation nothing; the one consequence is that a manual `workflow_dispatch` must be started from `master` or the secret will not resolve.
+
+The job declares `environment: upstream-sync`, and it must keep doing so.
+Without that key the environment secret is invisible to the job, and the run fails at the guard step as if the token had never been created.
 
 Every `gh` call in the workflow passes `--repo "$GITHUB_REPOSITORY"` explicitly.
 This is not decoration: the workflow adds an `upstream` remote, and `gh` then resolves a bare command in that checkout to `Mazdaywik/Refal-05` rather than to this fork.

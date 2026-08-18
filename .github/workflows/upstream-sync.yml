@@ -11,6 +11,7 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    environment: upstream-sync
 
     env:
       GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
