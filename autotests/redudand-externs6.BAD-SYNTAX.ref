@@ -1,3 +1,0 @@
-$ENTRY GO { = <Prout 'Hello!'> }
-
-Prout { e.X = e.X }

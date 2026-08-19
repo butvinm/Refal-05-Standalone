@@ -1,3 +1,6 @@
 [submodule "refal-5-framework"]
 	path = refal-5-framework
 	url = https://github.com/Mazdaywik/refal-5-framework
+[submodule "refal-05"]
+	path = refal-05
+	url = https://github.com/Mazdaywik/Refal-05

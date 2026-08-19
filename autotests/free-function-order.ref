@@ -1,7 +1,0 @@
-$ENTRY GO {
-  = <Hello World>;
-}
-
-Hello {
-  World = ;
-}

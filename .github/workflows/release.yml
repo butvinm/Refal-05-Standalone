@@ -21,7 +21,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        submodules: recursive
 
     - name: Pick the tag
       id: pick
@@ -29,9 +29,7 @@ jobs:
         if [ -n "${{ inputs.tag }}" ]; then
           TAG="${{ inputs.tag }}"
         else
-          git remote add upstream https://github.com/Mazdaywik/Refal-05.git
-          git fetch --quiet upstream master
-          TAG=$(git merge-base HEAD upstream/master | cut -c1-7)
+          TAG=$(git -C refal-05 rev-parse --short HEAD)
         fi
         echo "Tag to publish: $TAG"
         if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -57,8 +55,8 @@ jobs:
 
     - name: Rebuild the compiler with release flags
       run: |
-        gcc -O2 -s -static -I./lib -o bin/refal05c \
-          bootstrap/*.c lib/refal05bif.c lib/refal05rts.c
+        gcc -O2 -s -static -Irefal-05/lib -o bin/refal05c \
+          bootstrap/*.c refal-05/lib/refal05bif.c refal-05/lib/refal05rts.c
         file bin/refal05c
         ls -l bin/refal05c
 
