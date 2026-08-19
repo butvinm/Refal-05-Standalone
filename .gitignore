@@ -1,5 +1,6 @@
 bin
-src/cfiles
-src/rsl
 c-plus-plus.conf.cmd
 c-plus-plus.conf.sh
+*.c
+!bootstrap/*.c
+.testrun

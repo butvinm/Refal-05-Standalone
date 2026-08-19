@@ -1,7 +1,0 @@
-$ENTRY GO {
-  = <Used>;
-}
-
-Unused { = }
-
-Used { = }

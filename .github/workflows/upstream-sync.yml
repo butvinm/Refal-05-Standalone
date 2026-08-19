@@ -9,13 +9,14 @@ permissions:
   contents: read
 
 jobs:
-  sync:
+  sync-compiler:
     runs-on: ubuntu-latest
     environment: upstream-sync
 
     env:
       GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
-      UPSTREAM: https://github.com/Mazdaywik/Refal-05.git
+      SUBMODULE: refal-05
+      PREFIX: compiler-sync
 
     steps:
     - name: Check that the sync token is present
@@ -37,77 +38,56 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-    - name: Fetch upstream
-      run: |
-        git remote add upstream "$UPSTREAM"
-        git fetch upstream master
-
-    - name: Decide whether there is anything to sync
+    - name: Decide whether the submodule moved
       id: decide
       run: |
-        NEW=$(git rev-list --count HEAD..upstream/master)
-        echo "New upstream commits: $NEW"
-        if [ "$NEW" -eq 0 ]; then
+        git submodule update --remote --quiet "$SUBMODULE"
+        if git diff --quiet -- "$SUBMODULE"; then
           echo "proceed=false" >> "$GITHUB_OUTPUT"
-          echo "Already in sync with upstream, nothing to do"
+          echo "$SUBMODULE is already at its latest commit, nothing to do"
           exit 0
         fi
         ALREADY_OPEN=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
-          --json headRefName --jq '[.[] | select(.headRefName | startswith("upstream-sync/"))] | length')
+          --json headRefName --jq "[.[] | select(.headRefName | startswith(\"$PREFIX/\"))] | length")
         if [ "$ALREADY_OPEN" -ne 0 ]; then
           echo "proceed=false" >> "$GITHUB_OUTPUT"
-          echo "A sync pull request is already open, not opening another one"
+          echo "A $PREFIX pull request is already open, not opening another one"
           exit 0
         fi
         echo "proceed=true" >> "$GITHUB_OUTPUT"
-        echo "sha=$(git rev-parse --short upstream/master)" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git -C "$SUBMODULE" rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
-    - name: Merge upstream
+    - name: Bootstrap against the new revision
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        git checkout -b "upstream-sync/${{ steps.decide.outputs.sha }}"
-        if ! git merge --no-edit upstream/master; then
-          git merge --abort
-          echo "::error::Merge with upstream conflicts and needs a human. Resolve by ownership: take upstream's version for every upstream-owned file, keep ours for the fork-owned list in CLAUDE.md."
-          exit 1
-        fi
-
-    - name: Bootstrap and regenerate artifacts
-      if: steps.decide.outputs.proceed == 'true'
-      run: |
-        cp lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
+        cp refal-05/lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
         if ! make bin/refal05c; then
-          echo "::error::Bootstrap failed after merging upstream. If upstream renamed or split modules, update the module lists in src/standalone-bootstrap.sh and src/standalone-bootstrap.cmd, then bootstrap by hand."
+          echo "::error::Bootstrap failed against the new $SUBMODULE revision. Usually upstream renamed or split modules, so the module lists in src/standalone-bootstrap.sh and src/standalone-bootstrap.cmd need updating by hand."
           exit 1
         fi
 
-    - name: Commit regenerated artifacts
+    - name: Commit the bump and the regenerated artifacts
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        if git diff --quiet -- bootstrap; then
-          echo "Regenerated artifacts are identical to the committed ones"
-        else
-          git add bootstrap
-          git commit -m "Перегенерированы артефакты bootstrap/ после слияния с апстримом"
-        fi
+        git checkout -b "$PREFIX/${{ steps.decide.outputs.sha }}"
+        git add "$SUBMODULE" bootstrap
+        git commit -m "Компилятор поднят до ${{ steps.decide.outputs.sha }}, артефакты bootstrap/ перегенерированы"
 
     - name: Push and open a pull request
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        BRANCH="upstream-sync/${{ steps.decide.outputs.sha }}"
+        BRANCH="$PREFIX/${{ steps.decide.outputs.sha }}"
         git push -u origin "$BRANCH"
-        cat > /tmp/pr-body.md <<'BODY'
-        Автоматическое обновление из [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
+        cat > /tmp/body.md <<'BODY'
+        Автоматическое обновление компилятора [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
 
-        Слияние прошло без конфликтов, раскрутка выполнена, артефакты `bootstrap/` перегенерированы.
+        Раскрутка против новой ревизии прошла, артефакты `bootstrap/` перегенерированы.
 
         PR будет влит автоматически, когда пройдут обе проверки CI, включая проверку неподвижной точки.
-        Если проверки упадут, PR останется висеть, и о падении придёт письмо от GitHub.
         BODY
-        sed -i 's/^        //' /tmp/pr-body.md
         gh pr create --repo "$GITHUB_REPOSITORY" --base master --head "$BRANCH" \
-          --title "Актуализация форка до upstream ${{ steps.decide.outputs.sha }}" \
-          --body-file /tmp/pr-body.md
+          --title "Компилятор поднят до ${{ steps.decide.outputs.sha }}" \
+          --body-file /tmp/body.md
         gh pr merge --repo "$GITHUB_REPOSITORY" "$BRANCH" --auto --merge
 
   sync-framework:
@@ -116,6 +96,8 @@ jobs:
 
     env:
       GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+      SUBMODULE: refal-5-framework
+      PREFIX: framework-sync
 
     steps:
     - name: Check that the sync token is present
@@ -137,48 +119,47 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-    - name: Decide whether the framework moved
+    - name: Decide whether the submodule moved
       id: decide
       run: |
-        git submodule update --remote --quiet refal-5-framework
-        if git diff --quiet -- refal-5-framework; then
+        git submodule update --remote --quiet "$SUBMODULE"
+        if git diff --quiet -- "$SUBMODULE"; then
           echo "proceed=false" >> "$GITHUB_OUTPUT"
-          echo "Framework is already at its latest commit, nothing to do"
+          echo "$SUBMODULE is already at its latest commit, nothing to do"
           exit 0
         fi
         ALREADY_OPEN=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
-          --json headRefName --jq '[.[] | select(.headRefName | startswith("framework-sync/"))] | length')
+          --json headRefName --jq "[.[] | select(.headRefName | startswith(\"$PREFIX/\"))] | length")
         if [ "$ALREADY_OPEN" -ne 0 ]; then
           echo "proceed=false" >> "$GITHUB_OUTPUT"
-          echo "A framework sync pull request is already open, not opening another one"
+          echo "A $PREFIX pull request is already open, not opening another one"
           exit 0
         fi
         echo "proceed=true" >> "$GITHUB_OUTPUT"
-        echo "sha=$(git -C refal-5-framework rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-        echo "Framework moved to $(git -C refal-5-framework rev-parse --short HEAD)"
+        echo "sha=$(git -C "$SUBMODULE" rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
-    - name: Bootstrap against the new framework
+    - name: Bootstrap against the new revision
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        cp lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
+        cp refal-05/lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
         if ! make bin/refal05c; then
-          echo "::error::Bootstrap failed against the new framework revision. The framework changed something the compiler relies on; this needs a human."
+          echo "::error::Bootstrap failed against the new $SUBMODULE revision. The framework changed something the compiler relies on; this needs a human."
           exit 1
         fi
 
     - name: Commit the bump and the regenerated artifacts
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        git checkout -b "framework-sync/${{ steps.decide.outputs.sha }}"
-        git add refal-5-framework bootstrap
+        git checkout -b "$PREFIX/${{ steps.decide.outputs.sha }}"
+        git add "$SUBMODULE" bootstrap
         git commit -m "Фреймворк поднят до ${{ steps.decide.outputs.sha }}, артефакты bootstrap/ перегенерированы"
 
     - name: Push and open a pull request
       if: steps.decide.outputs.proceed == 'true'
       run: |
-        BRANCH="framework-sync/${{ steps.decide.outputs.sha }}"
+        BRANCH="$PREFIX/${{ steps.decide.outputs.sha }}"
         git push -u origin "$BRANCH"
-        cat > /tmp/fw-body.md <<'BODY'
+        cat > /tmp/body.md <<'BODY'
         Автоматическое обновление [Рефал-5-фреймворка](https://github.com/Mazdaywik/refal-5-framework).
 
         Раскрутка против новой ревизии прошла, артефакты `bootstrap/` перегенерированы.
@@ -187,5 +168,5 @@ jobs:
         BODY
         gh pr create --repo "$GITHUB_REPOSITORY" --base master --head "$BRANCH" \
           --title "Фреймворк поднят до ${{ steps.decide.outputs.sha }}" \
-          --body-file /tmp/fw-body.md
+          --body-file /tmp/body.md
         gh pr merge --repo "$GITHUB_REPOSITORY" "$BRANCH" --auto --merge
