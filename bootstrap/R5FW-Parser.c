@@ -231,9 +231,6 @@ R05_DEFINE_LOCAL_ENUM(Number, "Number")
 R05_DEFINE_LOCAL_ENUM(Char, "Char")
 R05_DEFINE_LOCAL_ENUM(Symbol, "Symbol")
 
-/*
-*$FROM LibraryEx
-*/
 R05_DEFINE_ENTRY_FUNCTION(TokName, "TokName") {
   r05_this_is_generated_function();
 

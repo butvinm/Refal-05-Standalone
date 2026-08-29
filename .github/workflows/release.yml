@@ -61,7 +61,7 @@ jobs:
         ls -l bin/refal05c
 
     - name: Test the release binary
-      run: ./autotests/run.sh
+      run: ./scripts/autotests.sh
 
     - name: Upload the release binary
       uses: actions/upload-artifact@v4
@@ -101,7 +101,7 @@ jobs:
         )
         call "%VCVARS%"
         if errorlevel 1 exit /b 1
-        src\standalone-bootstrap.cmd
+        scripts\bootstrap.cmd
 
     - name: Upload the release binary
       uses: actions/upload-artifact@v4

@@ -13,7 +13,6 @@ R05_DECLARE_LOCAL_FUNCTION(Generatem_ToLines)
 R05_DECLARE_LOCAL_FUNCTION(Generatem_Items)
 R05_DECLARE_LOCAL_FUNCTION(R05m_Generatem_Combine)
 R05_DECLARE_ENTRY_FUNCTION(generatoru_GenTreeItem)
-R05_DECLARE_LOCAL_FUNCTION(SafeSpecialComment)
 R05_DECLARE_ENTRY_FUNCTION(generatoru_MetatableName)
 R05_DECLARE_ENTRY_FUNCTION(generatoru_GenExtern)
 R05_DECLARE_LOCAL_FUNCTION(Scope)
@@ -140,7 +139,6 @@ R05_DEFINE_LOCAL_ENUM(in, "in")
 R05_DEFINE_LOCAL_ENUM(Local, "Local")
 R05_DEFINE_LOCAL_ENUM(Meta, "Meta")
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
-R05_DEFINE_LOCAL_ENUM(SpecialComment, "SpecialComment")
 R05_DEFINE_LOCAL_ENUM(Metatable, "Metatable")
 R05_DEFINE_LOCAL_ENUM(Entry, "Entry")
 R05_DEFINE_LOCAL_ENUM(e, "e")
@@ -163,15 +161,6 @@ R05_DEFINE_LOCAL_ENUM(Call, "Call")
 R05_DEFINE_LOCAL_ENUM(TkCloseBracket, "TkCloseBracket")
 R05_DEFINE_LOCAL_ENUM(TkCloseCall, "TkCloseCall")
 
-/*
-*$FROM LibraryEx
-*/
-/*
-*$FROM R5FW-Plainer
-*/
-/*
-*$FROM R5FW-Transformer
-*/
 R05_DEFINE_ENTRY_FUNCTION(Generatem_ToFile, "Generate-ToFile") {
   r05_this_is_generated_function();
 
@@ -551,58 +540,6 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
 
   do {
     /* e.Declarations: 7 */
-    /* t.SrcPos: 9 */
-    /* e.Text: 11 */
-    struct r05_node *p[25] = { 0 };
-    /* (e.Declarations) (SpecialComment t.SrcPos e.Text) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_SpecialComment))
-      continue;
-    if (! r05_empty_hole(p[5], p[1]))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    if (! r05_tvar_left(p+9, p[6], p[5]))
-      continue;
-    r05_close_evar(p+11, p[10], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_chars("/*", 2);
-    r05_alloc_close_bracket(p+17);
-    r05_alloc_open_bracket(p+18);
-    r05_alloc_open_call(p+19);
-    r05_alloc_function(&r05f_SafeSpecialComment);
-    r05_alloc_insert_pos(p+20);
-    r05_alloc_close_call(p+21);
-    r05_alloc_close_bracket(p+22);
-    r05_alloc_open_bracket(p+23);
-    r05_alloc_chars("*/", 2);
-    r05_alloc_close_bracket(p+24);
-    r05_link_brackets(p[23], p[24]);
-    r05_link_brackets(p[18], p[22]);
-    r05_push_stack(p[21]);
-    r05_push_stack(p[19]);
-    r05_correct_evar(p+11);
-    r05_link_brackets(p[16], p[17]);
-    r05_link_brackets(p[13], p[15]);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[14], p+7);
-    r05_splice_evar(p[20], p+11);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Declarations: 7 */
     /* e.Names: 9 */
     struct r05_node *p[33] = { 0 };
     /* (e.Declarations) (Metatable e.Names) */
@@ -665,131 +602,6 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
     r05_correct_evar(p+7);
     r05_splice_evar(p[12], p+7);
     r05_splice_evar(p[17], p+9);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  r05_recognition_impossible();
-}
-
-R05_DEFINE_LOCAL_FUNCTION(SafeSpecialComment, "SafeSpecialComment") {
-  r05_this_is_generated_function();
-
-  do {
-    /* e.Comment: 3 */
-    struct r05_node *p[8] = { 0 };
-    /* '!' e.Comment */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_char_left(p+2, p[0], p[1], '!'))
-      continue;
-    r05_close_evar(p+3, p[2], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_chars("!!", 2);
-    r05_alloc_open_call(p+5);
-    r05_alloc_function(&r05f_SafeSpecialComment);
-    r05_alloc_insert_pos(p+6);
-    r05_alloc_close_call(p+7);
-    r05_push_stack(p[7]);
-    r05_push_stack(p[5]);
-    r05_correct_evar(p+3);
-    r05_splice_evar(p[6], p+3);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Comment: 4 */
-    struct r05_node *p[9] = { 0 };
-    /* '/' '*' e.Comment */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_char_left(p+2, p[0], p[1], '/'))
-      continue;
-    if (! r05_char_left(p+3, p[2], p[1], '*'))
-      continue;
-    r05_close_evar(p+4, p[3], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_chars("/!*", 3);
-    r05_alloc_open_call(p+6);
-    r05_alloc_function(&r05f_SafeSpecialComment);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_close_call(p+8);
-    r05_push_stack(p[8]);
-    r05_push_stack(p[6]);
-    r05_correct_evar(p+4);
-    r05_splice_evar(p[7], p+4);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Comment: 4 */
-    struct r05_node *p[9] = { 0 };
-    /* '*' '/' e.Comment */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_char_left(p+2, p[0], p[1], '*'))
-      continue;
-    if (! r05_char_left(p+3, p[2], p[1], '/'))
-      continue;
-    r05_close_evar(p+4, p[3], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_chars("*!/", 3);
-    r05_alloc_open_call(p+6);
-    r05_alloc_function(&r05f_SafeSpecialComment);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_close_call(p+8);
-    r05_push_stack(p[8]);
-    r05_push_stack(p[6]);
-    r05_correct_evar(p+4);
-    r05_splice_evar(p[7], p+4);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* s.Other: 2 */
-    /* e.Comment: 3 */
-    struct r05_node *p[8] = { 0 };
-    /* s.Other e.Comment */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_svar_left(p+2, p[0], p[1]))
-      continue;
-    r05_close_evar(p+3, p[2], p[1]);
-
-    r05_reset_allocator();
-    r05_alloc_svar(p+2);
-    r05_alloc_open_call(p+5);
-    r05_alloc_function(&r05f_SafeSpecialComment);
-    r05_alloc_insert_pos(p+6);
-    r05_alloc_close_call(p+7);
-    r05_push_stack(p[7]);
-    r05_push_stack(p[5]);
-    r05_correct_evar(p+3);
-    r05_splice_evar(p[6], p+3);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    struct r05_node *p[2] = { 0 };
-    /*  */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_empty_hole(p[0], p[1]))
-      continue;
-
-    r05_reset_allocator();
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -13076,7 +12888,6 @@ static struct r05_function *metatable_entries[] = {
   &r05f_Generatem_Items,
   &r05f_R05m_Generatem_Combine,
   &r05f_generatoru_GenTreeItem,
-  &r05f_SafeSpecialComment,
   &r05f_generatoru_MetatableName,
   &r05f_generatoru_GenExtern,
   &r05f_Scope,

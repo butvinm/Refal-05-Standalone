@@ -161,9 +161,6 @@ R05_DEFINE_LOCAL_ENUM(HOLE, "HOLE")
 R05_DEFINE_LOCAL_ENUM(True, "True")
 R05_DEFINE_LOCAL_ENUM(False, "False")
 
-/*
-*$FROM LibraryEx
-*/
 R05_DEFINE_ENTRY_FUNCTION(Transform, "Transform") {
   r05_this_is_generated_function();
 

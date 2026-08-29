@@ -87,12 +87,6 @@ R05_DEFINE_LOCAL_ENUM(CALLm_BLOCK, "CALL-BLOCK")
 R05_DEFINE_LOCAL_ENUM(regular, "regular")
 R05_DEFINE_LOCAL_ENUM(k3F_, "?")
 
-/*
-*$FROM LibraryEx
-*/
-/*
-*$FROM R5FW-Parser
-*/
 R05_DEFINE_LOCAL_FUNCTION(CheckAST, "CheckAST") {
   r05_this_is_generated_function();
 
@@ -348,7 +342,7 @@ R05_DEFINE_ENTRY_FUNCTION(parseru_PlainExterns, "parser_PlainExterns") {
   do {
     /* t.Pos: 5 */
     /* e.Text: 7 */
-    struct r05_node *p[12] = { 0 };
+    struct r05_node *p[9] = { 0 };
     /* (SpecialComment t.Pos e.Text) */
     p[0] = arg_begin->next;
     p[1] = arg_end;
@@ -363,14 +357,6 @@ R05_DEFINE_ENTRY_FUNCTION(parseru_PlainExterns, "parser_PlainExterns") {
     r05_close_evar(p+7, p[6], p[3]);
 
     r05_reset_allocator();
-    r05_alloc_open_bracket(p+9);
-    r05_alloc_function(&r05f_SpecialComment);
-    r05_alloc_insert_pos(p+10);
-    r05_alloc_close_bracket(p+11);
-    r05_link_brackets(p[9], p[11]);
-    r05_correct_evar(p+7);
-    r05_splice_tvar(p[10], p+5);
-    r05_splice_evar(p[10], p+7);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -586,47 +572,6 @@ R05_DEFINE_ENTRY_FUNCTION(parseru_FindUnusedm_InitialUsage, "parser_FindUnused-I
     r05_splice_tvar(p[22], p+9);
     r05_splice_evar(p[24], p+13);
     r05_splice_evar(p[26], p+16);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* e.Entries: 7 */
-    /* t.Pos: 9 */
-    /* e.Comment: 11 */
-    struct r05_node *p[19] = { 0 };
-    /* (e.Entries) (SpecialComment t.Pos e.Comment) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_SpecialComment))
-      continue;
-    if (! r05_empty_hole(p[5], p[1]))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    if (! r05_tvar_left(p+9, p[6], p[5]))
-      continue;
-    r05_close_evar(p+11, p[10], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_function(&r05f_SpecialComment);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_bracket(p+18);
-    r05_link_brackets(p[16], p[18]);
-    r05_correct_evar(p+11);
-    r05_link_brackets(p[13], p[15]);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[14], p+7);
-    r05_splice_tvar(p[17], p+9);
-    r05_splice_evar(p[17], p+11);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;
@@ -3109,47 +3054,6 @@ R05_DEFINE_ENTRY_FUNCTION(parseru_AddMetatablem_AddFunction, "parser_AddMetatabl
     return;
   } while (0);
 
-  do {
-    /* e.AllFunctions: 7 */
-    /* t.Pos: 9 */
-    /* e.Comment: 11 */
-    struct r05_node *p[19] = { 0 };
-    /* (e.AllFunctions) (SpecialComment t.Pos e.Comment) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_brackets_left(p+4, p[3], p[1]))
-      continue;
-    if (! r05_function_left(p+6, p[4], p[5], &r05f_SpecialComment))
-      continue;
-    if (! r05_empty_hole(p[5], p[1]))
-      continue;
-    r05_close_evar(p+7, p[2], p[3]);
-    if (! r05_tvar_left(p+9, p[6], p[5]))
-      continue;
-    r05_close_evar(p+11, p[10], p[5]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+13);
-    r05_alloc_insert_pos(p+14);
-    r05_alloc_close_bracket(p+15);
-    r05_alloc_open_bracket(p+16);
-    r05_alloc_function(&r05f_SpecialComment);
-    r05_alloc_insert_pos(p+17);
-    r05_alloc_close_bracket(p+18);
-    r05_link_brackets(p[16], p[18]);
-    r05_correct_evar(p+11);
-    r05_link_brackets(p[13], p[15]);
-    r05_correct_evar(p+7);
-    r05_splice_evar(p[14], p+7);
-    r05_splice_tvar(p[17], p+9);
-    r05_splice_evar(p[17], p+11);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
   r05_recognition_impossible();
 }
 
@@ -3579,37 +3483,6 @@ R05_DEFINE_ENTRY_FUNCTION(parseru_CastASTm_Item, "parser_CastAST-Item") {
     r05_splice_tvar(p[16], p+6);
     r05_splice_evar(p[18], p+10);
     r05_splice_evar(p[20], p+13);
-    r05_splice_from_freelist(arg_begin);
-    r05_splice_to_freelist(arg_begin, arg_end);
-    return;
-  } while (0);
-
-  do {
-    /* t.Pos: 5 */
-    /* e.Comment: 7 */
-    struct r05_node *p[12] = { 0 };
-    /* (SpecialComment t.Pos e.Comment) */
-    p[0] = arg_begin->next;
-    p[1] = arg_end;
-    if (! r05_brackets_left(p+2, p[0], p[1]))
-      continue;
-    if (! r05_function_left(p+4, p[2], p[3], &r05f_SpecialComment))
-      continue;
-    if (! r05_empty_hole(p[3], p[1]))
-      continue;
-    if (! r05_tvar_left(p+5, p[4], p[3]))
-      continue;
-    r05_close_evar(p+7, p[6], p[3]);
-
-    r05_reset_allocator();
-    r05_alloc_open_bracket(p+9);
-    r05_alloc_function(&r05f_SpecialComment);
-    r05_alloc_insert_pos(p+10);
-    r05_alloc_close_bracket(p+11);
-    r05_link_brackets(p[9], p[11]);
-    r05_correct_evar(p+7);
-    r05_splice_tvar(p[10], p+5);
-    r05_splice_evar(p[10], p+7);
     r05_splice_from_freelist(arg_begin);
     r05_splice_to_freelist(arg_begin, arg_end);
     return;

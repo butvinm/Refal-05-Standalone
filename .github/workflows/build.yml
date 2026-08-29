@@ -61,15 +61,6 @@ jobs:
         path: bootstrap/
         retention-days: 90
 
-    - name: Upload test errors on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-errors-linux
-        path: autotests/__error.txt
-        retention-days: 30
-        if-no-files-found: ignore
-
     - name: Display build information
       run: |
         echo "Build completed successfully!"
@@ -109,7 +100,7 @@ jobs:
         echo Using %VCVARS%
         call "%VCVARS%"
         if errorlevel 1 exit /b 1
-        src\standalone-bootstrap.cmd
+        scripts\bootstrap.cmd
 
     - name: Verify compiler was built
       run: |
@@ -132,15 +123,6 @@ jobs:
         name: bootstrap-artifacts-windows
         path: bootstrap/
         retention-days: 90
-
-    - name: Upload test errors on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-errors-windows
-        path: autotests/__error.txt
-        retention-days: 30
-        if-no-files-found: ignore
 
     - name: Display build information
       run: |

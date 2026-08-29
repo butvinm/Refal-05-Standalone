@@ -62,7 +62,7 @@ jobs:
       run: |
         cp refal-05/lib/c-plus-plus.conf.sh.template c-plus-plus.conf.sh
         if ! make bin/refal05c; then
-          echo "::error::Bootstrap failed against the new $SUBMODULE revision. Usually upstream renamed or split modules, so the module lists in src/standalone-bootstrap.sh and src/standalone-bootstrap.cmd need updating by hand."
+          echo "::error::Bootstrap failed against the new $SUBMODULE revision. Usually upstream renamed or split modules, so the module lists in scripts/bootstrap.sh and scripts/bootstrap.cmd need updating by hand."
           exit 1
         fi
 

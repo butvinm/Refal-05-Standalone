@@ -73,18 +73,6 @@ R05_DEFINE_LOCAL_ENUM(Fails, "Fails")
 R05_DEFINE_LOCAL_ENUM(Current, "Current")
 R05_DEFINE_LOCAL_ENUM(True, "True")
 
-/*
-*$FROM LibraryEx
-*/
-/*
-*$FROM parser
-*/
-/*
-*$FROM generator
-*/
-/*
-*$FROM Platform
-*/
 R05_DEFINE_ENTRY_FUNCTION(GO, "GO") {
   r05_this_is_generated_function();
 
@@ -460,7 +448,7 @@ R05_DEFINE_LOCAL_FUNCTION(Main2, "Main2") {
     r05_reset_allocator();
     r05_alloc_open_call(p+19);
     r05_alloc_function(&r05f_Prout);
-    r05_alloc_chars("*** Compilation successed ***", 29);
+    r05_alloc_chars("*** Compilation succeded ***", 28);
     r05_alloc_close_call(p+20);
     r05_push_stack(p[20]);
     r05_push_stack(p[19]);
