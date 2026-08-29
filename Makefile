@@ -6,11 +6,11 @@ c-plus-plus.conf.cmd:
 
 bin/refal05c: c-plus-plus.conf.sh
 	mkdir -p bin
-	src/standalone-bootstrap.sh
+	scripts/bootstrap.sh
 
 bin/refal05c.exe: c-plus-plus.conf.cmd
 	if not exist bin mkdir bin
-	src\standalone-bootstrap.cmd
+	scripts\bootstrap.cmd
 
 .PHONY: clear
 clear:

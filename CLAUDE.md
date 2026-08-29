@@ -12,7 +12,7 @@ Both upstream projects are git submodules, pinned and never edited here:
 - `refal-05/` - the compiler itself, from `Mazdaywik/Refal-05`
 - `refal-5-framework/` - the Refal-5 framework the compiler is built on, from `Mazdaywik/refal-5-framework`
 
-Everything else in the tree belongs to this repository: `bootstrap/`, `Makefile`, `src/standalone-bootstrap.*`, `autotests/run.*`, `.github/`, `README.md`, `CLAUDE.md`.
+Everything else in the tree belongs to this repository: `bootstrap/`, `Makefile`, `scripts/`, `.github/`, `README.md`, `CLAUDE.md`.
 
 **There is nothing here that can conflict with upstream.**
 Earlier this repository was a fork that edited upstream files in place, and it cost 17 merge conflicts on the first real update, plus a commit that stripped ~2300 non-breaking spaces out of upstream's Russian documentation for no reason.
@@ -52,7 +52,7 @@ Both bootstrap scripts therefore name modules as `refal-05/src/main`, with forwa
 The generated `.c` then lands in the current directory everywhere, and a single `mv *.c bootstrap` (or `move /Y *.c bootstrap\`) collects it.
 
 Do not "fix" the Windows script to use backslashes: the output would land next to the sources, inside the submodules, leaving them dirty.
-`autotests/run.cmd` converts `%TESTS_DIR%` to forward slashes (`%TESTS_DIR:\=/%`) for the same reason.
+`scripts/autotests.cmd` converts `%TESTS_DIR%` to forward slashes (`%TESTS_DIR:\=/%`) for the same reason.
 
 ## Build Commands
 
@@ -62,7 +62,7 @@ Do not "fix" the Windows script to use backslashes: the output would land next t
 make bin/refal05c
 ```
 
-Creates `c-plus-plus.conf.sh` from `refal-05/lib/c-plus-plus.conf.sh.template` if missing, runs `src/standalone-bootstrap.sh` for the full 3-stage bootstrap, then runs the autotests.
+Creates `c-plus-plus.conf.sh` from `refal-05/lib/c-plus-plus.conf.sh.template` if missing, runs `scripts/bootstrap.sh` for the full 3-stage bootstrap, then runs the autotests.
 
 ### Windows
 
@@ -70,21 +70,21 @@ Creates `c-plus-plus.conf.sh` from `refal-05/lib/c-plus-plus.conf.sh.template` i
 make bin/refal05c.exe
 ```
 
-Or directly: `src\standalone-bootstrap.cmd`.
+Or directly: `scripts\bootstrap.cmd`.
 The Windows template has no active compiler and aborts until one of its sections is uncommented; CI writes its own configuration instead.
 
 ### Autotests
 
 ```bash
-./autotests/run.sh
-./autotests/run.sh type.ref arithmetic-32-bit.ref
+./scripts/autotests.sh
+./scripts/autotests.sh type.ref arithmetic-32-bit.ref
 ```
 
 The tests themselves live in `refal-05/autotests/` and belong to upstream.
 Only the runners are ours.
 
 Both runners work in a scratch directory, `.testrun/autotests/`, and delete it afterwards, so the submodule stays clean.
-The directory has to be named `autotests`: `get-current-directory.ref` asserts that the current directory ends with `/autotests`.
+That scratch directory has to be named `autotests`: `get-current-directory.ref` asserts that the current directory ends with `/autotests`.
 
 - `.BAD-SYNTAX.ref` - compilation must fail with an error, and the compiler must not crash (exit code < 200)
 - `.SATELLITE.ref` - helper module, compiled together with the test of the same base name, never run on its own
@@ -104,8 +104,8 @@ make clear
 - `refal-05/` - submodule: the compiler and its `lib/`, `docs/`, `autotests/`. Never edit.
 - `refal-5-framework/` - submodule: the framework sources. Never edit.
 - `bootstrap/` - generated C artifacts, committed; regenerated in full by every bootstrap
-- `src/standalone-bootstrap.sh` / `.cmd` - the bootstrap
-- `autotests/run.sh` / `.cmd` - test runners
+- `scripts/bootstrap.sh` / `.cmd` - the bootstrap
+- `scripts/autotests.sh` / `.cmd` - test runners
 - `bin/` - build output, gitignored: `refal05c` / `refal05c.exe` and the intermediate `refal05c-old`
 - `c-plus-plus.conf.sh` / `c-plus-plus.conf.cmd` - created from the templates in `refal-05/lib/`, gitignored
 
@@ -149,7 +149,7 @@ Each bumps its submodule to the upstream tip, bootstraps, commits the regenerate
 
 Separate pull requests are deliberate: the two upstreams fail independently, so a framework change that breaks the bootstrap does not also block an unrelated compiler update from landing.
 
-A job **fails** rather than improvising when the bootstrap fails after a bump - usually upstream renamed or split modules, so the module lists in `src/standalone-bootstrap.sh` and `src/standalone-bootstrap.cmd` need updating by hand.
+A job **fails** rather than improvising when the bootstrap fails after a bump - usually upstream renamed or split modules, so the module lists in `scripts/bootstrap.sh` and `scripts/bootstrap.cmd` need updating by hand.
 That surfaces as a failed workflow run, which is what GitHub emails about; that mail is the only alerting in place, so do not mute Actions notifications.
 
 The workflow needs a fine-grained PAT with **Contents: read and write** and **Pull requests: read and write**, stored as `SYNC_TOKEN` in the **`upstream-sync` environment** - not as a repository secret.

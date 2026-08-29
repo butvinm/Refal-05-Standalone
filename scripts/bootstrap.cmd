@@ -46,7 +46,7 @@ echo 3. Build bin\refal05c.exe from new bootstrap/
 if errorlevel 1 exit /b 1
 
 echo 4. Run autotests for bin\refal05c.exe
-call autotests\run.cmd
+call scripts\autotests.cmd
 if errorlevel 1 exit /b 1
 
 echo Compiler bootstrapped successfully
