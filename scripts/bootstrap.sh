@@ -1,6 +1,11 @@
 #!/bin/bash
 set -ex
 
+# Статистика раскрутки: -n шаги, -t время, -s пиковая память, -l20 предел поля зрения в мегабайтах.
+# Те же опции передаёт refal-05/src/makeself.sh. До bd7cc28 статистику включал -DR05_SHOW_STAT,
+# но этого макроса в runtime больше нет: отладочные средства управляются командной строкой.
+OPTIONS="-nts -l20"
+
 COMPILER="refal-05/src/main refal-05/src/generator refal-05/src/parser"
 FRAMEWORK="refal-5-framework/lib/LibraryEx refal-5-framework/lib/R5FW-Parser refal-5-framework/lib/R5FW-Plainer refal-5-framework/lib/R5FW-Transformer refal-5-framework/lib/posix/Platform"
 LIBS="refal-05/lib/refal05bif refal-05/lib/refal05rts"
@@ -22,15 +27,15 @@ set -a; source ./c-plus-plus.conf.sh set +a;
 echo "Configured compiler: R05CCOMP=${R05CCOMP}"
 
 echo "1. Build bin/refal05c-old from bootstrap/"
-${R05CCOMP} ${LIBS_INCLUDE} -DR05_SHOW_STAT -o bin/refal05c-old ${COMPILER_CFILES} ${FRAMEWORK_CFILES} ${LIBS_CFILES}
+${R05CCOMP} ${LIBS_INCLUDE} -o bin/refal05c-old ${COMPILER_CFILES} ${FRAMEWORK_CFILES} ${LIBS_CFILES}
 
 echo "2. Generate new bootstrap/ with bin/refal05c-old"
 rm ${COMPILER_CFILES} ${FRAMEWORK_CFILES}
-R05CCOMP= R05PATH= bin/refal05c-old ${COMPILER} ${FRAMEWORK} ${LIBS}
+R05CCOMP= R05PATH= bin/refal05c-old ${OPTIONS} ${COMPILER} ${FRAMEWORK} ${LIBS}
 mv *.c bootstrap
 
 echo "3. Build bin/refal05c from new bootstrap/"
-${R05CCOMP} ${LIBS_INCLUDE} -DR05_SHOW_STAT -o bin/refal05c ${COMPILER_CFILES} ${FRAMEWORK_CFILES} ${LIBS_CFILES}
+${R05CCOMP} ${LIBS_INCLUDE} -o bin/refal05c ${COMPILER_CFILES} ${FRAMEWORK_CFILES} ${LIBS_CFILES}
 
 echo "4. Run autotests for bin/refal05c"
 ./scripts/autotests.sh
