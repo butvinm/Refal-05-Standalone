@@ -26,26 +26,20 @@ jobs:
         ls -lh bin/refal05c
 
     - name: Verify bootstrap fixpoint
+      # The bootstrap rewrote bootstrap/ in place, so the reference is the commit under test:
+      # every one of its eleven files must come back byte for byte, and nothing new may appear.
       run: |
-        mkdir -p /tmp/fixpoint/regenerated
-        cp bootstrap/*.c /tmp/fixpoint/
-        cd /tmp/fixpoint/regenerated
-        R05CCOMP= R05PATH= "$GITHUB_WORKSPACE/bin/refal05c" \
-          "$GITHUB_WORKSPACE/refal-05/src/main" \
-          "$GITHUB_WORKSPACE/refal-05/src/generator" \
-          "$GITHUB_WORKSPACE/refal-05/src/parser" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/LibraryEx" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Parser" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Plainer" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Transformer" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/posix/Platform" \
-          "$GITHUB_WORKSPACE/refal-05/lib/refal05bif" \
-          "$GITHUB_WORKSPACE/refal-05/lib/refal05rts"
-        for f in main.c generator.c parser.c LibraryEx.c R5FW-Parser.c R5FW-Plainer.c R5FW-Transformer.c Platform.c; do
-          cmp "/tmp/fixpoint/$f" "/tmp/fixpoint/regenerated/$f" \
-            || { echo "::error::Bootstrap is not a fixpoint: $f differs after regeneration"; exit 1; }
-        done
-        echo "Bootstrap is a fixpoint: regeneration reproduces bootstrap/ byte for byte"
+        if ! git diff --exit-code -- bootstrap; then
+          echo "::error::Bootstrap is not a fixpoint: the committed bootstrap/ differs from what the build regenerates"
+          exit 1
+        fi
+        UNTRACKED=$(git status --porcelain -- bootstrap)
+        if [ -n "$UNTRACKED" ]; then
+          echo "$UNTRACKED"
+          echo "::error::Bootstrap is not a fixpoint: the build left files in bootstrap/ that are not committed"
+          exit 1
+        fi
+        echo "Bootstrap is a fixpoint: the build reproduces the committed bootstrap/ byte for byte"
 
     - name: Upload compiler binary
       uses: actions/upload-artifact@v4
