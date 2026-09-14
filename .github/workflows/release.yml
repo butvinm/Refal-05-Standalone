@@ -55,8 +55,7 @@ jobs:
 
     - name: Rebuild the compiler with release flags
       run: |
-        gcc -O2 -s -static -Irefal-05/lib -o bin/refal05c \
-          bootstrap/*.c refal-05/lib/refal05bif.c refal-05/lib/refal05rts.c
+        gcc -O2 -s -static -Ibootstrap -o bin/refal05c bootstrap/*.c
         file bin/refal05c
         ls -l bin/refal05c
 

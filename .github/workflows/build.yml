@@ -38,14 +38,16 @@ jobs:
           "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Parser" \
           "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Plainer" \
           "$GITHUB_WORKSPACE/refal-5-framework/lib/R5FW-Transformer" \
-          "$GITHUB_WORKSPACE/refal-5-framework/lib/posix/Platform" \
-          "$GITHUB_WORKSPACE/refal-05/lib/refal05bif" \
-          "$GITHUB_WORKSPACE/refal-05/lib/refal05rts"
+          "$GITHUB_WORKSPACE/refal-5-framework/lib/posix/Platform"
         for f in main.c generator.c parser.c LibraryEx.c R5FW-Parser.c R5FW-Plainer.c R5FW-Transformer.c Platform.c; do
           cmp "/tmp/fixpoint/$f" "/tmp/fixpoint/regenerated/$f" \
             || { echo "::error::Bootstrap is not a fixpoint: $f differs after regeneration"; exit 1; }
         done
-        echo "Bootstrap is a fixpoint: regeneration reproduces bootstrap/ byte for byte"
+        for f in refal05rts.h refal05rts.c refal05bif.c; do
+          cmp "$GITHUB_WORKSPACE/bootstrap/$f" "$GITHUB_WORKSPACE/refal-05/lib/$f" \
+            || { echo "::error::Bootstrap runtime is stale: $f differs from refal-05/lib"; exit 1; }
+        done
+        echo "Bootstrap is a fixpoint: regeneration reproduces bootstrap/ byte for byte, and its runtime matches refal-05/lib"
 
     - name: Upload compiler binary
       uses: actions/upload-artifact@v4
