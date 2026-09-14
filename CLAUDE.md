@@ -162,7 +162,9 @@ The Linux job bootstraps and tests with the default configuration, then relinks 
 
 `.github/workflows/build.yml` runs on pushes to `master`, pull requests, and manual dispatch, on Linux and Windows. Every checkout uses `submodules: recursive`.
 
-The fixpoint check regenerates the eight C files with the freshly built compiler and requires them to match `bootstrap/` byte for byte, and requires the three runtime files in `bootstrap/` to match `refal-05/lib/`.
+The fixpoint check is `git diff --exit-code -- bootstrap` after the build, plus a check for untracked files there: the bootstrap rewrites `bootstrap/` in place, so the committed eleven files must be exactly what the build regenerates.
+It used to regenerate the C once more with the new compiler and compare against the bootstrap's own output, never against the commit.
+That caught a stale generator only because the old and new compilers differed, and with the intermediate compiler they no longer do, so the reference has to be the commit.
 It runs on Linux only: the property belongs to the compiler, not the host.
 It is the check that makes unattended auto-merge defensible - the autotests can pass on a half-migrated compiler, the fixpoint cannot.
 
