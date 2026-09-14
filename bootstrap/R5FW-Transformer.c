@@ -14646,7 +14646,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoNewNamem_NameGenerated, "DoNewName-NameGenerated") {
   r05_recognition_impossible();
 }
 
-static struct r05_function *metatable_entries[] = {
+static const struct r05_function *metatable_entries[] = {
   &r05f_MapAccum,
   &r05f_DelAccumulator,
   &r05f_Map,
@@ -14713,7 +14713,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_k3F_,
 };
 
-static struct r05_metatable metatable = {
+static const struct r05_metatable metatable = {
   sizeof(metatable_entries) / sizeof(metatable_entries[0]),
   metatable_entries
 };
