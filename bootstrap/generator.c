@@ -561,7 +561,7 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
     r05_alloc_insert_pos(p+12);
     r05_alloc_close_bracket(p+13);
     r05_alloc_open_bracket(p+14);
-    r05_alloc_chars("static struct r05_function *metatable_entries[] = {", 51);
+    r05_alloc_chars("static const struct r05_function *metatable_entries[] = {", 57);
     r05_alloc_close_bracket(p+15);
     r05_alloc_open_call(p+16);
     r05_alloc_function(&r05f_Map);
@@ -574,7 +574,7 @@ R05_DEFINE_ENTRY_FUNCTION(generatoru_GenTreeItem, "generator_GenTreeItem") {
     r05_alloc_open_bracket(p+21);
     r05_alloc_close_bracket(p+22);
     r05_alloc_open_bracket(p+23);
-    r05_alloc_chars("static struct r05_metatable metatable = {", 41);
+    r05_alloc_chars("static const struct r05_metatable metatable = {", 47);
     r05_alloc_close_bracket(p+24);
     r05_alloc_open_bracket(p+25);
     r05_alloc_chars("  sizeof(metatable_entries) / sizeof(metatable_entries[0]),", 59);
@@ -12876,7 +12876,7 @@ R05_DEFINE_LOCAL_FUNCTION(DoGenResult, "DoGenResult") {
   r05_recognition_impossible();
 }
 
-static struct r05_function *metatable_entries[] = {
+static const struct r05_function *metatable_entries[] = {
   &r05f_SaveFile,
   &r05f_MapAccum,
   &r05f_Map,
@@ -12960,7 +12960,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_k3F_,
 };
 
-static struct r05_metatable metatable = {
+static const struct r05_metatable metatable = {
   sizeof(metatable_entries) / sizeof(metatable_entries[0]),
   metatable_entries
 };

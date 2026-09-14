@@ -4852,7 +4852,7 @@ R05_DEFINE_LOCAL_FUNCTION(LoadExpr0, "LoadExpr0") {
   r05_recognition_impossible();
 }
 
-static struct r05_function *metatable_entries[] = {
+static const struct r05_function *metatable_entries[] = {
   &r05f_Apply,
   &r05f_Map,
   &r05f_Reduce,
@@ -4895,7 +4895,7 @@ static struct r05_function *metatable_entries[] = {
   &r05f_k3F_,
 };
 
-static struct r05_metatable metatable = {
+static const struct r05_metatable metatable = {
   sizeof(metatable_entries) / sizeof(metatable_entries[0]),
   metatable_entries
 };

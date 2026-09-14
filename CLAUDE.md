@@ -135,6 +135,12 @@ The fixpoint check then fails, correctly.
 Running the bootstrap a second time converges, and the second round's `bootstrap/` is what must be committed.
 `bd7cc28` was exactly this case - it removed the `/* *$FROM ... */` markers from the generated C - so the automated sync would have failed its fixpoint check on that bump and needed a human.
 
+The harder variant is a generator change paired with a runtime header change, when the committed `bootstrap/` no longer even compiles against the new `refal05rts.h`, and stage 1 fails before any round can start.
+`1ee2c8e` was this case: the header started declaring `metatable` as `const`, and the old C text defined it without `const`.
+Round one then has to be done by hand against the **old** runtime: extract `lib/` from the previously pinned `refal-05` revision with `git archive`, build stage 1 and stage 3 with `-I` and `refal05bif.c`/`refal05rts.c` pointing there, and regenerate `bootstrap/` once more with the stage 3 compiler.
+That output is new-generator C, so the ordinary `scripts/bootstrap.sh` then runs as round two and converges.
+The ABI of the old runtime is compatible with the new sources, so linking the stage 3 compiler against it is safe: only the constness of static data differs.
+
 ## Releases
 
 `.github/workflows/release.yml` is triggered by hand and is the only supported way to publish.
