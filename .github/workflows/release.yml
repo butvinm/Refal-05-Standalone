@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  # Каждое изменение master: если для закреплённой ревизии refal-05 релиза ещё нет, он выпускается, иначе запуск тихо завершается.
+  push:
+    branches: [master]
   workflow_dispatch:
     inputs:
       tag:
@@ -11,11 +14,17 @@ on:
 permissions:
   contents: write
 
+# Два слияния подряд не должны наперегонки публиковать один и тот же тег.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   tag:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.pick.outputs.tag }}
+      publish: ${{ steps.pick.outputs.publish }}
 
     steps:
     - name: Checkout
@@ -32,16 +41,24 @@ jobs:
           TAG=$(git -C refal-05 rev-parse --short HEAD)
         fi
         echo "Tag to publish: $TAG"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
         if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            # Обычный случай: слияние не меняло ревизию компилятора. Это не ошибка, письма о сбое быть не должно.
+            echo "Release $TAG already exists, nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           echo "::error::Release $TAG already exists. Pass an explicit tag input to publish another one."
           exit 1
         fi
-        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "publish=true" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
 
   build-linux:
     needs: tag
+    if: needs.tag.outputs.publish == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -70,6 +87,7 @@ jobs:
 
   build-windows:
     needs: tag
+    if: needs.tag.outputs.publish == 'true'
     runs-on: windows-latest
 
     steps:
@@ -110,6 +128,7 @@ jobs:
 
   publish:
     needs: [tag, build-linux, build-windows]
+    if: needs.tag.outputs.publish == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -129,10 +148,11 @@ jobs:
         chmod +x artifacts/release-linux/refal05c
         scripts/dist.sh "$TAG" linux-x86_64 artifacts/release-linux/refal05c
         scripts/dist.sh "$TAG" windows-x64 artifacts/release-windows/refal05c.exe
-        cd dist
-        tar -czf "refal05c-$TAG-linux-x86_64.tar.gz" "refal05c-$TAG-linux-x86_64"
-        zip -qr "refal05c-$TAG-windows-x64.zip" "refal05c-$TAG-windows-x64"
-        ls -lR
+        # Имена архивов без тега, чтобы работала постоянная ссылка releases/latest/download/<имя>.
+        # Внутри обоих архивов один каталог refal05c, тег лежит в файле VERSION.
+        tar -czf dist/refal05c-linux-x86_64.tar.gz -C dist/linux-x86_64 refal05c
+        (cd dist/windows-x64 && zip -qr ../refal05c-windows-x64.zip refal05c)
+        ls -lR dist
 
     - name: Write the release notes
       run: |
@@ -142,10 +162,10 @@ jobs:
 
         | архив | платформа |
         |---|---|
-        | `refal05c-TAG_PLACEHOLDER-linux-x86_64.tar.gz` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
-        | `refal05c-TAG_PLACEHOLDER-windows-x64.zip` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
+        | `refal05c-linux-x86_64.tar.gz` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
+        | `refal05c-windows-x64.zip` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
 
-        В каждом архиве каталог `bin` с компилятором и каталог `lib` с runtime и Рефал-5-фреймворком.
+        В каждом архиве каталог `refal05c`, в нём `bin` с компилятором и `lib` с рантаймом и Рефал-5-фреймворком.
         Для работы достаточно указать путь к `lib` в переменной `R05PATH`.
 
         Обе сборки оптимизированы и проходят автотесты.
