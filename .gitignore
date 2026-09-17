@@ -1,4 +1,5 @@
 bin
+dist
 c-plus-plus.conf.cmd
 c-plus-plus.conf.sh
 *.c

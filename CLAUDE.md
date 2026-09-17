@@ -146,8 +146,18 @@ Stages 1 and 3 use `-Ibootstrap` and link `bootstrap/refal05rts.c` and `bootstra
 
 ## Releases
 
-`.github/workflows/release.yml` is triggered by hand and is the only supported way to publish.
+`.github/workflows/release.yml` is the only supported way to publish.
+It runs on every push to `master` and can also be dispatched by hand.
 The tag is the pinned `refal-05` revision (`git -C refal-05 rev-parse --short HEAD`), so it names exactly the upstream commit the binaries were built from.
+
+On a push the `tag` job checks whether a release with that tag exists: if it does, the run ends quietly with `publish=false` and the build jobs are skipped, so an ordinary merge that did not move the compiler costs one short job and no failure mail.
+If it does not, the release is built and published, which is how a merged `sync-compiler` pull request turns into a release with no one touching it.
+A manual dispatch still fails loudly on an existing tag, because a human asking for a release expects one; pass the `tag` input to republish under another name.
+There is no `paths` filter on purpose: a merge that changes only `release.yml` or `scripts/dist.sh` must still be able to publish the first release for the current revision.
+
+A framework-only bump does not produce a release: the tag does not change, even though `lib/` in the archive would. This is accepted for now; the alternative is a tag that names both revisions.
+
+It used to be manual only, and that let `master` drift ahead of the latest release: on 2026-09-17 the compiler was at `1ee2c8e` while the newest release was still `bd7cc28` from 2026-08-29.
 
 Release binaries use release flags, not the bootstrap's:
 
@@ -157,6 +167,13 @@ Release binaries use release flags, not the bootstrap's:
 `-O2` is about 1.4 to 1.5 times faster than `-g` on the compiler's own sources, and the generated C is byte-identical across debug, optimised and static builds.
 
 The Linux job bootstraps and tests with the default configuration, then relinks with release flags and **runs the autotests again against the binary that will actually be published**.
+
+A release asset is an archive, not a bare binary: `refal05c-linux-x86_64.tar.gz` and `refal05c-windows-x64.zip`, each holding a single `refal05c/` directory with `bin/` for the compiler and `lib/` for the runtime from `refal-05/lib` (`refal05rts.h`, `refal05rts.c`, `refal05bif.c`, `Go.c`) and the framework from `refal-5-framework/lib` (`LibraryEx.ref`, `R5FW-*.ref`, `posix/Platform.ref`), flattened so that a single `lib` entry in `R05PATH` is enough.
+The archive names and the directory inside carry no tag, deliberately: the README's `curl` line relies on the stable URL `releases/latest/download/<name>`, and its example paths rely on the archive unpacking to `refal05c/`. The tag is recorded in `refal05c/VERSION` instead.
+`scripts/dist.sh <tag> <platform> <binary>` lays the directory out under `dist/<platform>/refal05c/`, and the publish job packs it.
+The bare binary was useless on its own: the compiler links every program against `refal05rts.c` and `refal05bif.c`, and the releases up to `bd7cc28` shipped neither.
+
+Because `Platform.ref` comes from `posix`, the Windows binary also splits `R05PATH` on `:`, so a `lib` path with a drive letter breaks. The README tells Windows users to use a relative path or one without the drive letter.
 
 ## CI/CD
 
