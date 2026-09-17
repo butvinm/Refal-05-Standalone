@@ -158,6 +158,12 @@ Release binaries use release flags, not the bootstrap's:
 
 The Linux job bootstraps and tests with the default configuration, then relinks with release flags and **runs the autotests again against the binary that will actually be published**.
 
+A release asset is an archive, not a bare binary: `refal05c-<tag>-linux-x86_64.tar.gz` and `refal05c-<tag>-windows-x64.zip`, each with `bin/` holding the compiler and `lib/` holding the runtime from `refal-05/lib` (`refal05rts.h`, `refal05rts.c`, `refal05bif.c`, `Go.c`) and the framework from `refal-5-framework/lib` (`LibraryEx.ref`, `R5FW-*.ref`, `posix/Platform.ref`), flattened so that a single `lib` entry in `R05PATH` is enough.
+`scripts/dist.sh <tag> <platform> <binary>` lays the directory out under `dist/`, and the publish job packs it.
+The bare binary was useless on its own: the compiler links every program against `refal05rts.c` and `refal05bif.c`, and the releases up to `bd7cc28` shipped neither.
+
+Because `Platform.ref` comes from `posix`, the Windows binary also splits `R05PATH` on `:`, so a `lib` path with a drive letter breaks. The README tells Windows users to use a relative path or one without the drive letter.
+
 ## CI/CD
 
 `.github/workflows/build.yml` runs on pushes to `master`, pull requests, and manual dispatch, on Linux and Windows. Every checkout uses `submodules: recursive`.

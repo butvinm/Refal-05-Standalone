@@ -115,37 +115,42 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Download the binaries
       uses: actions/download-artifact@v4
       with:
         path: artifacts
 
-    - name: Lay the assets out
+    - name: Lay the distributives out
       run: |
-        mkdir -p release
-        cp artifacts/release-linux/refal05c release/refal05c
-        cp artifacts/release-windows/refal05c.exe release/refal05c.exe
-        chmod +x release/refal05c
-        ls -l release
+        TAG="${{ needs.tag.outputs.tag }}"
+        chmod +x artifacts/release-linux/refal05c
+        scripts/dist.sh "$TAG" linux-x86_64 artifacts/release-linux/refal05c
+        scripts/dist.sh "$TAG" windows-x64 artifacts/release-windows/refal05c.exe
+        cd dist
+        tar -czf "refal05c-$TAG-linux-x86_64.tar.gz" "refal05c-$TAG-linux-x86_64"
+        zip -qr "refal05c-$TAG-windows-x64.zip" "refal05c-$TAG-windows-x64"
+        ls -lR
 
     - name: Write the release notes
       run: |
         cat > notes.md <<'NOTES'
-        Сборка форка, соответствующая коммиту TAG_PLACEHOLDER оригинального репозитория
+        Сборка компилятора, соответствующая коммиту TAG_PLACEHOLDER оригинального репозитория
         [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
 
-        | файл | платформа |
+        | архив | платформа |
         |---|---|
-        | `refal05c` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
-        | `refal05c.exe` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
+        | `refal05c-TAG_PLACEHOLDER-linux-x86_64.tar.gz` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
+        | `refal05c-TAG_PLACEHOLDER-windows-x64.zip` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
+
+        В каждом архиве каталог `bin` с компилятором и каталог `lib` с runtime и Рефал-5-фреймворком.
+        Для работы достаточно указать путь к `lib` в переменной `R05PATH`.
 
         Обе сборки оптимизированы и проходят автотесты.
-
-        Начиная с этого релиза исполняемый файл называется `refal05c`, а не `refal05`:
-        имя приведено в соответствие с оригинальным репозиторием.
         NOTES
-        sed -i "s/TAG_PLACEHOLDER/${{ needs.tag.outputs.tag }}/" notes.md
+        sed -i "s/TAG_PLACEHOLDER/${{ needs.tag.outputs.tag }}/g" notes.md
         cat notes.md
 
     - name: Publish
@@ -155,6 +160,6 @@ jobs:
           --target "$GITHUB_SHA" \
           --title "${{ needs.tag.outputs.tag }}" \
           --notes-file notes.md \
-          release/refal05c release/refal05c.exe
+          dist/*.tar.gz dist/*.zip
       env:
         GH_TOKEN: ${{ github.token }}
