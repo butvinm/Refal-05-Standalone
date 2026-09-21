@@ -313,35 +313,43 @@ int r05_repeated_tevar_left(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  DEFINE_CLOCK_VAR(start_match)
+  if (tevar_sample[0] != NULL) {
+    DEFINE_CLOCK_VAR(start_match)
 
-  struct r05_node *current = left->next;
-  struct r05_node *limit = right;
-  struct r05_node *cur_sample = tevar_sample[0];
-  struct r05_node *limit_sample = tevar_sample[1]->next;
+    struct r05_node *current = left->next;
+    struct r05_node *limit = right;
+    struct r05_node *cur_sample = tevar_sample[0];
+    struct r05_node *limit_sample = tevar_sample[1]->next;
 
-  while (
-    /* порядок условий важен */
-    current != limit && cur_sample != limit_sample
-      && equal_nodes(current, cur_sample)
-  ) {
-    cur_sample = cur_sample->next;
-    current = current->next;
-  }
+    while (
+      /* порядок условий важен */
+      current != limit && cur_sample != limit_sample
+        && equal_nodes(current, cur_sample)
+    ) {
+      cur_sample = cur_sample->next;
+      current = current->next;
+    }
 
-  add_match_repeated_var_time(type, fast_clock() - start_match);
+    add_match_repeated_var_time(type, fast_clock() - start_match);
 
-  /*
-    Здесь current == limit || cur_sample == limit_sample
-      || ! equal_nodes(current, cur_sample)
-  */
-  if (cur_sample == limit_sample) {
-    /* Это нормальное завершение цикла — вся образцовая переменная проверена */
-    tevar[0] = left->next;
-    tevar[1] = current->prev;
-    return 1;
+    /*
+      Здесь current == limit || cur_sample == limit_sample
+        || ! equal_nodes(current, cur_sample)
+    */
+    if (cur_sample == limit_sample) {
+      /*
+        Это нормальное завершение цикла — вся образцовая переменная проверена
+      */
+      tevar[0] = left->next;
+      tevar[1] = current->prev;
+      return 1;
+    } else {
+      return 0;
+    }
   } else {
-    return 0;
+    tevar[0] = NULL;
+    tevar[1] = left;
+    return 1;
   }
 }
 
@@ -350,36 +358,53 @@ int r05_repeated_tevar_right(
   struct r05_node **tevar, struct r05_node *left, struct r05_node *right,
   struct r05_node **tevar_sample, char type
 ) {
-  DEFINE_CLOCK_VAR(start_match)
+  if (tevar_sample[0] != NULL) {
+    DEFINE_CLOCK_VAR(start_match)
 
-  struct r05_node *current = right->prev;
-  struct r05_node *limit = left;
-  struct r05_node *cur_sample = tevar_sample[1];
-  struct r05_node *limit_sample = tevar_sample[0]->prev;
+    struct r05_node *current = right->prev;
+    struct r05_node *limit = left;
+    struct r05_node *cur_sample = tevar_sample[1];
+    struct r05_node *limit_sample = tevar_sample[0]->prev;
 
-  while (
-    /* порядок условий важен */
-    current != limit && cur_sample != limit_sample
-      && equal_nodes(current, cur_sample)
-  ) {
-    current = current->prev;
-    cur_sample = cur_sample->prev;
-  }
+    while (
+      /* порядок условий важен */
+      current != limit && cur_sample != limit_sample
+        && equal_nodes(current, cur_sample)
+    ) {
+      current = current->prev;
+      cur_sample = cur_sample->prev;
+    }
 
-  add_match_repeated_var_time(type, fast_clock() - start_match);
+    add_match_repeated_var_time(type, fast_clock() - start_match);
 
-  /*
-    Здесь current == limit || cur_sample == limit_sample
-      || ! equal_nodes(current, cur_sample)
-  */
-  if (cur_sample == limit_sample) {
-    /* Это нормальное завершение цикла — вся образцовая переменная проверена */
-    tevar[0] = current->next;
+    /*
+      Здесь current == limit || cur_sample == limit_sample
+        || ! equal_nodes(current, cur_sample)
+    */
+    if (cur_sample == limit_sample) {
+      /*
+        Это нормальное завершение цикла — вся образцовая переменная проверена
+      */
+      tevar[0] = current->next;
+      tevar[1] = right->prev;
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    tevar[0] = NULL;
     tevar[1] = right->prev;
     return 1;
-  } else {
-    return 0;
   }
+}
+
+
+void r05_close_evar(
+  struct r05_node **evar, struct r05_node *left, struct r05_node *right
+) {
+  struct r05_node *begin = left->next;
+  evar[0] = begin != right ? begin : NULL;
+  evar[1] = right->prev;
 }
 
 
@@ -387,6 +412,10 @@ int r05_open_evar_advance(struct r05_node **evar, struct r05_node *right) {
   struct r05_node *term[2];
 
   if (r05_tvar_left(term, evar[1], right)) {
+    if (NULL == evar[0]) {
+      evar[0] = evar[1]->next;
+    }
+
     evar[1] = term[1];
     return 1;
   } else {
@@ -400,13 +429,14 @@ size_t r05_read_chars(
   struct r05_node *left, struct r05_node *right
 ) {
   size_t nread = 0;
-  struct r05_node *cur = char_interval[0] = left->next;
+  struct r05_node *cur = left->next;
   while (nread < buflen && cur != right && R05_DATATAG_CHAR == cur->tag) {
     buffer[nread] = cur->info.char_;
     ++nread;
     cur = cur->next;
   }
 
+  char_interval[0] = nread > 0 ? left->next : NULL;
   char_interval[1] = cur->prev;
   return nread;
 }
@@ -550,7 +580,7 @@ struct r05_node *r05_insert_pos(void) {
 static void list_splice(
   struct r05_node *res, struct r05_node *begin, struct r05_node *end
 ) {
-  assert ((begin == 0) == (end == 0));
+  assert (end != NULL);
 
   if (begin != 0) {
     struct r05_node *prev_res = res->prev;
@@ -565,31 +595,33 @@ static void list_splice(
 
 
 void r05_alloc_tevar(struct r05_node **sample) {
-  struct r05_node *p, *limit;
-  DEFINE_CLOCK_VAR(start_copy_time)
+  if (sample[0] != NULL) {
+    struct r05_node *p, *limit;
+    DEFINE_CLOCK_VAR(start_copy_time)
 
-  struct r05_node *bracket_stack = 0;
+    struct r05_node *bracket_stack = 0;
 
-  for (p = sample[0], limit = sample[1]->next; p != limit; p = p->next) {
-    struct r05_node *copy = r05_alloc_node(p->tag);
+    for (p = sample[0], limit = sample[1]->next; p != limit; p = p->next) {
+      struct r05_node *copy = r05_alloc_node(p->tag);
 
-    if (is_open_bracket(copy)) {
-      copy->info.link = bracket_stack;
-      bracket_stack = copy;
-    } else if (is_close_bracket(copy)) {
-      struct r05_node *open_cobracket = bracket_stack;
+      if (is_open_bracket(copy)) {
+        copy->info.link = bracket_stack;
+        bracket_stack = copy;
+      } else if (is_close_bracket(copy)) {
+        struct r05_node *open_cobracket = bracket_stack;
 
-      assert(bracket_stack != 0);
-      bracket_stack = bracket_stack->info.link;
-      r05_link_brackets(open_cobracket, copy);
-    } else {
-      copy->info = p->info;
+        assert(bracket_stack != 0);
+        bracket_stack = bracket_stack->info.link;
+        r05_link_brackets(open_cobracket, copy);
+      } else {
+        copy->info = p->info;
+      }
     }
+
+    assert(bracket_stack == 0);
+
+    add_copy_tevar_time(fast_clock() - start_copy_time);
   }
-
-  assert(bracket_stack == 0);
-
-  add_copy_tevar_time(fast_clock() - start_copy_time);
 }
 
 
@@ -622,20 +654,13 @@ void r05_link_brackets(struct r05_node *left, struct r05_node *right) {
 }
 
 
-void r05_correct_evar(struct r05_node **evar) {
-  if (evar[1]->next == evar[0]) {
-    evar[0] = 0;
-    evar[1] = 0;
-  }
-}
-
-
 void r05_splice_tevar(struct r05_node *res, struct r05_node **tevar) {
   list_splice(res, tevar[0], tevar[1]);
 }
 
 
 void r05_splice_to_freelist(struct r05_node *begin, struct r05_node *end) {
+  assert(begin != NULL);
   list_splice(s_free_ptr, begin, end);
 }
 
@@ -690,7 +715,7 @@ static int s_in_e_loop;
 #  endif  /* ! R05_PROFILER_TABLE_POWER */
 
 struct profiled_function {
-  struct r05_function *func;
+  const struct r05_function *func;
   unsigned long calls;
   double seconds;
 };
@@ -699,7 +724,7 @@ static struct profiled_function
   s_profiled_functions[1 << R05_PROFILER_TABLE_POWER];
 
 static struct profiled_function* insert_lookup_profiled_function(
-  struct r05_function *function
+  const struct r05_function *function
 ) {
   enum { SIZE = (size_t) 1 << R05_PROFILER_TABLE_POWER };
   r05_uintptr_t i = 0;
@@ -750,7 +775,7 @@ static void start_building_result(void) {
     pattern_match = s_start_building_result_time - s_start_step;
     s_total_pattern_match_time += pattern_match;
 
-    if (s_in_e_loop > 0) {
+    if (s_in_e_loop) {
       s_total_e_loop += (s_start_building_result_time - s_start_e_loop);
       s_in_e_loop = 0;
     }
@@ -973,7 +998,8 @@ static void end_profiler(void) {
 void r05_start_e_loop(void) {
   assert(s_in_generated);
 
-  if (s_in_e_loop++ == 0) {
+  if (! s_in_e_loop) {
+    s_in_e_loop = 1;
     s_start_e_loop = fast_clock();
   }
 }
@@ -987,8 +1013,9 @@ void r05_this_is_generated_function(void) {
 void r05_stop_e_loop(void) {
   assert(s_in_generated);
 
-  if (--s_in_e_loop == 0) {
+  if (s_in_e_loop) {
     s_total_e_loop += (fast_clock() - s_start_e_loop);
+    s_in_e_loop = 0;
   }
 }
 #endif  /* R05_SHOW_STAT_DETAILED */
@@ -1016,6 +1043,13 @@ static struct r05_node s_end_view_field = {
 static struct r05_node *s_stack_ptr = NULL;
 
 static unsigned long s_step_counter = 0;
+
+
+static struct {
+  struct r05_node **vars;
+  size_t used;
+  size_t reserved;
+} s_context = { NULL, 0, 0 };
 
 
 extern struct r05_function r05f_GO;
@@ -1092,6 +1126,47 @@ R05_NORETURN static void main_loop(void) {
 
     ++ s_step_counter;
   }
+}
+
+
+void r05_push_context(struct r05_node *vars[], size_t nvars) {
+  size_t new_used = s_context.used + nvars;
+
+  if (new_used > s_context.reserved) {
+    size_t new_reserved = s_context.reserved + (s_context.reserved >> 1);
+    struct r05_node **new_vars;
+
+    if (new_used > new_reserved) {
+      new_reserved = new_used;
+    }
+
+    new_vars =
+      realloc(s_context.vars, new_reserved * sizeof(s_context.vars[0]));
+
+    if (new_vars != NULL) {
+      s_context.vars = new_vars;
+      s_context.reserved = new_reserved;
+    } else {
+      fprintf(
+        stderr,
+        "NO MEMORY FOR SAVE CONTEXT "
+        "(used memory %lu items, required %lu items)\n",
+        (unsigned long) s_context.reserved,
+        (unsigned long) new_reserved
+      );
+      make_dump();
+      r05_exit(EXIT_CODE_NO_MEMORY);
+    }
+  }
+
+  memcpy(s_context.vars + s_context.used, vars, nvars * sizeof(vars[0]));
+  s_context.used = new_used;
+}
+
+void r05_pop_context(struct r05_node *vars[], size_t nvars) {
+  assert(s_context.used >= nvars);
+  s_context.used -= nvars;
+  memcpy(vars, s_context.vars + s_context.used, nvars * sizeof(vars[0]));
 }
 
 
@@ -1497,8 +1572,7 @@ static int buried_query(struct buried_query *res, struct r05_node *key[]) {
   if (found) {
     res->left_bracket = left_bracket;
     res->right_bracket = right_bracket;
-    res->value[0] = eq->next;
-    res->value[1] = right_bracket->prev;
+    r05_close_evar(res->value, eq, right_bracket);
   }
 
   return found;
@@ -1514,8 +1588,8 @@ static void brrp_impl(
   struct r05_node *callee = arg_begin->next;
   struct r05_node *key[2], *eq;
 
-  key[0] = callee->next;
-  key[1] = key[0]->prev;
+  key[0] = NULL;
+  key[1] = callee;
   do {
     if (r05_char_left(&eq, key[1], arg_end, '=')) {
       struct buried_query query;
@@ -1523,8 +1597,6 @@ static void brrp_impl(
       if (BRRP_RP == behavior && buried_query(&query, key)) {
         struct r05_node *val[2];
         r05_close_evar(val, eq, arg_end);
-        r05_correct_evar(val);
-        r05_correct_evar(query.value);
         r05_splice_tevar(query.right_bracket, val);
         r05_splice_tevar(arg_end, query.value);
       } else {
@@ -1555,15 +1627,13 @@ static void dgcp_impl(
   struct buried_query query;
   int found;
 
-  key[0] = arg_begin->next->next;
-  key[1] = arg_end->prev;
+  r05_close_evar(key, arg_begin->next, arg_end);
   r05_reset_allocator();
 
   found = buried_query(&query, key);
 
   if (found) {
     if (behavior == DGCP_DG) {
-      r05_correct_evar(query.value);
       r05_splice_tevar(arg_begin, query.value);
       r05_splice_to_freelist(query.left_bracket, query.right_bracket);
     } else {
