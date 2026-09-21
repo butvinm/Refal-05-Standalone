@@ -116,7 +116,8 @@ typedef void (*r05_function_ptr) (struct r05_node *begin, struct r05_node *end);
 struct r05_function {
   r05_function_ptr ptr;
   const char *name;
-  int entry;
+  /* старшие биты — метка возврата, младший — признак entry */
+  unsigned int resume_entry;
   const struct r05_metatable *metatable;
 };
 
@@ -243,10 +244,14 @@ int r05_repeated_tevar_right(
   struct r05_node **tevar_sample, char type
 );
 
-#define r05_close_evar(evar, left, right) \
-  ((evar)[0] = (left)->next, (evar)[1] = (right)->prev)
+void r05_close_evar(
+  struct r05_node **evar, struct r05_node *left, struct r05_node *right
+);
 
 int r05_open_evar_advance(struct r05_node **evar, struct r05_node *right);
+
+#define r05_evar_true_begin(evar) \
+  (NULL == (evar)[0] ? (evar)[1]->next : (evar)[0])
 
 size_t r05_read_chars(
   struct r05_node **char_interval, char buffer[], size_t buflen,
@@ -257,8 +262,6 @@ size_t r05_read_chars(
 
 void r05_push_stack(struct r05_node *call_bracket);
 void r05_link_brackets(struct r05_node *left, struct r05_node *right);
-
-void r05_correct_evar(struct r05_node **evar);
 
 #define r05_splice_tvar r05_splice_tevar
 #define r05_splice_evar r05_splice_tevar
@@ -307,6 +310,11 @@ void r05_alloc_chars(const char buffer[], size_t len);
 
 void r05_alloc_tevar(struct r05_node **sample);
 void r05_alloc_string(const char *string);
+
+/* Сохранение и восстановление контекста */
+
+void r05_push_context(struct r05_node *vars[], size_t nvars);
+void r05_pop_context(struct r05_node *vars[], size_t nvars);
 
 
 void r05_enum_function_code(struct r05_node *begin, struct r05_node *end);
@@ -415,6 +423,11 @@ struct r05_metatable {
   void r05c_ ## name( \
     struct r05_node *arg_begin, struct r05_node *arg_end \
   )
+
+#define R05_DEFINE_COND_FUNCTION(base_name, rep, no) \
+  static const struct r05_function c ## no = { \
+    r05c_ ## base_name, rep, (no) << 1, NULL \
+  };
 
 
 R05_DECLARE_ENTRY_FUNCTION(Stopd_d_)
