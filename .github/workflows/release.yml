@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.pick.outputs.tag }}
+      name: ${{ steps.pick.outputs.name }}
       publish: ${{ steps.pick.outputs.publish }}
 
     steps:
@@ -40,8 +41,12 @@ jobs:
         else
           TAG=$(git -C refal-05 rev-parse --short HEAD)
         fi
-        echo "Tag to publish: $TAG"
+        # Дата в названии релиза - дата коммита апстрима, из которого собраны архивы, а не дата публикации: её GitHub показывает и так.
+        # Берётся из подмодуля и при ручном запуске с другим тегом, потому что собирается именно он.
+        NAME="$TAG ($(git -C refal-05 log -1 --format=%cs HEAD))"
+        echo "Tag to publish: $TAG, release name: $NAME"
         echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "name=$NAME" >> "$GITHUB_OUTPUT"
         if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             # Обычный случай: слияние не меняло ревизию компилятора. Это не ошибка, письма о сбое быть не должно.
@@ -178,7 +183,7 @@ jobs:
         gh release create "${{ needs.tag.outputs.tag }}" \
           --repo "$GITHUB_REPOSITORY" \
           --target "$GITHUB_SHA" \
-          --title "${{ needs.tag.outputs.tag }}" \
+          --title "${{ needs.tag.outputs.name }}" \
           --notes-file notes.md \
           dist/*.tar.gz dist/*.zip
       env:

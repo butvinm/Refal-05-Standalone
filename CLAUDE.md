@@ -164,6 +164,8 @@ Stages 1 and 3 use `-Ibootstrap` and link `bootstrap/refal05rts.c` and `bootstra
 `.github/workflows/release.yml` is the only supported way to publish.
 It runs on every push to `master` and can also be dispatched by hand.
 The tag is the pinned `refal-05` revision (`git -C refal-05 rev-parse --short HEAD`), so it names exactly the upstream commit the binaries were built from.
+The release name adds that commit's date, `72ad026 (2026-10-05)`, because the publish date GitHub shows can lag the upstream commit by days.
+The date stays out of the tag on purpose: the `tag` job compares the tag with `rev-parse --short` to decide whether to publish, and the README badge reads the name, not the tag.
 
 On a push the `tag` job checks whether a release with that tag exists: if it does, the run ends quietly with `publish=false` and the build jobs are skipped, so an ordinary merge that did not move the compiler costs one short job and no failure mail.
 If it does not, the release is built and published, which is how a merged `sync-compiler` pull request turns into a release with no one touching it.
