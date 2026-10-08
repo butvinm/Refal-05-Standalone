@@ -1,5 +1,8 @@
 # Автономная сборка компилятора Рефала-05
 
+[![Сборка](https://github.com/butvinm/Refal-05-Standalone/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/butvinm/Refal-05-Standalone/actions/workflows/build.yml)
+[![Релиз](https://img.shields.io/github/v/release/butvinm/Refal-05-Standalone?display_name=release)](https://github.com/butvinm/Refal-05-Standalone/releases/latest)
+
 Этот репозиторий собирает компилятор [Рефал-05](https://github.com/Mazdaywik/Refal-05) без стороннего компилятора Рефала-5. Для сборки достаточно компилятора C89.
 
 ## Использование
@@ -63,3 +66,4 @@ Refal-05-Standalone/bin/refal05c main LibraryEx Platform refal05rts refal05bif G
 Если релиза нет, рабочий процесс собирает компилятор для Linux и Windows, запускает автотесты и публикует архивы.
 
 Тег релиза совпадает с ревизией подмодуля `refal-05`.
+Название релиза - та же ревизия и дата её коммита, например `72ad026 (2026-10-05)`.
