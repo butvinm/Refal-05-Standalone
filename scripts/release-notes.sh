@@ -19,7 +19,7 @@ revision() {
 
 cat <<NOTES
 Компилятор [Рефал-05](https://github.com/Mazdaywik/Refal-05): $(revision refal-05 Mazdaywik/Refal-05).
-Рефал-5-фреймворк в \`lib\`: $(revision refal-5-framework Mazdaywik/refal-5-framework).
+[Рефал-5-фреймворк](https://github.com/Mazdaywik/refal-5-framework) в \`lib\`: $(revision refal-5-framework Mazdaywik/refal-5-framework).
 
 | архив | платформа |
 |---|---|
