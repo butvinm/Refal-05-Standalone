@@ -60,6 +60,7 @@ The host variant is set by `HOST_PLATFORM` in each script and is also what stage
 
 This used to be otherwise: until `72ad026` the posix variant was used on both platforms so that `R05PATH` was colon-separated everywhere.
 Upstream `72ad026` made that untenable: the compiler now asks `<Platform>` how to quote file names when it calls the C compiler, and with the posix variant the Windows binary single-quoted them for cmd, which takes single quotes literally, so every compile through `R05CCOMP` on Windows broke.
+The `.INT.ref` autotests are what catch this, see below.
 With the Windows variant `R05PATH` on Windows is semicolon-separated, like `PATH`, and a path with a drive letter works.
 
 ### Always pass source paths with forward slashes
@@ -107,7 +108,12 @@ That scratch directory has to be named `autotests`: `get-current-directory.ref` 
 
 - `.BAD-SYNTAX.ref` - compilation must fail with an error, and the compiler must not crash (exit code < 200)
 - `.SATELLITE.ref` - helper module, compiled together with the test of the same base name, never run on its own
+- `.INT.ref` - integration test: the compiler is run with `R05CCOMP` set, `R05PATH` pointing at `refal-05/lib`, and `refal05bif refal05rts` as extra modules, so it calls the C compiler itself, exactly as a user's build does. This is the only place the compiler's own quoting of file names on the C compiler's command line is tested.
 - `nested-comment.BAD-SYNTAX._ref` - disabled upstream; the `._ref` extension keeps it out of the `*.ref` glob
+
+Test names contain spaces, apostrophes, `$PATH`, `%PATH%` and `!PATH!` on purpose, upstream issue #48.
+`scripts/autotests.cmd` therefore runs with delayed expansion **off** and never passes a test name as an argument to `call`, which would expand `%PATH%` in it a second time; the name lives in the variable `TEST` and is expanded once.
+The `.INT.ref` runner on Windows does not name the executable through `R05CFLAGS`, because the compiler pastes `R05CFLAGS` into a batch file unescaped; `cl` names it after the first source instead.
 
 **Do not replace these with upstream's runners.** Upstream's `refal-05/autotests/run.sh` calls bare `exit` on every failure path, which exits with the status of the preceding `echo` - that is, `0` - so it can never fail CI.
 This is worth sending upstream: its `run.cmd` handles failures correctly, so the two runners disagree about whether a failing test is a failure.
