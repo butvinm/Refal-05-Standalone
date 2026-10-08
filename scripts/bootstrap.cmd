@@ -7,9 +7,14 @@ rem но этого макроса в runtime больше нет: отладо�
 set OPTIONS=-nts -l20
 
 set COMPILER=refal-05/src/main refal-05/src/generator refal-05/src/parser
-set FRAMEWORK=refal-5-framework/lib/LibraryEx refal-5-framework/lib/R5FW-Parser refal-5-framework/lib/R5FW-Plainer refal-5-framework/lib/R5FW-Transformer refal-5-framework/lib/posix/Platform
+set FRAMEWORK=refal-5-framework/lib/LibraryEx refal-5-framework/lib/R5FW-Parser refal-5-framework/lib/R5FW-Plainer refal-5-framework/lib/R5FW-Transformer
 
-rem Каталог bootstrap/ самодостаточен: восемь порождённых C-файлов плюс refal05rts.h, refal05rts.c и refal05bif.c той ревизии runtime, для которой они порождены.
+rem Модуль Platform свой у каждой платформы: в bootstrap/ лежат bootstrap/posix/Platform.c и bootstrap/windows/Platform.c.
+rem Порождаются оба на любой платформе, чтобы bootstrap/ не зависел от того, где шла раскрутка; компилятор собирается с Platform.c своей платформы.
+set PLATFORMS=posix windows
+set HOST_PLATFORM=windows
+
+rem Каталог bootstrap/ самодостаточен: семь общих порождённых C-файлов, два Platform.c плюс refal05rts.h, refal05rts.c и refal05bif.c той ревизии runtime, для которой они порождены.
 rem Старый компилятор собирается из него одного, и новый заголовок из подмодуля его не касается.
 set RUNTIME=refal05rts.h refal05rts.c refal05bif.c
 set STAGE2=bin\stage2
@@ -31,7 +36,7 @@ echo Configured compiler: R05CCOMP=%R05CCOMP%
 
 echo 1. Build bin\refal05c-old.exe from bootstrap/ alone
 if not exist bin mkdir bin
-%R05CCOMP% -Ibootstrap -o bin\refal05c-old.exe bootstrap\*.c
+%R05CCOMP% -Ibootstrap -o bin\refal05c-old.exe bootstrap\*.c bootstrap\%HOST_PLATFORM%\Platform.c
 if errorlevel 1 exit /b 1
 
 echo 2. Compile the new sources with bin\refal05c-old.exe
@@ -41,7 +46,7 @@ mkdir %STAGE2%
 set R05CCOMP_SAVE=%R05CCOMP%
 set R05CCOMP=
 set R05PATH=
-bin\refal05c-old.exe %OPTIONS% %COMPILER% %FRAMEWORK%
+bin\refal05c-old.exe %OPTIONS% %COMPILER% %FRAMEWORK% refal-5-framework/lib/%HOST_PLATFORM%/Platform
 if errorlevel 1 exit /b 1
 set R05CCOMP=%R05CCOMP_SAVE%
 move /Y *.c %STAGE2%\
@@ -57,17 +62,26 @@ rem Теперь C порождён новым генератором, и ряд
 set R05CCOMP=
 bin\refal05c-mid.exe %OPTIONS% %COMPILER% %FRAMEWORK%
 if errorlevel 1 exit /b 1
-set R05CCOMP=%R05CCOMP_SAVE%
 del /Q bootstrap\*.c bootstrap\*.h
+for /D %%D in (bootstrap\*) do rmdir /S /Q "%%D"
 move /Y *.c bootstrap\
 if errorlevel 1 exit /b 1
+rem Все Platform.c порождаются под одним именем в текущем каталоге, поэтому по одному.
+for %%P in (%PLATFORMS%) do (
+    bin\refal05c-mid.exe %OPTIONS% refal-5-framework/lib/%%P/Platform
+    if errorlevel 1 exit /b 1
+    mkdir bootstrap\%%P
+    move /Y Platform.c bootstrap\%%P\
+    if errorlevel 1 exit /b 1
+)
+set R05CCOMP=%R05CCOMP_SAVE%
 for %%F in (%RUNTIME%) do (
     copy /Y refal-05\lib\%%F bootstrap\ >nul
     if errorlevel 1 exit /b 1
 )
 
 echo 5. Build bin\refal05c.exe from new bootstrap/
-%R05CCOMP% -Ibootstrap -o bin\refal05c.exe bootstrap\*.c
+%R05CCOMP% -Ibootstrap -o bin\refal05c.exe bootstrap\*.c bootstrap\%HOST_PLATFORM%\Platform.c
 if errorlevel 1 exit /b 1
 
 echo 6. Run autotests for bin\refal05c.exe
