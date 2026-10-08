@@ -26,5 +26,5 @@ cat <<NOTES
 | \`refal05c-linux-x86_64.tar.gz\` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
 | \`refal05c-windows-x64.zip\` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
 
-Как подключить компилятор к проекту - в [README](https://github.com/butvinm/Refal-05-Standalone#использование).
+Инструкция по установке и использованию компилятора: [README](https://github.com/butvinm/Refal-05-Standalone#использование).
 NOTES
