@@ -188,6 +188,10 @@ The Linux job bootstraps and tests with the default configuration, then relinks 
 A release asset is an archive, not a bare binary: `refal05c-linux-x86_64.tar.gz` and `refal05c-windows-x64.zip`, each holding a single `refal05c/` directory with `bin/` for the compiler and `lib/` for the runtime from `refal-05/lib` (`refal05rts.h`, `refal05rts.c`, `refal05bif.c`, `Go.c`) and the framework from `refal-5-framework/lib` (`LibraryEx.ref`, `R5FW-*.ref`, and `Platform.ref` from `posix/` or `windows/` to match the archive's platform), flattened so that a single `lib` entry in `R05PATH` is enough.
 The archive names and the directory inside carry no tag, deliberately: the README's `curl` line relies on the stable URL `releases/latest/download/<name>`, and its example paths rely on the archive unpacking to `refal05c/`. The tag is recorded in `refal05c/VERSION` instead.
 `scripts/dist.sh <tag> <platform> <binary>` lays the directory out under `dist/<platform>/refal05c/`, and the publish job packs it.
+
+`scripts/release-notes.sh [<commit>]` prints the release notes: the `refal-05` and `refal-5-framework` revisions pinned in that commit, each as a link to the upstream commit with its date, the archive table and a link to the README.
+The notes deliberately do not list what changed: a release differs from the previous one by upstream commits, by changes in this repository and by framework bumps that never got a release of their own, and an upstream commit list would cover only the first.
+Given the commit a release was built from, the script regenerates that release's notes, which is how the notes of `1ee2c8e` through `72ad026` were rewritten. The three earlier releases ship bare binaries, not archives, so only their first line was rewritten by hand.
 The bare binary was useless on its own: the compiler links every program against `refal05rts.c` and `refal05bif.c`, and the releases up to `bd7cc28` shipped neither.
 
 The Windows binary is built with the Windows `Platform.ref`, so it splits `R05PATH` on `;`, and the README says so. Releases up to `b0935b7` were built with the posix one and split on `:`, so a `lib` path with a drive letter broke there.

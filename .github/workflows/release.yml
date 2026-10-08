@@ -161,21 +161,7 @@ jobs:
 
     - name: Write the release notes
       run: |
-        cat > notes.md <<'NOTES'
-        Сборка компилятора, соответствующая коммиту TAG_PLACEHOLDER оригинального репозитория
-        [Mazdaywik/Refal-05](https://github.com/Mazdaywik/Refal-05).
-
-        | архив | платформа |
-        |---|---|
-        | `refal05c-linux-x86_64.tar.gz` | Linux x86-64, статическая сборка, зависимостей от glibc нет |
-        | `refal05c-windows-x64.zip` | Windows x64, статический CRT, Visual C++ Redistributable не нужен |
-
-        В каждом архиве каталог `refal05c`, в нём `bin` с компилятором и `lib` с рантаймом и Рефал-5-фреймворком.
-        Для работы достаточно указать путь к `lib` в переменной `R05PATH`.
-
-        Обе сборки оптимизированы и проходят автотесты.
-        NOTES
-        sed -i "s/TAG_PLACEHOLDER/${{ needs.tag.outputs.tag }}/g" notes.md
+        scripts/release-notes.sh > notes.md
         cat notes.md
 
     - name: Publish
