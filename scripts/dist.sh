@@ -40,8 +40,12 @@ cp "$BINARY" "$DIST/bin/"
 cp "$RUNTIME_DIR/refal05rts.h" "$RUNTIME_DIR/refal05rts.c" "$RUNTIME_DIR/refal05bif.c" "$RUNTIME_DIR/Go.c" "$DIST/lib/"
 
 # Фреймворк одним плоским каталогом, чтобы в R05PATH хватало одного пути.
-# Platform.ref берётся из posix на обеих платформах, как и при раскрутке.
-cp "$FRAMEWORK_DIR"/*.ref "$FRAMEWORK_DIR/posix/Platform.ref" "$DIST/lib/"
+# Platform.ref берётся под платформу архива, тот же, с которым собран сам компилятор.
+case "$PLATFORM" in
+  windows-*) PLATFORM_REF="$FRAMEWORK_DIR/windows/Platform.ref" ;;
+  *) PLATFORM_REF="$FRAMEWORK_DIR/posix/Platform.ref" ;;
+esac
+cp "$FRAMEWORK_DIR"/*.ref "$PLATFORM_REF" "$DIST/lib/"
 
 cp "$RUNTIME_DIR/LICENSE" "$DIST/LICENSE.refal-05"
 cp "$PROJECT_ROOT/refal-5-framework/LICENSE" "$DIST/LICENSE.refal-5-framework"

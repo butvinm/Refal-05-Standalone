@@ -33,6 +33,11 @@ run_test() {
 
     echo "Testing: $TEST"
 
+    if [[ "$TEST" == *.INT.ref ]]; then
+        run_int_test "$TEST"
+        return
+    fi
+
     R05CCOMP= R05PATH= "$COMPILER" "$TESTS_DIR/$TEST" 2>__error.txt
     EXIT_CODE=$?
 
@@ -77,7 +82,13 @@ run_test() {
         return 1
     fi
 
-    ./"$BASENAME" > /dev/null 2> __dump.txt
+    run_executable "$BASENAME"
+}
+
+run_executable() {
+    local EXIT_CODE
+
+    ./"$1" > /dev/null 2> __dump.txt
     EXIT_CODE=$?
     if [ $EXIT_CODE -ne 0 ]; then
         echo "  FAILED: test run exited with code $EXIT_CODE"
@@ -87,6 +98,29 @@ run_test() {
 
     echo "  OK"
     return 0
+}
+
+# Интеграционный тест .INT.ref: компилятор сам вызывает компилятор C через R05CCOMP, как у пользователя,
+# поэтому проверяется и то, как он экранирует имена файлов в командной строке.
+# R05CFLAGS попадает в командную строку как есть, поэтому имя исполняемого файла экранируется здесь.
+run_int_test() {
+    local TEST=$1
+    local BASENAME="${TEST%.ref}"
+
+    if ! R05PATH="$RUNTIME_DIR" R05CFLAGS="-o${BASENAME@Q}" \
+            "$COMPILER" "$TESTS_DIR/$TEST" refal05bif refal05rts > __cc.txt 2>&1; then
+        echo "  FAILED: compilation of $TEST failed"
+        cat __cc.txt
+        return 1
+    fi
+
+    if [ ! -e "$BASENAME" ]; then
+        echo "  FAILED: compiler produced no executable $BASENAME"
+        cat __cc.txt
+        return 1
+    fi
+
+    run_executable "$BASENAME"
 }
 
 FAILED=0

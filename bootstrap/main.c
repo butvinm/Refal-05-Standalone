@@ -6,11 +6,13 @@ R05_DECLARE_ENTRY_FUNCTION(ArgList)
 R05_DECLARE_ENTRY_FUNCTION(LoadFile)
 R05_DECLARE_ENTRY_FUNCTION(Map)
 R05_DECLARE_ENTRY_FUNCTION(Trim)
+R05_DECLARE_ENTRY_FUNCTION(SaveFile)
 R05_DECLARE_ENTRY_FUNCTION(Parsem_File)
 R05_DECLARE_ENTRY_FUNCTION(Generatem_ToFile)
 R05_DECLARE_ENTRY_FUNCTION(PathSeparator)
 R05_DECLARE_ENTRY_FUNCTION(IsDirectorySeparator)
 R05_DECLARE_ENTRY_FUNCTION(DirectorySeparator)
+R05_DECLARE_ENTRY_FUNCTION(Platform)
 R05_DECLARE_ENTRY_FUNCTION(GO)
 R05_DECLARE_LOCAL_FUNCTION(Main)
 R05_DECLARE_ENTRY_FUNCTION(mainu_PrintNotFound)
@@ -19,6 +21,7 @@ R05_DECLARE_ENTRY_FUNCTION(mainu_WriteError)
 R05_DECLARE_LOCAL_FUNCTION(StrFromSrcPos)
 R05_DECLARE_LOCAL_FUNCTION(LoadPath)
 R05_DECLARE_LOCAL_FUNCTION(ParsePath)
+R05_DECLARE_LOCAL_FUNCTION(DoParsePath)
 R05_DECLARE_LOCAL_FUNCTION(ParseFolder)
 R05_DECLARE_LOCAL_FUNCTION(FindFiles)
 R05_DECLARE_ENTRY_FUNCTION(mainu_AnalyzeFilem_ByFolders)
@@ -26,14 +29,23 @@ R05_DECLARE_ENTRY_FUNCTION(mainu_AnalyzeInFolder)
 R05_DECLARE_LOCAL_FUNCTION(AnalyzeFile)
 R05_DECLARE_LOCAL_FUNCTION(CutFolder)
 R05_DECLARE_LOCAL_FUNCTION(CCompile)
+R05_DECLARE_LOCAL_FUNCTION(MakeCommandLine)
 R05_DECLARE_ENTRY_FUNCTION(mainu_IncludeFlag)
 R05_DECLARE_ENTRY_FUNCTION(mainu_QuoteFile)
+R05_DECLARE_LOCAL_FUNCTION(Quote)
+R05_DECLARE_LOCAL_FUNCTION(Quotem_POSIX)
+R05_DECLARE_LOCAL_FUNCTION(BATCH)
+R05_DECLARE_LOCAL_FUNCTION(CCompilem_Windows)
+R05_DECLARE_LOCAL_FUNCTION(Quotem_Windows)
+R05_DECLARE_LOCAL_FUNCTION(CheckedRemove)
 R05_DECLARE_ENTRY_FUNCTION(Prout)
 R05_DECLARE_ENTRY_FUNCTION(Symb)
 R05_DECLARE_ENTRY_FUNCTION(Exit)
 R05_DECLARE_ENTRY_FUNCTION(ExistFile)
-R05_DECLARE_ENTRY_FUNCTION(System)
 R05_DECLARE_ENTRY_FUNCTION(GetEnv)
+R05_DECLARE_ENTRY_FUNCTION(System)
+R05_DECLARE_ENTRY_FUNCTION(RemoveFile)
+R05_DECLARE_ENTRY_FUNCTION(Putout)
 R05_DEFINE_LOCAL_ENUM(NotFound, "NotFound")
 R05_DEFINE_LOCAL_ENUM(Output, "Output")
 R05_DEFINE_LOCAL_ENUM(Source, "Source")
@@ -41,6 +53,9 @@ R05_DEFINE_LOCAL_ENUM(Success, "Success")
 R05_DEFINE_LOCAL_ENUM(Fails, "Fails")
 R05_DEFINE_LOCAL_ENUM(Current, "Current")
 R05_DEFINE_LOCAL_ENUM(True, "True")
+R05_DEFINE_LOCAL_ENUM(POSIX, "POSIX")
+R05_DEFINE_LOCAL_ENUM(Windows, "Windows")
+R05_DEFINE_LOCAL_ENUM(False, "False")
 
 R05_DEFINE_ENTRY_FUNCTION(GO, "GO") {
   struct r05_node *p[7] = { 0 };
@@ -720,102 +735,105 @@ R05_DEFINE_LOCAL_FUNCTION(LoadPath, "LoadPath") {
 }
 
 R05_DEFINE_LOCAL_FUNCTION(ParsePath, "ParsePath") {
-  R05_DEFINE_COND_FUNCTION(ParsePath, "ParsePath$1", 1)
-  struct r05_node *p[18] = { 0 };
+  struct r05_node *p[10] = { 0 };
 
   r05_this_is_generated_function();
-  switch (arg_begin->next->info.function->resume_entry >> 1) {
-  case 0:
-    p[0] = arg_begin;
-    p[1] = arg_begin->next;
-    p[2] = arg_end;
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
 
+  do {
+    /* e.Path: 3 */
+    /* e.Path */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_DoParsePath);
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_PathSeparator);
+    r05_alloc_close_call(p+7);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_call(p+9);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[5]);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[6]);
+    r05_splice_evar(p[8], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(DoParsePath, "DoParsePath") {
+  struct r05_node *p[15] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* s.Sep: 3, 6 */
+    /* e.Folder: 4 */
+    /* e.Path: 7 */
+    /* s.Sep e.Folder s.Sep e.Path */
+    if (! r05_svar_left(p+3, p[1], p[2]))
+      continue;
+    p[4] = NULL;
+    p[5] = p[3];
     do {
-      /* e.Folder: 3 */
-      /* s.Sep: 5 */
-      /* e.Path: 6 */
-      /* e.Folder s.Sep e.Path */
-      p[3] = NULL;
-      p[4] = p[1];
-      do {
-        r05_start_e_loop();
-        if (! r05_svar_left(p+5, p[4], p[2]))
-          continue;
-        r05_close_evar(p+6, p[5], p[2]);
-
-        r05_reset_allocator();
-        r05_alloc_open_call(p+8);
-        r05_alloc_function(&c1);
-        r05_alloc_open_call(p+9);
-        r05_alloc_function(&r05f_PathSeparator);
-        r05_alloc_close_call(p+10);
-        r05_alloc_close_call(p+11);
-        r05_push_stack(p[11]);
-        r05_push_stack(p[8]);
-        r05_push_stack(p[10]);
-        r05_push_stack(p[9]);
-        r05_push_context(p, 8);
-        r05_splice_from_freelist(p[2]);
-        return;
-
-  case 1:
-        r05_pop_context(p, 8);
-        p[8] = arg_begin;
-        p[9] = arg_begin->next;
-        p[10] = arg_end;
-
-        do {
-          /* e.Folder: 3 */
-          /* s.Sep: 5, 11 */
-          /* e.Path: 6 */
-          /* s.Sep */
-          if (! r05_repeated_svar_left(p+11, p[9], p[10], p+5))
-            continue;
-          if (! r05_empty_hole(p[11], p[10]))
-            continue;
-
-          r05_reset_allocator();
-          r05_alloc_open_call(p+12);
-          r05_alloc_function(&r05f_ParseFolder);
-          r05_alloc_insert_pos(p+13);
-          r05_alloc_close_call(p+14);
-          r05_alloc_open_call(p+15);
-          r05_alloc_function(&r05f_ParsePath);
-          r05_alloc_insert_pos(p+16);
-          r05_alloc_close_call(p+17);
-          r05_push_stack(p[17]);
-          r05_push_stack(p[15]);
-          r05_push_stack(p[14]);
-          r05_push_stack(p[12]);
-          r05_splice_evar(p[13], p+3);
-          r05_splice_evar(p[16], p+6);
-          r05_splice_from_freelist(p[0]);
-          r05_splice_to_freelist(p[0], p[2]);
-          return;
-        } while (0);
-        r05_splice_to_freelist(p[8], p[10]);
-      } while (r05_open_evar_advance(p+3, p[2]));
-      r05_stop_e_loop();
-    } while (0);
-
-    do {
-      /* e.Folder: 3 */
-      /* e.Folder */
-      r05_close_evar(p+3, p[1], p[2]);
+      r05_start_e_loop();
+      if (! r05_repeated_svar_left(p+6, p[5], p[2], p+3))
+        continue;
+      r05_close_evar(p+7, p[6], p[2]);
 
       r05_reset_allocator();
-      r05_alloc_open_call(p+5);
+      r05_alloc_open_call(p+9);
       r05_alloc_function(&r05f_ParseFolder);
-      r05_alloc_insert_pos(p+6);
-      r05_alloc_close_call(p+7);
-      r05_push_stack(p[7]);
-      r05_push_stack(p[5]);
-      r05_splice_evar(p[6], p+3);
+      r05_alloc_insert_pos(p+10);
+      r05_alloc_close_call(p+11);
+      r05_alloc_open_call(p+12);
+      r05_alloc_function(&r05f_DoParsePath);
+      r05_alloc_svar(p+3);
+      r05_alloc_insert_pos(p+13);
+      r05_alloc_close_call(p+14);
+      r05_push_stack(p[14]);
+      r05_push_stack(p[12]);
+      r05_push_stack(p[11]);
+      r05_push_stack(p[9]);
+      r05_splice_evar(p[10], p+4);
+      r05_splice_evar(p[13], p+7);
       r05_splice_from_freelist(p[0]);
       r05_splice_to_freelist(p[0], p[2]);
       return;
-    } while (0);
-  }
+    } while (r05_open_evar_advance(p+4, p[2]));
+    r05_stop_e_loop();
+  } while (0);
+
+  do {
+    /* s.Sep: 3 */
+    /* e.Folder: 4 */
+    /* s.Sep e.Folder */
+    if (! r05_svar_left(p+3, p[1], p[2]))
+      continue;
+    r05_close_evar(p+4, p[3], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_ParseFolder);
+    r05_alloc_insert_pos(p+7);
+    r05_alloc_close_call(p+8);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[6]);
+    r05_splice_evar(p[7], p+4);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
 }
 
 R05_DEFINE_LOCAL_FUNCTION(ParseFolder, "ParseFolder") {
@@ -1569,7 +1587,8 @@ R05_DEFINE_LOCAL_FUNCTION(CutFolder, "CutFolder") {
 
 R05_DEFINE_LOCAL_FUNCTION(CCompile, "CCompile") {
   R05_DEFINE_COND_FUNCTION(CCompile, "CCompile$1", 1)
-  struct r05_node *p[22] = { 0 };
+  R05_DEFINE_COND_FUNCTION(CCompile, "CCompile$2", 2)
+  struct r05_node *p[14] = { 0 };
 
   r05_this_is_generated_function();
   switch (arg_begin->next->info.function->resume_entry >> 1) {
@@ -1617,57 +1636,141 @@ R05_DEFINE_LOCAL_FUNCTION(CCompile, "CCompile") {
         r05_splice_to_freelist(p[0], p[2]);
         return;
       } while (0);
+      r05_splice_to_freelist(p[5], p[7]);
+    } while (0);
+
+    do {
+      /* e.CSources: 3 */
+      /* e.CSources */
+      r05_close_evar(p+3, p[1], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+5);
+      r05_alloc_function(&c2);
+      r05_alloc_open_call(p+6);
+      r05_alloc_function(&r05f_Platform);
+      r05_alloc_close_call(p+7);
+      r05_alloc_close_call(p+8);
+      r05_push_stack(p[8]);
+      r05_push_stack(p[5]);
+      r05_push_stack(p[7]);
+      r05_push_stack(p[6]);
+      r05_push_context(p, 5);
+      r05_splice_from_freelist(p[2]);
+      return;
+
+  case 2:
+      r05_pop_context(p, 5);
+      p[5] = arg_begin;
+      p[6] = arg_begin->next;
+      p[7] = arg_end;
 
       do {
         /* e.CSources: 3 */
-        /* e.CommandLine: 8 */
-        /* e.CommandLine */
-        r05_close_evar(p+8, p[6], p[7]);
+        /* POSIX */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_POSIX))
+          continue;
+        if (! r05_empty_hole(p[8], p[7]))
+          continue;
 
         r05_reset_allocator();
-        r05_alloc_open_call(p+10);
+        r05_alloc_open_call(p+9);
         r05_alloc_function(&r05f_System);
+        r05_alloc_open_call(p+10);
+        r05_alloc_function(&r05f_MakeCommandLine);
         r05_alloc_insert_pos(p+11);
-        r05_alloc_char(' ');
-        r05_alloc_open_call(p+12);
-        r05_alloc_function(&r05f_GetEnv);
-        r05_alloc_chars("R05CFLAGS", 9);
+        r05_alloc_close_call(p+12);
         r05_alloc_close_call(p+13);
-        r05_alloc_open_call(p+14);
-        r05_alloc_function(&r05f_Map);
-        r05_alloc_function(&r05f_mainu_IncludeFlag);
-        r05_alloc_open_call(p+15);
-        r05_alloc_function(&r05f_LoadPath);
-        r05_alloc_close_call(p+16);
-        r05_alloc_close_call(p+17);
-        r05_alloc_open_call(p+18);
-        r05_alloc_function(&r05f_Map);
-        r05_alloc_function(&r05f_mainu_QuoteFile);
-        r05_alloc_insert_pos(p+19);
-        r05_alloc_close_call(p+20);
-        r05_alloc_close_call(p+21);
-        r05_push_stack(p[21]);
-        r05_push_stack(p[10]);
-        r05_push_stack(p[20]);
-        r05_push_stack(p[18]);
-        r05_push_stack(p[17]);
-        r05_push_stack(p[14]);
-        r05_push_stack(p[16]);
-        r05_push_stack(p[15]);
         r05_push_stack(p[13]);
+        r05_push_stack(p[9]);
         r05_push_stack(p[12]);
-        r05_splice_evar(p[11], p+8);
-        r05_splice_evar(p[19], p+3);
+        r05_push_stack(p[10]);
+        r05_splice_evar(p[11], p+3);
         r05_splice_from_freelist(p[0]);
         r05_splice_to_freelist(p[0], p[2]);
         return;
       } while (0);
+
+      do {
+        /* e.CSources: 3 */
+        /* Windows */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_Windows))
+          continue;
+        if (! r05_empty_hole(p[8], p[7]))
+          continue;
+
+        r05_reset_allocator();
+        r05_alloc_open_call(p+9);
+        r05_alloc_function(&r05f_CCompilem_Windows);
+        r05_alloc_insert_pos(p+10);
+        r05_alloc_close_call(p+11);
+        r05_push_stack(p[11]);
+        r05_push_stack(p[9]);
+        r05_splice_evar(p[10], p+3);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      r05_recognition_impossible();
     } while (0);
   }
 }
 
+R05_DEFINE_LOCAL_FUNCTION(MakeCommandLine, "MakeCommandLine") {
+  struct r05_node *p[16] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.CSources: 3 */
+    /* e.CSources */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_GetEnv);
+    r05_alloc_chars("R05CCOMP", 8);
+    r05_alloc_close_call(p+6);
+    r05_alloc_char(' ');
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_GetEnv);
+    r05_alloc_chars("R05CFLAGS", 9);
+    r05_alloc_close_call(p+8);
+    r05_alloc_open_call(p+9);
+    r05_alloc_function(&r05f_Map);
+    r05_alloc_function(&r05f_mainu_IncludeFlag);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_LoadPath);
+    r05_alloc_close_call(p+11);
+    r05_alloc_close_call(p+12);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Map);
+    r05_alloc_function(&r05f_mainu_QuoteFile);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[11]);
+    r05_push_stack(p[10]);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[7]);
+    r05_push_stack(p[6]);
+    r05_push_stack(p[5]);
+    r05_splice_evar(p[14], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
 R05_DEFINE_ENTRY_FUNCTION(mainu_IncludeFlag, "main_IncludeFlag") {
-  struct r05_node *p[8] = { 0 };
+  struct r05_node *p[10] = { 0 };
 
   r05_this_is_generated_function();
   p[0] = arg_begin;
@@ -1684,10 +1787,14 @@ R05_DEFINE_ENTRY_FUNCTION(mainu_IncludeFlag, "main_IncludeFlag") {
     r05_close_evar(p+5, p[3], p[4]);
 
     r05_reset_allocator();
-    r05_alloc_chars(" -I\"", 4);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_char('\"');
-    r05_splice_evar(p[7], p+5);
+    r05_alloc_chars(" -I", 3);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_Quote);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_call(p+9);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[7]);
+    r05_splice_evar(p[8], p+5);
     r05_splice_from_freelist(p[0]);
     r05_splice_to_freelist(p[0], p[2]);
     return;
@@ -1697,7 +1804,7 @@ R05_DEFINE_ENTRY_FUNCTION(mainu_IncludeFlag, "main_IncludeFlag") {
 }
 
 R05_DEFINE_ENTRY_FUNCTION(mainu_QuoteFile, "main_QuoteFile") {
-  struct r05_node *p[8] = { 0 };
+  struct r05_node *p[10] = { 0 };
 
   r05_this_is_generated_function();
   p[0] = arg_begin;
@@ -1714,16 +1821,395 @@ R05_DEFINE_ENTRY_FUNCTION(mainu_QuoteFile, "main_QuoteFile") {
     r05_close_evar(p+5, p[3], p[4]);
 
     r05_reset_allocator();
-    r05_alloc_chars(" \"", 2);
-    r05_alloc_insert_pos(p+7);
-    r05_alloc_char('\"');
-    r05_splice_evar(p[7], p+5);
+    r05_alloc_char(' ');
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_Quote);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_call(p+9);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[7]);
+    r05_splice_evar(p[8], p+5);
     r05_splice_from_freelist(p[0]);
     r05_splice_to_freelist(p[0], p[2]);
     return;
   } while (0);
 
   r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Quote, "Quote") {
+  R05_DEFINE_COND_FUNCTION(Quote, "Quote$1", 1)
+  struct r05_node *p[12] = { 0 };
+
+  r05_this_is_generated_function();
+  switch (arg_begin->next->info.function->resume_entry >> 1) {
+  case 0:
+    p[0] = arg_begin;
+    p[1] = arg_begin->next;
+    p[2] = arg_end;
+
+    do {
+      /* e.FileName: 3 */
+      /* e.FileName */
+      r05_close_evar(p+3, p[1], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+5);
+      r05_alloc_function(&c1);
+      r05_alloc_open_call(p+6);
+      r05_alloc_function(&r05f_Platform);
+      r05_alloc_close_call(p+7);
+      r05_alloc_close_call(p+8);
+      r05_push_stack(p[8]);
+      r05_push_stack(p[5]);
+      r05_push_stack(p[7]);
+      r05_push_stack(p[6]);
+      r05_push_context(p, 5);
+      r05_splice_from_freelist(p[2]);
+      return;
+
+  case 1:
+      r05_pop_context(p, 5);
+      p[5] = arg_begin;
+      p[6] = arg_begin->next;
+      p[7] = arg_end;
+
+      do {
+        /* e.FileName: 3 */
+        /* POSIX */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_POSIX))
+          continue;
+        if (! r05_empty_hole(p[8], p[7]))
+          continue;
+
+        r05_reset_allocator();
+        r05_alloc_open_call(p+9);
+        r05_alloc_function(&r05f_Quotem_POSIX);
+        r05_alloc_insert_pos(p+10);
+        r05_alloc_close_call(p+11);
+        r05_push_stack(p[11]);
+        r05_push_stack(p[9]);
+        r05_splice_evar(p[10], p+3);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      do {
+        /* e.FileName: 3 */
+        /* Windows */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_Windows))
+          continue;
+        if (! r05_empty_hole(p[8], p[7]))
+          continue;
+
+        r05_reset_allocator();
+        r05_alloc_char('\"');
+        r05_alloc_open_call(p+9);
+        r05_alloc_function(&r05f_Quotem_Windows);
+        r05_alloc_insert_pos(p+10);
+        r05_alloc_close_call(p+11);
+        r05_alloc_char('\"');
+        r05_push_stack(p[11]);
+        r05_push_stack(p[9]);
+        r05_splice_evar(p[10], p+3);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      r05_recognition_impossible();
+    } while (0);
+  }
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Quotem_POSIX, "Quote-POSIX") {
+  struct r05_node *p[12] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.FileName-B: 3 */
+    /* e.FileName-E: 6 */
+    /* e.FileName-B '\'' e.FileName-E */
+    p[3] = NULL;
+    p[4] = p[1];
+    do {
+      r05_start_e_loop();
+      if (! r05_char_left(p+5, p[4], p[2], '\''))
+        continue;
+      r05_close_evar(p+6, p[5], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_char('\'');
+      r05_alloc_insert_pos(p+8);
+      r05_alloc_chars("\'\\\'", 3);
+      r05_alloc_open_call(p+9);
+      r05_alloc_function(&r05f_Quotem_POSIX);
+      r05_alloc_insert_pos(p+10);
+      r05_alloc_close_call(p+11);
+      r05_push_stack(p[11]);
+      r05_push_stack(p[9]);
+      r05_splice_evar(p[8], p+3);
+      r05_splice_evar(p[10], p+6);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (r05_open_evar_advance(p+3, p[2]));
+    r05_stop_e_loop();
+  } while (0);
+
+  do {
+    /* e.FileName: 3 */
+    /* e.FileName */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_char('\'');
+    r05_alloc_insert_pos(p+5);
+    r05_alloc_char('\'');
+    r05_splice_evar(p[5], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(BATCH, "BATCH") {
+  struct r05_node *p[3] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /*  */
+    if (! r05_empty_hole(p[1], p[2]))
+      continue;
+
+    r05_reset_allocator();
+    r05_alloc_chars("r05cc.tmp.bat", 13);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CCompilem_Windows, "CCompile-Windows") {
+  struct r05_node *p[26] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.CSources: 3 */
+    /* e.CSources */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+5);
+    r05_alloc_function(&r05f_SaveFile);
+    r05_alloc_open_bracket(p+6);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_BATCH);
+    r05_alloc_close_call(p+8);
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_bracket(p+10);
+    r05_alloc_chars("@if x\"!COMSPEC!\"==x\"%COMSPEC%\" @setlocal DisableDelayedExpansion", 64);
+    r05_alloc_close_bracket(p+11);
+    r05_alloc_open_bracket(p+12);
+    r05_alloc_char('@');
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_MakeCommandLine);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_alloc_close_bracket(p+16);
+    r05_alloc_close_call(p+17);
+    r05_alloc_open_call(p+18);
+    r05_alloc_function(&r05f_System);
+    r05_alloc_open_call(p+19);
+    r05_alloc_function(&r05f_BATCH);
+    r05_alloc_close_call(p+20);
+    r05_alloc_close_call(p+21);
+    r05_alloc_open_call(p+22);
+    r05_alloc_function(&r05f_CheckedRemove);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_BATCH);
+    r05_alloc_close_call(p+24);
+    r05_alloc_close_call(p+25);
+    r05_push_stack(p[25]);
+    r05_push_stack(p[22]);
+    r05_push_stack(p[24]);
+    r05_push_stack(p[23]);
+    r05_push_stack(p[21]);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[20]);
+    r05_push_stack(p[19]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[5]);
+    r05_link_brackets(p[12], p[16]);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_link_brackets(p[10], p[11]);
+    r05_link_brackets(p[6], p[9]);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[7]);
+    r05_splice_evar(p[14], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(Quotem_Windows, "Quote-Windows") {
+  struct r05_node *p[12] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.FileName-B: 3 */
+    /* e.FileName-E: 6 */
+    /* e.FileName-B '%' e.FileName-E */
+    p[3] = NULL;
+    p[4] = p[1];
+    do {
+      r05_start_e_loop();
+      if (! r05_char_left(p+5, p[4], p[2], '%'))
+        continue;
+      r05_close_evar(p+6, p[5], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_insert_pos(p+8);
+      r05_alloc_chars("%%", 2);
+      r05_alloc_open_call(p+9);
+      r05_alloc_function(&r05f_Quotem_Windows);
+      r05_alloc_insert_pos(p+10);
+      r05_alloc_close_call(p+11);
+      r05_push_stack(p[11]);
+      r05_push_stack(p[9]);
+      r05_splice_evar(p[8], p+3);
+      r05_splice_evar(p[10], p+6);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (r05_open_evar_advance(p+3, p[2]));
+    r05_stop_e_loop();
+  } while (0);
+
+  do {
+    /* e.FileName: 3 */
+    /* e.FileName */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_insert_pos(p+5);
+    r05_splice_evar(p[5], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(CheckedRemove, "CheckedRemove") {
+  R05_DEFINE_COND_FUNCTION(CheckedRemove, "CheckedRemove$1", 1)
+  struct r05_node *p[17] = { 0 };
+
+  r05_this_is_generated_function();
+  switch (arg_begin->next->info.function->resume_entry >> 1) {
+  case 0:
+    p[0] = arg_begin;
+    p[1] = arg_begin->next;
+    p[2] = arg_end;
+
+    do {
+      /* e.FileName: 3 */
+      /* e.FileName */
+      r05_close_evar(p+3, p[1], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+5);
+      r05_alloc_function(&c1);
+      r05_alloc_open_call(p+6);
+      r05_alloc_function(&r05f_RemoveFile);
+      r05_alloc_evar(p+3);
+      r05_alloc_close_call(p+7);
+      r05_alloc_close_call(p+8);
+      r05_push_stack(p[8]);
+      r05_push_stack(p[5]);
+      r05_push_stack(p[7]);
+      r05_push_stack(p[6]);
+      r05_push_context(p, 5);
+      r05_splice_from_freelist(p[2]);
+      return;
+
+  case 1:
+      r05_pop_context(p, 5);
+      p[5] = arg_begin;
+      p[6] = arg_begin->next;
+      p[7] = arg_end;
+
+      do {
+        /* e.FileName: 3 */
+        /* True () */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_True))
+          continue;
+        if (! r05_brackets_left(p+9, p[8], p[7]))
+          continue;
+        if (! r05_empty_hole(p[9], p[10]))
+          continue;
+        if (! r05_empty_hole(p[10], p[7]))
+          continue;
+
+        r05_reset_allocator();
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      do {
+        /* e.FileName: 3 */
+        /* e.Message: 11 */
+        /* False (e.Message) */
+        if (! r05_function_left(p+8, p[6], p[7], &r05f_False))
+          continue;
+        if (! r05_brackets_left(p+9, p[8], p[7]))
+          continue;
+        if (! r05_empty_hole(p[10], p[7]))
+          continue;
+        r05_close_evar(p+11, p[9], p[10]);
+
+        r05_reset_allocator();
+        r05_alloc_open_call(p+13);
+        r05_alloc_function(&r05f_Putout);
+        r05_alloc_number(0UL);
+        r05_alloc_chars("Error of delete file ", 21);
+        r05_alloc_insert_pos(p+14);
+        r05_alloc_chars(": ", 2);
+        r05_alloc_insert_pos(p+15);
+        r05_alloc_close_call(p+16);
+        r05_push_stack(p[16]);
+        r05_push_stack(p[13]);
+        r05_splice_evar(p[14], p+3);
+        r05_splice_evar(p[15], p+11);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      r05_recognition_impossible();
+    } while (0);
+  }
 }
 
 

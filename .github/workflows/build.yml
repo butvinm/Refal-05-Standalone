@@ -27,7 +27,7 @@ jobs:
 
     - name: Verify bootstrap fixpoint
       # The bootstrap rewrote bootstrap/ in place, so the reference is the commit under test:
-      # every one of its eleven files must come back byte for byte, and nothing new may appear.
+      # every one of its twelve files, both Platform.c variants included, must come back byte for byte, and nothing new may appear.
       run: |
         if ! git diff --exit-code -- bootstrap; then
           echo "::error::Bootstrap is not a fixpoint: the committed bootstrap/ differs from what the build regenerates"

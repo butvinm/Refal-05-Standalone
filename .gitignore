@@ -4,4 +4,5 @@ c-plus-plus.conf.cmd
 c-plus-plus.conf.sh
 *.c
 !bootstrap/*.c
+!bootstrap/*/Platform.c
 .testrun
