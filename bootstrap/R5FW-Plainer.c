@@ -39,6 +39,18 @@ R05_DECLARE_LOCAL_FUNCTION(PlainBrackets)
 R05_DECLARE_LOCAL_FUNCTION(PlainCall)
 R05_DECLARE_ENTRY_FUNCTION(InlineExpr)
 R05_DECLARE_LOCAL_FUNCTION(DoInlineExpr)
+R05_DECLARE_ENTRY_FUNCTION(cm_prefal)
+R05_DECLARE_LOCAL_FUNCTION(WriteLines)
+R05_DECLARE_LOCAL_FUNCTION(FromModule)
+R05_DECLARE_LOCAL_FUNCTION(FromModulem_Externs)
+R05_DECLARE_LOCAL_FUNCTION(FromModulem_Sentences)
+R05_DECLARE_LOCAL_FUNCTION(FromModulem_Left)
+R05_DECLARE_LOCAL_FUNCTION(FromModulem_Expr)
+R05_DECLARE_LOCAL_FUNCTION(FromModulem_Term)
+R05_DECLARE_ENTRY_FUNCTION(Open)
+R05_DECLARE_ENTRY_FUNCTION(Close)
+R05_DECLARE_ENTRY_FUNCTION(Putout)
+R05_DECLARE_ENTRY_FUNCTION(Explode)
 R05_DECLARE_ENTRY_FUNCTION(Symb)
 R05_DECLARE_ENTRY_FUNCTION(Type)
 R05_DECLARE_ENTRY_FUNCTION(Ord)
@@ -50,6 +62,13 @@ R05_DECLARE_ENTRY_FUNCTION(First)
 R05_DEFINE_LOCAL_ENUM(Extern, "Extern")
 R05_DEFINE_LOCAL_ENUM(Function, "Function")
 R05_DEFINE_LOCAL_ENUM(SpecialComment, "SpecialComment")
+R05_DEFINE_LOCAL_ENUM(EXTERN, "EXTERN")
+R05_DEFINE_LOCAL_ENUM(LOCAL, "LOCAL")
+R05_DEFINE_LOCAL_ENUM(Local, "Local")
+R05_DEFINE_LOCAL_ENUM(ENTRY, "ENTRY")
+R05_DEFINE_LOCAL_ENUM(Entry, "Entry")
+R05_DEFINE_LOCAL_ENUM(Comment, "Comment")
+R05_DEFINE_LOCAL_ENUM(NOm_POS, "NO-POS")
 R05_DEFINE_LOCAL_ENUM(Word, "Word")
 R05_DEFINE_LOCAL_ENUM(Number, "Number")
 R05_DEFINE_LOCAL_ENUM(Symbol, "Symbol")
@@ -57,15 +76,16 @@ R05_DEFINE_LOCAL_ENUM(Char, "Char")
 R05_DEFINE_LOCAL_ENUM(Variable, "Variable")
 R05_DEFINE_LOCAL_ENUM(Call, "Call")
 R05_DEFINE_LOCAL_ENUM(Brackets, "Brackets")
+R05_DEFINE_LOCAL_ENUM(RETURN, "RETURN")
+R05_DEFINE_LOCAL_ENUM(Condition, "Condition")
+R05_DEFINE_LOCAL_ENUM(Block, "Block")
+R05_DEFINE_LOCAL_ENUM(CALLm_BLOCK, "CALL-BLOCK")
 R05_DEFINE_LOCAL_ENUM(True, "True")
 R05_DEFINE_LOCAL_ENUM(False, "False")
-R05_DEFINE_LOCAL_ENUM(Entry, "Entry")
-R05_DEFINE_LOCAL_ENUM(Local, "Local")
-R05_DEFINE_LOCAL_ENUM(Comment, "Comment")
-R05_DEFINE_LOCAL_ENUM(RETURN, "RETURN")
+R05_DEFINE_LOCAL_ENUM(Pattern, "Pattern")
+R05_DEFINE_LOCAL_ENUM(MacroDigit, "MacroDigit")
+R05_DEFINE_LOCAL_ENUM(Bracket, "Bracket")
 R05_DEFINE_LOCAL_ENUM(FIRST, "FIRST")
-R05_DEFINE_LOCAL_ENUM(Condition, "Condition")
-R05_DEFINE_LOCAL_ENUM(CALLm_BLOCK, "CALL-BLOCK")
 R05_DEFINE_LOCAL_ENUM(NEXT, "NEXT")
 
 R05_DEFINE_ENTRY_FUNCTION(Plain, "Plain") {
@@ -3922,6 +3942,1004 @@ R05_DEFINE_LOCAL_FUNCTION(DoInlineExpr, "DoInlineExpr") {
   } while (0);
 
   r05_recognition_impossible();
+}
+
+R05_DEFINE_ENTRY_FUNCTION(cm_prefal, "c-prefal") {
+  struct r05_node *p[25] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.FileName: 7 */
+    /* e.module: 9 */
+    /* e.Options: 11 */
+    /* (e.FileName) (e.module) e.Options */
+    if (! r05_brackets_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_brackets_left(p+5, p[4], p[2]))
+      continue;
+    r05_close_evar(p+7, p[3], p[4]);
+    r05_close_evar(p+9, p[5], p[6]);
+    r05_close_evar(p+11, p[6], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_Open);
+    r05_alloc_char('w');
+    r05_alloc_number(3UL);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_alloc_open_call(p+16);
+    r05_alloc_function(&r05f_WriteLines);
+    r05_alloc_number(3UL);
+    r05_alloc_open_call(p+17);
+    r05_alloc_function(&r05f_Plain);
+    r05_alloc_open_call(p+18);
+    r05_alloc_function(&r05f_FromModule);
+    r05_alloc_insert_pos(p+19);
+    r05_alloc_close_call(p+20);
+    r05_alloc_close_call(p+21);
+    r05_alloc_close_call(p+22);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_Close);
+    r05_alloc_number(3UL);
+    r05_alloc_close_call(p+24);
+    r05_push_stack(p[24]);
+    r05_push_stack(p[23]);
+    r05_push_stack(p[22]);
+    r05_push_stack(p[16]);
+    r05_push_stack(p[21]);
+    r05_push_stack(p[17]);
+    r05_push_stack(p[20]);
+    r05_push_stack(p[18]);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_splice_evar(p[14], p+7);
+    r05_splice_evar(p[19], p+9);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(WriteLines, "WriteLines") {
+  struct r05_node *p[16] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* s.FileNo: 3 */
+    /* e.Line: 6 */
+    /* e.Lines: 8 */
+    /* s.FileNo (e.Line) e.Lines */
+    if (! r05_svar_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_brackets_left(p+4, p[3], p[2]))
+      continue;
+    r05_close_evar(p+6, p[4], p[5]);
+    r05_close_evar(p+8, p[5], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_Putout);
+    r05_alloc_svar(p+3);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_call(p+12);
+    r05_alloc_open_call(p+13);
+    r05_alloc_function(&r05f_WriteLines);
+    r05_alloc_svar(p+3);
+    r05_alloc_insert_pos(p+14);
+    r05_alloc_close_call(p+15);
+    r05_push_stack(p[15]);
+    r05_push_stack(p[13]);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[10]);
+    r05_splice_evar(p[11], p+6);
+    r05_splice_evar(p[14], p+8);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /* s.FileNo: 3 */
+    /* s.FileNo */
+    if (! r05_svar_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_empty_hole(p[3], p[2]))
+      continue;
+
+    r05_reset_allocator();
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModule, "FromModule") {
+  R05_DEFINE_COND_FUNCTION(FromModule, "FromModule$1", 1)
+  struct r05_node *p[42] = { 0 };
+
+  r05_this_is_generated_function();
+  switch (arg_begin->next->info.function->resume_entry >> 1) {
+  case 0:
+    p[0] = arg_begin;
+    p[1] = arg_begin->next;
+    p[2] = arg_end;
+
+    do {
+      /* e.Units: 6 */
+      /* (EXTERN) e.Units */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_EXTERN))
+        continue;
+      if (! r05_empty_hole(p[5], p[4]))
+        continue;
+      r05_close_evar(p+6, p[4], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+8);
+      r05_alloc_function(&r05f_FromModule);
+      r05_alloc_insert_pos(p+9);
+      r05_alloc_close_call(p+10);
+      r05_push_stack(p[10]);
+      r05_push_stack(p[8]);
+      r05_splice_evar(p[9], p+6);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* e.Names: 6 */
+      /* e.Units: 8 */
+      /* (EXTERN e.Names) e.Units */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_EXTERN))
+        continue;
+      r05_close_evar(p+6, p[5], p[4]);
+      r05_close_evar(p+8, p[4], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+10);
+      r05_alloc_function(&r05f_Extern);
+      r05_alloc_open_call(p+11);
+      r05_alloc_function(&r05f_FromModulem_Externs);
+      r05_alloc_insert_pos(p+12);
+      r05_alloc_close_call(p+13);
+      r05_alloc_close_bracket(p+14);
+      r05_alloc_open_call(p+15);
+      r05_alloc_function(&r05f_FromModule);
+      r05_alloc_insert_pos(p+16);
+      r05_alloc_close_call(p+17);
+      r05_push_stack(p[17]);
+      r05_push_stack(p[15]);
+      r05_link_brackets(p[10], p[14]);
+      r05_push_stack(p[13]);
+      r05_push_stack(p[11]);
+      r05_splice_evar(p[12], p+6);
+      r05_splice_evar(p[16], p+8);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* e.Sentences: 9 */
+      /* e.Units: 11 */
+      /* s.Scope: 13 */
+      /* e.CommentsScope: 14 */
+      /* s.Name: 16 */
+      /* e.CommentsName: 17 */
+      /* ((s.Scope e.CommentsScope) (s.Name e.CommentsName) e.Sentences) e.Units */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_brackets_left(p+5, p[3], p[4]))
+        continue;
+      if (! r05_brackets_left(p+7, p[6], p[4]))
+        continue;
+      r05_close_evar(p+9, p[8], p[4]);
+      r05_close_evar(p+11, p[4], p[2]);
+      if (! r05_svar_left(p+13, p[5], p[6]))
+        continue;
+      r05_close_evar(p+14, p[13], p[6]);
+      if (! r05_svar_left(p+16, p[7], p[8]))
+        continue;
+      r05_close_evar(p+17, p[16], p[8]);
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+19);
+      r05_alloc_function(&c1);
+      r05_alloc_open_bracket(p+20);
+      r05_alloc_function(&r05f_LOCAL);
+      r05_alloc_function(&r05f_Local);
+      r05_alloc_close_bracket(p+21);
+      r05_alloc_open_bracket(p+22);
+      r05_alloc_function(&r05f_ENTRY);
+      r05_alloc_function(&r05f_Entry);
+      r05_alloc_close_bracket(p+23);
+      r05_alloc_close_call(p+24);
+      r05_push_stack(p[24]);
+      r05_push_stack(p[19]);
+      r05_link_brackets(p[22], p[23]);
+      r05_link_brackets(p[20], p[21]);
+      r05_push_context(p, 19);
+      r05_splice_from_freelist(p[2]);
+      return;
+
+  case 1:
+      r05_pop_context(p, 19);
+      p[19] = arg_begin;
+      p[20] = arg_begin->next;
+      p[21] = arg_end;
+
+      do {
+        /* e.Sentences: 9 */
+        /* e.Units: 11 */
+        /* s.Scope: 13, 26 */
+        /* e.CommentsScope: 14 */
+        /* s.Name: 16 */
+        /* e.CommentsName: 17 */
+        /* e.1: 22 */
+        /* e.2: 27 */
+        /* s.PlainerScope: 29 */
+        /* e.1 (s.Scope s.PlainerScope) e.2 */
+        p[22] = NULL;
+        p[23] = p[20];
+        do {
+          r05_start_e_loop();
+          if (! r05_brackets_left(p+24, p[23], p[21]))
+            continue;
+          if (! r05_repeated_svar_left(p+26, p[24], p[25], p+13))
+            continue;
+          r05_close_evar(p+27, p[25], p[21]);
+          if (! r05_svar_left(p+29, p[26], p[25]))
+            continue;
+          if (! r05_empty_hole(p[29], p[25]))
+            continue;
+
+          r05_reset_allocator();
+          r05_alloc_open_bracket(p+30);
+          r05_alloc_function(&r05f_Function);
+          r05_alloc_function(&r05f_NOm_POS);
+          r05_alloc_open_bracket(p+31);
+          r05_alloc_open_call(p+32);
+          r05_alloc_function(&r05f_Explode);
+          r05_alloc_svar(p+16);
+          r05_alloc_close_call(p+33);
+          r05_alloc_close_bracket(p+34);
+          r05_alloc_svar(p+29);
+          r05_alloc_open_call(p+35);
+          r05_alloc_function(&r05f_FromModulem_Sentences);
+          r05_alloc_insert_pos(p+36);
+          r05_alloc_close_call(p+37);
+          r05_alloc_close_bracket(p+38);
+          r05_alloc_open_call(p+39);
+          r05_alloc_function(&r05f_FromModule);
+          r05_alloc_insert_pos(p+40);
+          r05_alloc_close_call(p+41);
+          r05_push_stack(p[41]);
+          r05_push_stack(p[39]);
+          r05_link_brackets(p[30], p[38]);
+          r05_push_stack(p[37]);
+          r05_push_stack(p[35]);
+          r05_link_brackets(p[31], p[34]);
+          r05_push_stack(p[33]);
+          r05_push_stack(p[32]);
+          r05_splice_evar(p[36], p+9);
+          r05_splice_evar(p[40], p+11);
+          r05_splice_from_freelist(p[0]);
+          r05_splice_to_freelist(p[0], p[2]);
+          return;
+        } while (r05_open_evar_advance(p+22, p[21]));
+        r05_stop_e_loop();
+      } while (0);
+      r05_splice_to_freelist(p[19], p[21]);
+    } while (0);
+
+    do {
+      /* e.Comment: 6 */
+      /* e.Units: 8 */
+      /* (Comment e.Comment) e.Units */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Comment))
+        continue;
+      r05_close_evar(p+6, p[5], p[4]);
+      r05_close_evar(p+8, p[4], p[2]);
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+10);
+      r05_alloc_function(&r05f_SpecialComment);
+      r05_alloc_function(&r05f_NOm_POS);
+      r05_alloc_insert_pos(p+11);
+      r05_alloc_close_bracket(p+12);
+      r05_alloc_open_call(p+13);
+      r05_alloc_function(&r05f_FromModule);
+      r05_alloc_insert_pos(p+14);
+      r05_alloc_close_call(p+15);
+      r05_push_stack(p[15]);
+      r05_push_stack(p[13]);
+      r05_link_brackets(p[10], p[12]);
+      r05_splice_evar(p[11], p+6);
+      r05_splice_evar(p[14], p+8);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /*  */
+      if (! r05_empty_hole(p[1], p[2]))
+        continue;
+
+      r05_reset_allocator();
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    r05_recognition_impossible();
+  }
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModulem_Externs, "FromModule-Externs") {
+  struct r05_node *p[13] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* s.Name: 3 */
+    /* e.Names: 4 */
+    /* s.Name e.Names */
+    if (! r05_svar_left(p+3, p[1], p[2]))
+      continue;
+    r05_close_evar(p+4, p[3], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+6);
+    r05_alloc_function(&r05f_NOm_POS);
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_Explode);
+    r05_alloc_svar(p+3);
+    r05_alloc_close_call(p+8);
+    r05_alloc_close_bracket(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_FromModulem_Externs);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_call(p+12);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[10]);
+    r05_link_brackets(p[6], p[9]);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[7]);
+    r05_splice_evar(p[11], p+4);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /*  */
+    if (! r05_empty_hole(p[1], p[2]))
+      continue;
+
+    r05_reset_allocator();
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModulem_Sentences, "FromModule-Sentences") {
+  struct r05_node *p[38] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.Comment: 6 */
+    /* e.Sentences: 8 */
+    /* (Comment e.Comment) e.Sentences */
+    if (! r05_brackets_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_function_left(p+5, p[3], p[4], &r05f_Comment))
+      continue;
+    r05_close_evar(p+6, p[5], p[4]);
+    r05_close_evar(p+8, p[4], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_FromModulem_Sentences);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_call(p+12);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[10]);
+    r05_splice_evar(p[11], p+8);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /* e.Left: 11 */
+    /* e.Result: 13 */
+    /* e.Sentences: 15 */
+    /* ((e.Left) '=' (Expression e.Result)) e.Sentences */
+    if (! r05_brackets_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_brackets_left(p+5, p[3], p[4]))
+      continue;
+    if (! r05_char_left(p+7, p[6], p[4], '='))
+      continue;
+    if (! r05_brackets_left(p+8, p[7], p[4]))
+      continue;
+    if (! r05_function_left(p+10, p[8], p[9], &r05f_Expression))
+      continue;
+    if (! r05_empty_hole(p[9], p[4]))
+      continue;
+    r05_close_evar(p+11, p[5], p[6]);
+    r05_close_evar(p+13, p[10], p[9]);
+    r05_close_evar(p+15, p[4], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+17);
+    r05_alloc_open_call(p+18);
+    r05_alloc_function(&r05f_FromModulem_Left);
+    r05_alloc_insert_pos(p+19);
+    r05_alloc_close_call(p+20);
+    r05_alloc_function(&r05f_RETURN);
+    r05_alloc_open_bracket(p+21);
+    r05_alloc_open_call(p+22);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+23);
+    r05_alloc_close_call(p+24);
+    r05_alloc_close_bracket(p+25);
+    r05_alloc_close_bracket(p+26);
+    r05_alloc_open_call(p+27);
+    r05_alloc_function(&r05f_FromModulem_Sentences);
+    r05_alloc_insert_pos(p+28);
+    r05_alloc_close_call(p+29);
+    r05_push_stack(p[29]);
+    r05_push_stack(p[27]);
+    r05_link_brackets(p[17], p[26]);
+    r05_link_brackets(p[21], p[25]);
+    r05_push_stack(p[24]);
+    r05_push_stack(p[22]);
+    r05_push_stack(p[20]);
+    r05_push_stack(p[18]);
+    r05_splice_evar(p[19], p+11);
+    r05_splice_evar(p[23], p+13);
+    r05_splice_evar(p[28], p+15);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /* e.Left: 14 */
+    /* e.Result: 16 */
+    /* e.Nested: 18 */
+    /* e.Sentences: 20 */
+    /* (e.Left (Condition (Expression e.Result) (Block e.Nested))) e.Sentences */
+    if (! r05_brackets_left(p+3, p[1], p[2]))
+      continue;
+    if (! r05_brackets_right(p+5, p[3], p[4]))
+      continue;
+    if (! r05_function_left(p+7, p[5], p[6], &r05f_Condition))
+      continue;
+    if (! r05_brackets_left(p+8, p[7], p[6]))
+      continue;
+    if (! r05_function_left(p+10, p[8], p[9], &r05f_Expression))
+      continue;
+    if (! r05_brackets_left(p+11, p[9], p[6]))
+      continue;
+    if (! r05_function_left(p+13, p[11], p[12], &r05f_Block))
+      continue;
+    if (! r05_empty_hole(p[12], p[6]))
+      continue;
+    r05_close_evar(p+14, p[3], p[5]);
+    r05_close_evar(p+16, p[10], p[9]);
+    r05_close_evar(p+18, p[13], p[12]);
+    r05_close_evar(p+20, p[4], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+22);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_FromModulem_Left);
+    r05_alloc_insert_pos(p+24);
+    r05_alloc_close_call(p+25);
+    r05_alloc_function(&r05f_CALLm_BLOCK);
+    r05_alloc_open_bracket(p+26);
+    r05_alloc_open_call(p+27);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+28);
+    r05_alloc_close_call(p+29);
+    r05_alloc_close_bracket(p+30);
+    r05_alloc_open_call(p+31);
+    r05_alloc_function(&r05f_FromModulem_Sentences);
+    r05_alloc_insert_pos(p+32);
+    r05_alloc_close_call(p+33);
+    r05_alloc_close_bracket(p+34);
+    r05_alloc_open_call(p+35);
+    r05_alloc_function(&r05f_FromModulem_Sentences);
+    r05_alloc_insert_pos(p+36);
+    r05_alloc_close_call(p+37);
+    r05_push_stack(p[37]);
+    r05_push_stack(p[35]);
+    r05_link_brackets(p[22], p[34]);
+    r05_push_stack(p[33]);
+    r05_push_stack(p[31]);
+    r05_link_brackets(p[26], p[30]);
+    r05_push_stack(p[29]);
+    r05_push_stack(p[27]);
+    r05_push_stack(p[25]);
+    r05_push_stack(p[23]);
+    r05_splice_evar(p[24], p+14);
+    r05_splice_evar(p[28], p+16);
+    r05_splice_evar(p[32], p+18);
+    r05_splice_evar(p[36], p+20);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /*  */
+    if (! r05_empty_hole(p[1], p[2]))
+      continue;
+
+    r05_reset_allocator();
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModulem_Left, "FromModule-Left") {
+  struct r05_node *p[33] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* e.Left: 12 */
+    /* e.Result: 14 */
+    /* e.Pattern: 16 */
+    /* e.Left (Condition (Expression e.Result) (Pattern e.Pattern)) */
+    if (! r05_brackets_right(p+3, p[1], p[2]))
+      continue;
+    if (! r05_function_left(p+5, p[3], p[4], &r05f_Condition))
+      continue;
+    if (! r05_brackets_left(p+6, p[5], p[4]))
+      continue;
+    if (! r05_function_left(p+8, p[6], p[7], &r05f_Expression))
+      continue;
+    if (! r05_brackets_left(p+9, p[7], p[4]))
+      continue;
+    if (! r05_function_left(p+11, p[9], p[10], &r05f_Pattern))
+      continue;
+    if (! r05_empty_hole(p[10], p[4]))
+      continue;
+    r05_close_evar(p+12, p[1], p[3]);
+    r05_close_evar(p+14, p[8], p[7]);
+    r05_close_evar(p+16, p[11], p[10]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+18);
+    r05_alloc_function(&r05f_FromModulem_Left);
+    r05_alloc_insert_pos(p+19);
+    r05_alloc_close_call(p+20);
+    r05_alloc_open_bracket(p+21);
+    r05_alloc_function(&r05f_Condition);
+    r05_alloc_open_bracket(p+22);
+    r05_alloc_open_call(p+23);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+24);
+    r05_alloc_close_call(p+25);
+    r05_alloc_close_bracket(p+26);
+    r05_alloc_open_bracket(p+27);
+    r05_alloc_open_call(p+28);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+29);
+    r05_alloc_close_call(p+30);
+    r05_alloc_close_bracket(p+31);
+    r05_alloc_close_bracket(p+32);
+    r05_link_brackets(p[21], p[32]);
+    r05_link_brackets(p[27], p[31]);
+    r05_push_stack(p[30]);
+    r05_push_stack(p[28]);
+    r05_link_brackets(p[22], p[26]);
+    r05_push_stack(p[25]);
+    r05_push_stack(p[23]);
+    r05_push_stack(p[20]);
+    r05_push_stack(p[18]);
+    r05_splice_evar(p[19], p+12);
+    r05_splice_evar(p[24], p+14);
+    r05_splice_evar(p[29], p+16);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /* e.Pattern: 3 */
+    /* e.Pattern */
+    r05_close_evar(p+3, p[1], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_bracket(p+5);
+    r05_alloc_open_call(p+6);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+7);
+    r05_alloc_close_call(p+8);
+    r05_alloc_close_bracket(p+9);
+    r05_link_brackets(p[5], p[9]);
+    r05_push_stack(p[8]);
+    r05_push_stack(p[6]);
+    r05_splice_evar(p[7], p+3);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModulem_Expr, "FromModule-Expr") {
+  struct r05_node *p[13] = { 0 };
+
+  r05_this_is_generated_function();
+  p[0] = arg_begin;
+  p[1] = arg_begin->next;
+  p[2] = arg_end;
+
+  do {
+    /* t.Term: 3 */
+    /* e.Expr: 5 */
+    /* t.Term e.Expr */
+    if (! r05_tvar_left(p+3, p[1], p[2]))
+      continue;
+    r05_close_evar(p+5, p[4], p[2]);
+
+    r05_reset_allocator();
+    r05_alloc_open_call(p+7);
+    r05_alloc_function(&r05f_FromModulem_Term);
+    r05_alloc_insert_pos(p+8);
+    r05_alloc_close_call(p+9);
+    r05_alloc_open_call(p+10);
+    r05_alloc_function(&r05f_FromModulem_Expr);
+    r05_alloc_insert_pos(p+11);
+    r05_alloc_close_call(p+12);
+    r05_push_stack(p[12]);
+    r05_push_stack(p[10]);
+    r05_push_stack(p[9]);
+    r05_push_stack(p[7]);
+    r05_splice_tvar(p[8], p+3);
+    r05_splice_evar(p[11], p+5);
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  do {
+    /*  */
+    if (! r05_empty_hole(p[1], p[2]))
+      continue;
+
+    r05_reset_allocator();
+    r05_splice_from_freelist(p[0]);
+    r05_splice_to_freelist(p[0], p[2]);
+    return;
+  } while (0);
+
+  r05_recognition_impossible();
+}
+
+R05_DEFINE_LOCAL_FUNCTION(FromModulem_Term, "FromModule-Term") {
+  R05_DEFINE_COND_FUNCTION(FromModulem_Term, "FromModule-Term$1", 1)
+  struct r05_node *p[18] = { 0 };
+
+  r05_this_is_generated_function();
+  switch (arg_begin->next->info.function->resume_entry >> 1) {
+  case 0:
+    p[0] = arg_begin;
+    p[1] = arg_begin->next;
+    p[2] = arg_end;
+
+    do {
+      /* s.Word: 6 */
+      /* (Word s.Word) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Word))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      if (! r05_svar_left(p+6, p[5], p[4]))
+        continue;
+      if (! r05_empty_hole(p[6], p[4]))
+        continue;
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+7);
+      r05_alloc_function(&r05f_Symbol);
+      r05_alloc_function(&r05f_Word);
+      r05_alloc_open_call(p+8);
+      r05_alloc_function(&r05f_Explode);
+      r05_alloc_svar(p+6);
+      r05_alloc_close_call(p+9);
+      r05_alloc_close_bracket(p+10);
+      r05_link_brackets(p[7], p[10]);
+      r05_push_stack(p[9]);
+      r05_push_stack(p[8]);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* s.Number: 6 */
+      /* (MacroDigit s.Number) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_MacroDigit))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      if (! r05_svar_left(p+6, p[5], p[4]))
+        continue;
+      if (! r05_empty_hole(p[6], p[4]))
+        continue;
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+7);
+      r05_alloc_function(&r05f_Symbol);
+      r05_alloc_function(&r05f_Number);
+      r05_alloc_svar(p+6);
+      r05_alloc_close_bracket(p+8);
+      r05_link_brackets(p[7], p[8]);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* s.Char: 3 */
+      /* s.Char */
+      if (! r05_svar_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_empty_hole(p[3], p[2]))
+        continue;
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+4);
+      r05_alloc_function(&r05f_Symbol);
+      r05_alloc_function(&r05f_Char);
+      r05_alloc_svar(p+3);
+      r05_alloc_close_bracket(p+5);
+      r05_link_brackets(p[4], p[5]);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* s.Mode: 6 */
+      /* s.Index: 7 */
+      /* (Variable s.Mode s.Index) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Variable))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      if (! r05_svar_left(p+6, p[5], p[4]))
+        continue;
+      if (! r05_svar_left(p+7, p[6], p[4]))
+        continue;
+      if (! r05_empty_hole(p[7], p[4]))
+        continue;
+
+      r05_reset_allocator();
+      r05_alloc_open_call(p+8);
+      r05_alloc_function(&c1);
+      r05_alloc_open_call(p+9);
+      r05_alloc_function(&r05f_Type);
+      r05_alloc_svar(p+7);
+      r05_alloc_close_call(p+10);
+      r05_alloc_close_call(p+11);
+      r05_push_stack(p[11]);
+      r05_push_stack(p[8]);
+      r05_push_stack(p[10]);
+      r05_push_stack(p[9]);
+      r05_push_context(p, 8);
+      r05_splice_from_freelist(p[2]);
+      return;
+
+  case 1:
+      r05_pop_context(p, 8);
+      p[8] = arg_begin;
+      p[9] = arg_begin->next;
+      p[10] = arg_end;
+
+      do {
+        /* s.Mode: 6 */
+        /* s.Index: 7 */
+        /* s.Number: 13 */
+        /* 'N0' s.Number */
+        if (! r05_char_left(p+11, p[9], p[10], 'N'))
+          continue;
+        if (! r05_char_left(p+12, p[11], p[10], '0'))
+          continue;
+        if (! r05_svar_left(p+13, p[12], p[10]))
+          continue;
+        if (! r05_empty_hole(p[13], p[10]))
+          continue;
+
+        r05_reset_allocator();
+        r05_alloc_open_bracket(p+14);
+        r05_alloc_function(&r05f_Variable);
+        r05_alloc_function(&r05f_NOm_POS);
+        r05_alloc_svar(p+6);
+        r05_alloc_open_call(p+15);
+        r05_alloc_function(&r05f_Symb);
+        r05_alloc_svar(p+13);
+        r05_alloc_close_call(p+16);
+        r05_alloc_close_bracket(p+17);
+        r05_link_brackets(p[14], p[17]);
+        r05_push_stack(p[16]);
+        r05_push_stack(p[15]);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      do {
+        /* s.Mode: 6 */
+        /* s.Index: 7 */
+        /* s.SubType: 12 */
+        /* s.Word: 13 */
+        /* 'W' s.SubType s.Word */
+        if (! r05_char_left(p+11, p[9], p[10], 'W'))
+          continue;
+        if (! r05_svar_left(p+12, p[11], p[10]))
+          continue;
+        if (! r05_svar_left(p+13, p[12], p[10]))
+          continue;
+        if (! r05_empty_hole(p[13], p[10]))
+          continue;
+
+        r05_reset_allocator();
+        r05_alloc_open_bracket(p+14);
+        r05_alloc_function(&r05f_Variable);
+        r05_alloc_function(&r05f_NOm_POS);
+        r05_alloc_svar(p+6);
+        r05_alloc_open_call(p+15);
+        r05_alloc_function(&r05f_Explode);
+        r05_alloc_svar(p+13);
+        r05_alloc_close_call(p+16);
+        r05_alloc_close_bracket(p+17);
+        r05_link_brackets(p[14], p[17]);
+        r05_push_stack(p[16]);
+        r05_push_stack(p[15]);
+        r05_splice_from_freelist(p[0]);
+        r05_splice_to_freelist(p[0], p[2]);
+        return;
+      } while (0);
+
+      r05_recognition_impossible();
+    } while (0);
+
+    do {
+      /* e.Nested: 6 */
+      /* (Bracket e.Nested) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Bracket))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      r05_close_evar(p+6, p[5], p[4]);
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+8);
+      r05_alloc_function(&r05f_Brackets);
+      r05_alloc_open_call(p+9);
+      r05_alloc_function(&r05f_FromModulem_Expr);
+      r05_alloc_insert_pos(p+10);
+      r05_alloc_close_call(p+11);
+      r05_alloc_close_bracket(p+12);
+      r05_link_brackets(p[8], p[12]);
+      r05_push_stack(p[11]);
+      r05_push_stack(p[9]);
+      r05_splice_evar(p[10], p+6);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* s.Function: 6 */
+      /* e.Nested: 7 */
+      /* (Call s.Function e.Nested) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Call))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      if (! r05_svar_left(p+6, p[5], p[4]))
+        continue;
+      r05_close_evar(p+7, p[6], p[4]);
+
+      r05_reset_allocator();
+      r05_alloc_open_bracket(p+9);
+      r05_alloc_function(&r05f_Call);
+      r05_alloc_function(&r05f_NOm_POS);
+      r05_alloc_open_bracket(p+10);
+      r05_alloc_open_call(p+11);
+      r05_alloc_function(&r05f_Explode);
+      r05_alloc_svar(p+6);
+      r05_alloc_close_call(p+12);
+      r05_alloc_close_bracket(p+13);
+      r05_alloc_open_call(p+14);
+      r05_alloc_function(&r05f_FromModulem_Expr);
+      r05_alloc_insert_pos(p+15);
+      r05_alloc_close_call(p+16);
+      r05_alloc_close_bracket(p+17);
+      r05_link_brackets(p[9], p[17]);
+      r05_push_stack(p[16]);
+      r05_push_stack(p[14]);
+      r05_link_brackets(p[10], p[13]);
+      r05_push_stack(p[12]);
+      r05_push_stack(p[11]);
+      r05_splice_evar(p[15], p+7);
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    do {
+      /* e.Comment: 6 */
+      /* (Comment e.Comment) */
+      if (! r05_brackets_left(p+3, p[1], p[2]))
+        continue;
+      if (! r05_function_left(p+5, p[3], p[4], &r05f_Comment))
+        continue;
+      if (! r05_empty_hole(p[4], p[2]))
+        continue;
+      r05_close_evar(p+6, p[5], p[4]);
+
+      r05_reset_allocator();
+      r05_splice_from_freelist(p[0]);
+      r05_splice_to_freelist(p[0], p[2]);
+      return;
+    } while (0);
+
+    r05_recognition_impossible();
+  }
 }
 
 
